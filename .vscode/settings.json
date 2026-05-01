@@ -1,0 +1,12 @@
+{
+    "python-envs.defaultEnvManager": "ms-python.python:system",
+    "python.analysis.extraPaths": [
+        "./backend"
+    ],
+    "python.analysis.packageIndexDepths": {
+        "./backend": 2
+    },
+    "python.autoComplete.extraPaths": [
+        "./backend"
+    ]
+}
