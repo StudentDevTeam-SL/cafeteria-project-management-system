@@ -8,6 +8,9 @@ from .models import CustomUser
 from rest_framework import viewsets
 
 class UserViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet for viewing and editing user instances.
+    """
     queryset = CustomUser.objects.all()
     permission_classes = [IsAuthenticated]
 
@@ -23,9 +26,15 @@ class UserViewSet(viewsets.ModelViewSet):
         return CustomUser.objects.filter(id=self.request.user.id)
 
 class CustomTokenObtainPairView(TokenObtainPairView):
+    """
+    View for authenticating and obtaining custom JWT tokens.
+    """
     serializer_class = CustomTokenObtainPairSerializer
 
 class LogoutView(APIView):
+    """
+    View to handle user logout functionality on the backend.
+    """
     permission_classes = (IsAuthenticated,)
 
     def post(self, request):

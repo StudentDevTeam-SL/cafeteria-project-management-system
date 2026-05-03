@@ -79,6 +79,7 @@ def seed_data():
             description=d.get('description', ''),
             price=Decimal(str(d['price'])),
             status=d.get('status', 'active'),
+            # image left blank — upload via the Menu admin UI after seeding
         )
         menu_items[mi.name] = mi
 

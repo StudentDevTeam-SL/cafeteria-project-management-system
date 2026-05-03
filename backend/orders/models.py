@@ -4,6 +4,10 @@ from menu.models import MenuItem
 
 
 class Order(models.Model):
+    """
+    Model representing a customer order.
+    Tracks status, payment method, and total price.
+    """
     STATUS_CHOICES = (
         ('pending',   'Pending'),
         ('processing','Processing'),
@@ -37,6 +41,10 @@ class Order(models.Model):
 
 
 class OrderItem(models.Model):
+    """
+    Model representing an individual item within an Order.
+    Links a MenuItem to an Order and tracks quantity and subtotal.
+    """
     order     = models.ForeignKey(Order, related_name='items', on_delete=models.CASCADE)
     menu_item = models.ForeignKey(MenuItem, on_delete=models.PROTECT)
     quantity  = models.PositiveIntegerField(default=1)
