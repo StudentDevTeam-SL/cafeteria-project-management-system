@@ -5,6 +5,10 @@ from menu.models import MenuItem
 
 
 class OrderItemSerializer(serializers.ModelSerializer):
+    """
+    Serializer for the OrderItem model.
+    Read-only serializer nested within OrderSerializer.
+    """
     menu_item_name = serializers.CharField(source='menu_item.name', read_only=True)
     price          = serializers.DecimalField(
         source='menu_item.price', read_only=True, max_digits=10, decimal_places=2
@@ -17,6 +21,10 @@ class OrderItemSerializer(serializers.ModelSerializer):
 
 
 class OrderSerializer(serializers.ModelSerializer):
+    """
+    Serializer for the Order model.
+    Handles the creation of Order and nested OrderItem instances.
+    """
     # items is read-only; creation handled manually in create()
     items        = OrderItemSerializer(many=True, read_only=True)
     total_amount = serializers.DecimalField(

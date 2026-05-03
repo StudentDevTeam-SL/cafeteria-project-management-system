@@ -4,6 +4,10 @@ from accounts.models import CustomUser
 
 
 class EmployeeSerializer(serializers.ModelSerializer):
+    """
+    Serializer for the Employee model.
+    Handles serialization of employee details and links to user accounts.
+    """
     # Exposes the linked user's PK as user_id (read + write)
     user_id = serializers.PrimaryKeyRelatedField(
         source='user',
@@ -28,3 +32,19 @@ class EmployeeSerializer(serializers.ModelSerializer):
             'position', 'salary', 'hire_date', 'status', 'shift', 'hours',
         ]
         read_only_fields = ['hire_date']
+
+    def to_representation(self, instance):
+        """Mask sensitive data for non-admin users."""
+        data = super().to_representation(instance)
+        request = self.context.get('request')
+        
+        # If user is not an Admin and not viewing their own profile, mask sensitive fields
+        if request and hasattr(request.user, 'role'):
+            is_admin = request.user.role == 'Admin'
+            is_self  = instance.user == request.user
+            
+            if not is_admin and not is_self:
+                data['salary'] = "********"
+                data['phone']  = "********"
+        
+        return data
