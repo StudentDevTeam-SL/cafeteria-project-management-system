@@ -166,7 +166,7 @@ const OrderModal = ({ order, onClose, onStatusChange, isAdmin }) => {
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">Order Items</h3>
             {order.items.map((item,i)=>(
               <div key={i} className="flex items-center justify-between text-sm">
-                <div className="flex items-center gap-2"><span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center font-bold">{item.quantity || item.qty}</span><span>{item.item_name || item.name}</span></div>
+                <div className="flex items-center gap-2"><span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center font-bold">{item.quantity || item.qty}</span><span>{item.menu_item_name || item.item_name || item.name}</span></div>
                 <span className="font-semibold">${((item.quantity || item.qty) * (item.unit_price || item.price)).toFixed(2)}</span>
               </div>
             ))}
@@ -195,7 +195,10 @@ const SalesReport = ({ orders }) => {
 
   // Top items
   const itemMap = {};
-  completed.forEach(o=>(o.items||[]).forEach(i=>{ itemMap[i.item_name || i.name]=(itemMap[i.item_name || i.name]||0)+(i.quantity || i.qty); }));
+  completed.forEach(o=>(o.items||[]).forEach(i=>{ 
+    const n = i.menu_item_name || i.item_name || i.name || 'Unknown Item';
+    itemMap[n]=(itemMap[n]||0)+(i.quantity || i.qty); 
+  }));
   const topItems = Object.entries(itemMap).sort((a,b)=>b[1]-a[1]).slice(0,5);
 
   const methodColors = { cash:'bg-emerald-500', paypal:'bg-blue-500', mastercard:'bg-violet-500', zaad:'bg-amber-500' };

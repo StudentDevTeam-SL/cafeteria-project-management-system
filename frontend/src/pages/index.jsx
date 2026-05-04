@@ -10,3 +10,4 @@ export { default as Inventory } from './Inventory';
 export { default as Salaries } from './Salaries';
 export { default as Employees } from './Employees';
 export { default as Settings } from './Settings';
+export { default as Reports } from './Reports';

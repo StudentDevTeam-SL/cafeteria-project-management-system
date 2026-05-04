@@ -392,13 +392,11 @@ const Menu = () => {
         fd.append('image_url', form.image || form.photoUrl || '');
       }
 
-      const config = { headers: { 'Content-Type': 'multipart/form-data' } };
-
       if (editItem) {
-        res = await api.patch(`menu/${editItem.id}/`, fd, config);
+        res = await api.patch(`menu/${editItem.id}/`, fd);
         setItems(p=>p.map(i=>i.id===editItem.id?res.data:i));
       } else {
-        res = await api.post('menu/', fd, config);
+        res = await api.post('menu/', fd);
         setItems(p=>[...p, res.data]);
       }
       setModalOpen(false); setEditItem(null);

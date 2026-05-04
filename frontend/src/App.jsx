@@ -10,7 +10,7 @@ import { PublicLayout } from './components/Layout/PublicLayout';
 
 import {
   Home, Login, About, Contact, Dashboard, Menu, Orders,
-  Inventory, Salaries, Employees, Settings
+  Inventory, Salaries, Employees, Settings, Reports
 } from './pages';
 
 function App() {
@@ -41,6 +41,7 @@ function App() {
                   <Route path="/orders" element={<Orders />} />
                   <Route path="/inventory" element={<Inventory />} />
                   <Route path="/settings" element={<Settings />} />
+                  <Route path="/reports" element={<Reports />} />
 
                   {/* Only Admin can access these */}
                   <Route element={<ProtectedRoute allowedRoles={['Admin']} />}>

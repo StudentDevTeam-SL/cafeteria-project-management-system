@@ -5,7 +5,7 @@ import { useTheme } from '../../hooks/useTheme';
 import { usePerformance } from '../../hooks/usePerformance';
 import {
   LogOut, ChefHat, Moon, Sun, LayoutDashboard, UtensilsCrossed,
-  Package, FileText, Settings, Users, DollarSign, Menu, X, Zap, ZapOff
+  Package, FileText, Settings, Users, DollarSign, Menu, X, Zap, ZapOff, BarChart2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
@@ -15,6 +15,7 @@ const NAV_ITEMS = [
   { to: '/menu', icon: UtensilsCrossed, label: 'Menu' },
   { to: '/orders', icon: FileText, label: 'Orders' },
   { to: '/inventory', icon: Package, label: 'Inventory' },
+  { to: '/reports', icon: BarChart2, label: 'Reports' },
   { to: '/settings', icon: Settings, label: 'Settings' },
 ];
 

@@ -46,7 +46,7 @@ class OrderItem(models.Model):
     Links a MenuItem to an Order and tracks quantity and subtotal.
     """
     order     = models.ForeignKey(Order, related_name='items', on_delete=models.CASCADE)
-    menu_item = models.ForeignKey(MenuItem, on_delete=models.PROTECT)
+    menu_item = models.ForeignKey(MenuItem, on_delete=models.CASCADE)
     quantity  = models.PositiveIntegerField(default=1)
     subtotal  = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
 

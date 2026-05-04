@@ -45,10 +45,14 @@ class MenuItemSerializer(serializers.ModelSerializer):
         """Return absolute image URL so the frontend can display uploaded images."""
         rep = super().to_representation(instance)
         request = self.context.get('request')
-        if instance.image and request:
-            rep['image'] = request.build_absolute_uri(instance.image.url)
-        elif instance.image:
-            rep['image'] = instance.image.url
+        if instance.image:
+            image_str = str(instance.image)
+            if image_str.startswith('http'):
+                rep['image'] = image_str
+            elif request:
+                rep['image'] = request.build_absolute_uri(instance.image.url)
+            else:
+                rep['image'] = instance.image.url
         return rep
 
     def _resolve_category(self, raw_data):
