@@ -1,5 +1,11 @@
 from django.contrib import admin
-from .models import Category, MenuItem
+from .models import Category, MenuItem, ContactMessage
+
+@admin.register(ContactMessage)
+class ContactMessageAdmin(admin.ModelAdmin):
+    list_display = ('name', 'email', 'subject', 'created_at')
+    search_fields = ('name', 'email', 'subject')
+    list_filter = ('created_at',)
 
 admin.site.register(Category)
 admin.site.register(MenuItem)

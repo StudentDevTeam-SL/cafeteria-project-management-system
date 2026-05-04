@@ -1,18 +1,40 @@
-from rest_framework import viewsets
+from rest_framework import viewsets, mixins
+from rest_framework.permissions import AllowAny
 from rest_framework.decorators import action
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework.response import Response
 from .models import Category, MenuItem
 from .serializers import CategorySerializer, MenuItemSerializer
+from accounts.permissions import IsAdminRoleOrReadOnly
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
-    queryset         = Category.objects.all()
+    """
+    ViewSet for viewing and editing menu categories.
+    Read access is open to all authenticated users; write access is Admin-only.
+    """
+    queryset = Category.objects.all()
     serializer_class = CategorySerializer
+    permission_classes = [IsAdminRoleOrReadOnly]
 
 
 class MenuItemViewSet(viewsets.ModelViewSet):
-    queryset         = MenuItem.objects.all()
-    serializer_class = MenuItemSerializer
+    """
+    ViewSet for viewing and editing menu items.
+    Supports multipart/form-data for image uploads (ImageField).
+    Provides a custom action to toggle an item's active status.
+    """
+    queryset           = MenuItem.objects.all()
+    serializer_class   = MenuItemSerializer
+    permission_classes = [IsAdminRoleOrReadOnly]
+    # Accept file uploads (multipart) as well as JSON
+    parser_classes     = [MultiPartParser, FormParser, JSONParser]
+
+    def get_serializer_context(self):
+        """Pass request to serializer so it can build absolute image URLs."""
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
 
     @action(detail=True, methods=['patch'])
     def toggle(self, request, pk=None):
@@ -20,4 +42,15 @@ class MenuItemViewSet(viewsets.ModelViewSet):
         item        = self.get_object()
         item.status = 'inactive' if item.status == 'active' else 'active'
         item.save()
-        return Response(MenuItemSerializer(item).data)
+        return Response(MenuItemSerializer(item, context={'request': request}).data)
+
+class ContactMessageViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
+    """
+    ViewSet for handling public contact form submissions.
+    """
+    from .models import ContactMessage
+    from .serializers import ContactMessageSerializer
+    queryset = ContactMessage.objects.all()
+    serializer_class = ContactMessageSerializer
+    permission_classes = [AllowAny]
+

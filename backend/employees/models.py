@@ -3,6 +3,10 @@ from django.conf import settings
 
 
 class Employee(models.Model):
+    """
+    Model representing a cafeteria employee.
+    Stores personal info, job details, and optional link to a CustomUser account.
+    """
     STATUS_CHOICES = (
         ('active', 'Active'),
         ('inactive', 'Inactive'),

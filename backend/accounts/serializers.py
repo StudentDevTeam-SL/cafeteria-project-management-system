@@ -3,11 +3,18 @@ from .models import CustomUser
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 class UserSerializer(serializers.ModelSerializer):
+    """
+    Serializer for the CustomUser model for reading basic user information.
+    """
     class Meta:
         model = CustomUser
         fields = ['id', 'username', 'email', 'role', 'phone_number']
 
 class UserCreateSerializer(serializers.ModelSerializer):
+    """
+    Serializer used for creating new CustomUser instances.
+    Handles secure password hashing.
+    """
     password = serializers.CharField(write_only=True)
 
     class Meta:
@@ -29,6 +36,10 @@ class UserCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({"username": ["A user with that username already exists."]})
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    """
+    Custom JWT token serializer that includes additional claims
+    like user role and username.
+    """
     @classmethod
     def get_token(cls, user):
         token = super().get_token(user)

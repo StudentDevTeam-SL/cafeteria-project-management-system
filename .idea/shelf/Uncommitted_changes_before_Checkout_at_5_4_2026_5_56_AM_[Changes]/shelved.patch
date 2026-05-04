@@ -1,0 +1,1101 @@
+Index: frontend/.gitignore
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/frontend/.gitignore b/frontend/.gitignore
+deleted file mode 100644
+--- a/frontend/.gitignore	(revision b17e05f9477a53c4c9ea788ef4d509aded512ca2)
++++ /dev/null	(revision b17e05f9477a53c4c9ea788ef4d509aded512ca2)
+@@ -1,24 +0,0 @@
+-# Logs
+-logs
+-*.log
+-npm-debug.log*
+-yarn-debug.log*
+-yarn-error.log*
+-pnpm-debug.log*
+-lerna-debug.log*
+-
+-node_modules
+-dist
+-dist-ssr
+-*.local
+-
+-# Editor directories and files
+-.vscode/*
+-!.vscode/extensions.json
+-.idea
+-.DS_Store
+-*.suo
+-*.ntvs*
+-*.njsproj
+-*.sln
+-*.sw?
+Index: frontend/README.md
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/frontend/README.md b/frontend/README.md
+deleted file mode 100644
+--- a/frontend/README.md	(revision b17e05f9477a53c4c9ea788ef4d509aded512ca2)
++++ /dev/null	(revision b17e05f9477a53c4c9ea788ef4d509aded512ca2)
+@@ -1,38 +0,0 @@
+-# Cafeteria Management
+-
+-Welcome to **Cafeteria Management**, a premium open-source cafeteria management system designed to streamline orders, manage inventory, and oversee employees through a beautiful, modern interface.
+-
+-## Project Overview
+-
+-Cafeteria Management is a full-stack web application. It features a rich, animated React frontend with advanced UI paradigms like glassmorphism, responsive dark mode, and an integrated audio-feedback Point-of-Sale (POS) system. It is designed to be backed by a powerful Django REST Framework API.
+-
+-### Current State
+-Currently, the **Frontend Application is 100% complete** and running in a "Mock Mode." It contains beautifully designed screens, state management (Auth, Theme, Sound), and navigation logic, but relies on static mock data.
+-
+-The **Backend Application** is the next phase of development.
+-
+-## Documentation
+-To understand the inner workings and future requirements of the project, please review the following documentation files:
+-- 📄 [frontend.md](./frontend.md) - Details the React architecture, state management, and UI design system.
+-- 📄 [backend.md](./backend.md) - Outlines the required Django REST Framework API endpoints and security models.
+-- 📄 [database.md](./database.md) - Defines the Entity Relationship schema required for the database.
+-- 📄 [continue.md](./continue.md) - Next steps for developers continuing the project (Moving from Mock to Production).
+-
+-## Features
+-- **Global Undo System**: 7-second animated popup timer to prevent accidental deletions across Menu, Orders, Inventory, and Employees.
+-- **Role-Based Access**: Distinct interfaces and permissions for 'Admins' vs 'Employees'.
+-- **Interactive POS**: Touch-friendly catalog with audio feedback for rapid order taking.
+-- **Advanced Ordering**: Multi-step Payment Modal supporting Cash, Zaad, PayPal, and Mastercard.
+-- **Dynamic Menu Management**: Upload photos from local files or internet URLs.
+-- **Real-Time Dashboard**: Live clock, stat cards, dual charts (area/bar), and recent orders table.
+-- **Live Inventory**: Visual low-stock alerts and tracking.
+-- **Payroll & Staffing**: Admin-only modules for managing shifts, tracking salaries, and quickly toggling active/inactive status via fast filters.
+-- **Theme System**: Intelligent light/dark mode system tailored for visibility in different environments.
+-
+-## How to Run the Frontend
+-1. Ensure you have Node.js installed.
+-2. Run `npm install` to install dependencies.
+-3. Run `npm run dev` to start the Vite development server.
+-4. Login using the mock credentials:
+-   - Admin: `admin` / `admin123`
+-   - Employee: `emp` / `emp123`
+Index: frontend/test.md
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/frontend/test.md b/frontend/test.md
+deleted file mode 100644
+--- a/frontend/test.md	(revision b17e05f9477a53c4c9ea788ef4d509aded512ca2)
++++ /dev/null	(revision b17e05f9477a53c4c9ea788ef4d509aded512ca2)
+@@ -1,245 +0,0 @@
+-# test.md — Cafeteria Management Testing Guide
+-
+-## 1. How to Run the App for Testing
+-
+-```bash
+-# Navigate to the project folder
+-cd "c:\Users\pc\Desktop\New folder (2)"
+-
+-# Start the development server
+-npm run dev
+-# OR if PowerShell blocks it:
+-cmd /c "npm run dev"
+-
+-# Open in browser:
+-# http://localhost:5173
+-```
+-
+----
+-
+-## 2. Login Testing
+-
+-### 2.1 Admin Login
+-1. Go to `http://localhost:5173/login`
+-2. Click the **"👑 Admin"** quick-login button
+-3. It fills `admin` / `admin` automatically
+-4. Click **Sign In**
+-5. **Expected:** Redirected to `/dashboard` with full admin sidebar
+-
+-### 2.2 Employee Login
+-1. Click the **"👤 Employee"** quick-login button
+-2. Fills `employee` / `employee`
+-3. Click **Sign In**
+-4. **Expected:** Redirected to `/dashboard`, Salaries + Employees links are **hidden** (admin only)
+-
+-### 2.3 Wrong Credentials
+-1. Type any wrong username/password
+-2. **Expected:** Red error alert appears below the title
+-
+----
+-
+-## 3. Menu Page Testing
+-
+-### 3.1 View Menu Items
+-- Go to `/menu`
+-- **Expected:** 15 food items displayed in grid, each with Unsplash photo, rating, price, category badge
+-
+-### 3.2 Filter by Category
+-1. Click **"🥗 Salads"** tab
+-2. **Expected:** Only salad items visible (3 items)
+-3. Click **"☕ Beverages"**
+-4. **Expected:** Only drink items visible
+-
+-### 3.3 Search
+-1. Type "burger" in the search box
+-2. **Expected:** Only "Classic Beef Burger" shows
+-
+-### 3.4 Toggle Availability
+-1. Click the toggle switch icon on any card
+-2. **Expected:** Card shows "Unavailable" overlay, icon changes from green to gray
+-
+-### 3.5 ✨ Add Menu Item with Photo Upload
+-1. Click **"+ Add Item"** button
+-2. The **Add Menu Item modal** opens
+-3. **To upload from your device:**
+-   - Click the dashed upload box (📷 icon area)
+-   - A file picker opens
+-   - Select any `.jpg`, `.png`, or `.webp` image from your computer
+-   - **Expected:** Photo preview appears immediately below the upload zone
+-4. **To use an internet URL:**
+-   - Paste a URL like `https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&h=280&fit=crop`
+-   - **Expected:** Preview updates as you type
+-5. **To remove the photo:**
+-   - Hover over the preview
+-   - Click **"Remove"** button
+-6. Fill in Name, Price, Category, Description
+-7. Click **"Add to Menu"**
+-8. **Expected:** New card appears in the grid with your uploaded photo
+-
+-### 3.6 Edit Menu Item
+-1. Click the ✏️ edit icon on any card
+-2. Modal opens pre-filled with item data
+-3. Change the price to `20.00`
+-4. Click **"Update Item"**
+-5. **Expected:** Card updates price to $20.00
+-
+-### 3.7 Delete Menu Item & Undo
+-1. Click the 🗑️ delete icon on any card
+-2. **Expected:** Item disappears from the grid, and a notification popup appears at the bottom right with a 7-second timer bar.
+-3. Click **"Undo"** before the timer runs out.
+-4. **Expected:** The item instantly reappears in the grid.
+-
+----
+-
+-## 4. Employees Page Testing
+-
+-### 4.1 Filter Employees by Status
+-1. Go to `/employees`
+-2. Click the **"Active"** tab next to the search bar.
+-3. **Expected:** Only employees with a green "active" status are shown.
+-4. Click **"Inactive"**.
+-5. **Expected:** Only inactive employees are shown.
+-
+-### 4.2 Quick Status Toggle
+-1. On any Employee Card, click the **Toggle Switch** icon in the bottom right corner.
+-2. **Expected:** The employee's status instantly changes from Active (green) to Inactive (gray) without opening any edit menus.
+-
+-### 4.3 Delete Employee & Undo
+-1. Click the 🗑️ delete icon on an employee card.
+-2. **Expected:** Employee is removed, and a 7-second Undo popup appears. Click "Undo" to restore them.
+-
+----
+-
+-## 4. Orders + Payment Testing
+-
+-### 4.1 View Orders
+-- Go to `/orders`
+-- **Expected:** Table with 7 sample orders, each with status badge, payment method
+-
+-### 4.2 Filter Orders
+-1. Click **"Processing"** tab
+-2. **Expected:** Only 2 orders shown
+-
+-### 4.3 View Order Details
+-1. Click the 👁️ eye icon on any order row
+-2. **Expected:** Detail modal opens with items, total, employee, and payment method
+-
+-### 4.4 Change Order Status
+-1. Open an order with **"Pending"** or **"Processing"** status
+-2. Click **"✓ Mark Completed"**
+-3. **Expected:** Modal closes, row status badge changes to green "Completed"
+-
+-### 4.5 ✨ New Order + Payment Flow (Full Test)
+-1. Click **"+ New Order"** button
+-2. Enter an employee name, e.g. `Mohammed Ali`
+-3. Fill in item name: `Caesar Salad`, qty: `2`, price: `9.00`
+-4. Click **"+ Add row"** for a second item
+-5. Fill: `Espresso`, qty: `1`, price: `3.50`
+-6. **Expected total:** `$21.50` shown at the bottom
+-7. Click **"Proceed to Payment"**
+-8. **Payment Modal opens** — 4 methods shown:
+-
+-#### Test: Cash Payment
+-- Click **Cash**
+-- A confirmation screen appears
+-- Click **Pay $21.50**
+-- **Expected:** Green ✓ success screen, order added to table with "Cash" badge
+-
+-#### Test: Zaad Payment
+-- Click **Zaad**
+-- Enter phone: `+252 63 123 4567` (Observe that the cursor does not jump or lose focus while typing).
+-- Click **Pay**
+-- **Expected:** Success animation plays showing "Successfully pay for pay! ✨", order appears with "Zaad" badge
+-
+-#### Test: PayPal Payment
+-- Click **PayPal**
+-- Enter email: `test@paypal.com`
+-- Click **Pay**
+-- **Expected:** Success
+-
+-#### Test: Mastercard Payment
+-- Click **Card**
+-- Enter card: `5412 3456 7890 1234` (Mastercard — starts with 5)
+-- Name: `Ahmed Hassan`
+-- Expiry: `12/27`
+-- CVV: `123`
+-- **Expected:** "MC" badge appears next to the card number
+-- Click **Pay**
+-- **Expected:** Success
+-
+-#### Test: Validation Errors
+-- Click **Card**, leave all fields empty
+-- Click **Pay**
+-- **Expected:** Red error messages under each field
+-
+----
+-
+-## 6. About Page Testing
+-
+-- Go to `http://localhost:5173/about`
+-- **Expected:** Completely **different page** from Home (restaurant photo hero, values, team, timeline)
+-- **NOT the same page** — verifies Home and About are fully separated
+-
+----
+-
+-## 7. Home Page Testing
+-
+-- Go to `http://localhost:5173/home`
+-- **Expected:**
+-  - Background video playing (cafeteria footage)
+-  - Giant "Cafeteria Management" headline
+-  - 3D mouse effect: move your mouse over the hero — the text follows slightly
+-  - 4 stat cards at the bottom of the hero
+-  - Marquee ticker scrolling below hero
+-  - Feature cards with 3D tilt on hover
+-  - Photo grid section with Unsplash images
+-
+----
+-
+-## 8. Footer Testing
+-
+-- On any public page (Home, About, Contact), scroll to the bottom
+-- **Expected:**
+-  - 4-column footer: Brand + Social, Quick Links, Features, Contact Info
+-  - 6 social media icons (X, Facebook, Instagram, LinkedIn, YouTube, WhatsApp)
+-  - Hover effect: icons change color and lift up
+-  - Business hours displayed
+-  - Privacy Policy / Terms of Service links in bottom bar
+-
+----
+-
+-## 9. Dark Mode Testing
+-
+-1. Click the 🌙 moon icon in the navbar
+-2. **Expected:**
+-   - Page switches to deep navy dark theme
+-   - All cards use dark glass styling
+-   - Footer stays dark regardless
+-3. Click ☀️ to switch back
+-4. **Expected:** Warm gray light mode (not pure white)
+-
+----
+-
+-## 10. Mobile Responsive Testing
+-
+-1. Open browser DevTools (F12)
+-2. Click the mobile device icon
+-3. Select **iPhone 12 Pro** (390px)
+-4. **Expected on mobile:**
+-   - Navbar: shows hamburger menu, desktop links hidden
+-   - Click hamburger → dropdown drawer opens
+-   - Home hero: headline text is smaller, stats in 2×2 grid
+-   - Menu: single column card grid
+-   - Admin sidebar: collapses to a mobile drawer
+-
+----
+-
+-## 11. Known Issues / Limitations
+-
+-| Issue                          | Status   | Notes                                       |
+-|-------------------------------|----------|---------------------------------------------|
+-| Video may not load            | Known    | Pexels videos depend on internet connection. Falls back to gradient overlay |
+-| Photos not persisted          | By design| Using mock data — needs Django backend      |
+-| Payment is not real           | By design| Frontend-only simulation                    |
+-| Login not JWT-secured         | By design| Uses mock auth — replace with Django JWT   |
+-| Unsplash images may 404       | Known    | If Unsplash changes URLs; onError fallback is in place |
+Index: backend/orders/serializers.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>from decimal import Decimal\r\nfrom rest_framework import serializers\r\nfrom .models import Order, OrderItem\r\nfrom menu.models import MenuItem\r\n\r\n\r\nclass OrderItemSerializer(serializers.ModelSerializer):\r\n    menu_item_name = serializers.CharField(source='menu_item.name', read_only=True)\r\n    price          = serializers.DecimalField(\r\n        source='menu_item.price', read_only=True, max_digits=10, decimal_places=2\r\n    )\r\n\r\n    class Meta:\r\n        model  = OrderItem\r\n        fields = ['id', 'menu_item', 'menu_item_name', 'price', 'quantity', 'subtotal']\r\n        read_only_fields = ['subtotal', 'menu_item_name', 'price']\r\n\r\n\r\nclass OrderSerializer(serializers.ModelSerializer):\r\n    # items is read-only; creation handled manually in create()\r\n    items        = OrderItemSerializer(many=True, read_only=True)\r\n    total_amount = serializers.DecimalField(\r\n        source='total_price', read_only=True, max_digits=10, decimal_places=2\r\n    )\r\n\r\n    class Meta:\r\n        model  = Order\r\n        fields = [\r\n            'id', 'user', 'customer_name', 'employee_name', 'payment_method',\r\n            'notes', 'total_price', 'total_amount', 'status', 'created_at', 'items',\r\n        ]\r\n        read_only_fields = ['total_price', 'total_amount', 'user', 'created_at']\r\n\r\n    def create(self, validated_data):\r\n        \"\"\"\r\n        Accepts frontend payload:\r\n          { employee_name, payment_method, notes,\r\n            items: [{menu_item_id, quantity, unit_price}, ...] }\r\n        \"\"\"\r\n        request    = self.context.get('request')\r\n        items_data = []\r\n        if request:\r\n            items_data = request.data.get('items', [])\r\n\r\n        order = Order.objects.create(\r\n            user=request.user if request and request.user.is_authenticated else None,\r\n            **validated_data,\r\n        )\r\n\r\n        total = Decimal('0.00')\r\n        for item_data in items_data:\r\n            menu_item_id = item_data.get('menu_item_id') or item_data.get('menu_item')\r\n            quantity     = int(item_data.get('quantity', 1))\r\n            try:\r\n                menu_item = MenuItem.objects.get(id=menu_item_id)\r\n                subtotal  = menu_item.price * quantity\r\n                total    += subtotal\r\n                OrderItem.objects.create(\r\n                    order=order, menu_item=menu_item, quantity=quantity, subtotal=subtotal\r\n                )\r\n            except MenuItem.DoesNotExist:\r\n                continue\r\n\r\n        order.total_price = total\r\n        order.save()\r\n        return order\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/backend/orders/serializers.py b/backend/orders/serializers.py
+--- a/backend/orders/serializers.py	(revision b17e05f9477a53c4c9ea788ef4d509aded512ca2)
++++ b/backend/orders/serializers.py	(date 1777863084221)
+@@ -5,6 +5,10 @@
+ 
+ 
+ class OrderItemSerializer(serializers.ModelSerializer):
++    """
++    Serializer for the OrderItem model.
++    Read-only serializer nested within OrderSerializer.
++    """
+     menu_item_name = serializers.CharField(source='menu_item.name', read_only=True)
+     price          = serializers.DecimalField(
+         source='menu_item.price', read_only=True, max_digits=10, decimal_places=2
+@@ -17,6 +21,10 @@
+ 
+ 
+ class OrderSerializer(serializers.ModelSerializer):
++    """
++    Serializer for the Order model.
++    Handles the creation of Order and nested OrderItem instances.
++    """
+     # items is read-only; creation handled manually in create()
+     items        = OrderItemSerializer(many=True, read_only=True)
+     total_amount = serializers.DecimalField(
+Index: backend/menu/apps.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>\"\"\"Menu app config.\"\"\"\r\nfrom django.apps import AppConfig\r\n\r\nclass MenuConfig(AppConfig):\r\n    default_auto_field = 'django.db.models.BigAutoField'\r\n    name = 'menu'\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/backend/menu/apps.py b/backend/menu/apps.py
+--- a/backend/menu/apps.py	(revision b17e05f9477a53c4c9ea788ef4d509aded512ca2)
++++ b/backend/menu/apps.py	(date 1777863084104)
+@@ -1,6 +1,11 @@
+ """Menu app config."""
+ from django.apps import AppConfig
+ 
++
+ class MenuConfig(AppConfig):
+     default_auto_field = 'django.db.models.BigAutoField'
+     name = 'menu'
++
++    def ready(self):
++        """Connect image-cleanup signals when the app is fully loaded."""
++        import menu.signals  # noqa: F401
+Index: backend/menu/views.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>from rest_framework import viewsets\r\nfrom rest_framework.decorators import action\r\nfrom rest_framework.response import Response\r\nfrom .models import Category, MenuItem\r\nfrom .serializers import CategorySerializer, MenuItemSerializer\r\n\r\n\r\nclass CategoryViewSet(viewsets.ModelViewSet):\r\n    queryset         = Category.objects.all()\r\n    serializer_class = CategorySerializer\r\n\r\n\r\nclass MenuItemViewSet(viewsets.ModelViewSet):\r\n    queryset         = MenuItem.objects.all()\r\n    serializer_class = MenuItemSerializer\r\n\r\n    @action(detail=True, methods=['patch'])\r\n    def toggle(self, request, pk=None):\r\n        \"\"\"Toggle active/inactive status; return full updated item.\"\"\"\r\n        item        = self.get_object()\r\n        item.status = 'inactive' if item.status == 'active' else 'active'\r\n        item.save()\r\n        return Response(MenuItemSerializer(item).data)\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/backend/menu/views.py b/backend/menu/views.py
+--- a/backend/menu/views.py	(revision b17e05f9477a53c4c9ea788ef4d509aded512ca2)
++++ b/backend/menu/views.py	(date 1777863084169)
+@@ -1,18 +1,40 @@
+-from rest_framework import viewsets
++from rest_framework import viewsets, mixins
++from rest_framework.permissions import AllowAny
+ from rest_framework.decorators import action
++from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
+ from rest_framework.response import Response
+ from .models import Category, MenuItem
+ from .serializers import CategorySerializer, MenuItemSerializer
++from accounts.permissions import IsAdminRoleOrReadOnly
+ 
+ 
+ class CategoryViewSet(viewsets.ModelViewSet):
+-    queryset         = Category.objects.all()
++    """
++    ViewSet for viewing and editing menu categories.
++    Read access is open to all authenticated users; write access is Admin-only.
++    """
++    queryset = Category.objects.all()
+     serializer_class = CategorySerializer
++    permission_classes = [IsAdminRoleOrReadOnly]
+ 
+ 
+ class MenuItemViewSet(viewsets.ModelViewSet):
+-    queryset         = MenuItem.objects.all()
+-    serializer_class = MenuItemSerializer
++    """
++    ViewSet for viewing and editing menu items.
++    Supports multipart/form-data for image uploads (ImageField).
++    Provides a custom action to toggle an item's active status.
++    """
++    queryset           = MenuItem.objects.all()
++    serializer_class   = MenuItemSerializer
++    permission_classes = [IsAdminRoleOrReadOnly]
++    # Accept file uploads (multipart) as well as JSON
++    parser_classes     = [MultiPartParser, FormParser, JSONParser]
++
++    def get_serializer_context(self):
++        """Pass request to serializer so it can build absolute image URLs."""
++        context = super().get_serializer_context()
++        context['request'] = self.request
++        return context
+ 
+     @action(detail=True, methods=['patch'])
+     def toggle(self, request, pk=None):
+@@ -20,4 +42,15 @@
+         item        = self.get_object()
+         item.status = 'inactive' if item.status == 'active' else 'active'
+         item.save()
+-        return Response(MenuItemSerializer(item).data)
++        return Response(MenuItemSerializer(item, context={'request': request}).data)
++
++class ContactMessageViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
++    """
++    ViewSet for handling public contact form submissions.
++    """
++    from .models import ContactMessage
++    from .serializers import ContactMessageSerializer
++    queryset = ContactMessage.objects.all()
++    serializer_class = ContactMessageSerializer
++    permission_classes = [AllowAny]
++
+Index: backend/employees/serializers.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>from rest_framework import serializers\r\nfrom .models import Employee\r\nfrom accounts.models import CustomUser\r\n\r\n\r\nclass EmployeeSerializer(serializers.ModelSerializer):\r\n    # Exposes the linked user's PK as user_id (read + write)\r\n    user_id = serializers.PrimaryKeyRelatedField(\r\n        source='user',\r\n        queryset=CustomUser.objects.all(),\r\n        required=False,\r\n        allow_null=True,\r\n        default=None,\r\n    )\r\n\r\n    # Make optional fields explicitly not required so frontend doesn't need to send them\r\n    position = serializers.CharField(required=False, allow_blank=True, default='')\r\n    salary   = serializers.DecimalField(\r\n        max_digits=10, decimal_places=2,\r\n        required=False,\r\n        default=0.00\r\n    )\r\n\r\n    class Meta:\r\n        model = Employee\r\n        fields = [\r\n            'id', 'user_id', 'full_name', 'job_title', 'phone',\r\n            'position', 'salary', 'hire_date', 'status', 'shift', 'hours',\r\n        ]\r\n        read_only_fields = ['hire_date']\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/backend/employees/serializers.py b/backend/employees/serializers.py
+--- a/backend/employees/serializers.py	(revision b17e05f9477a53c4c9ea788ef4d509aded512ca2)
++++ b/backend/employees/serializers.py	(date 1777863083698)
+@@ -4,6 +4,10 @@
+ 
+ 
+ class EmployeeSerializer(serializers.ModelSerializer):
++    """
++    Serializer for the Employee model.
++    Handles serialization of employee details and links to user accounts.
++    """
+     # Exposes the linked user's PK as user_id (read + write)
+     user_id = serializers.PrimaryKeyRelatedField(
+         source='user',
+@@ -28,3 +32,19 @@
+             'position', 'salary', 'hire_date', 'status', 'shift', 'hours',
+         ]
+         read_only_fields = ['hire_date']
++
++    def to_representation(self, instance):
++        """Mask sensitive data for non-admin users."""
++        data = super().to_representation(instance)
++        request = self.context.get('request')
++        
++        # If user is not an Admin and not viewing their own profile, mask sensitive fields
++        if request and hasattr(request.user, 'role'):
++            is_admin = request.user.role == 'Admin'
++            is_self  = instance.user == request.user
++            
++            if not is_admin and not is_self:
++                data['salary'] = "********"
++                data['phone']  = "********"
++        
++        return data
+Index: backend/menu/urls.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>from django.urls import path, include\r\nfrom rest_framework.routers import DefaultRouter\r\nfrom .views import CategoryViewSet, MenuItemViewSet\r\n\r\nrouter = DefaultRouter()\r\nrouter.register(r'categories', CategoryViewSet)\r\nrouter.register(r'', MenuItemViewSet, basename='menuitem')\r\n\r\nurlpatterns = [\r\n    path('', include(router.urls)),\r\n]\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/backend/menu/urls.py b/backend/menu/urls.py
+--- a/backend/menu/urls.py	(revision b17e05f9477a53c4c9ea788ef4d509aded512ca2)
++++ b/backend/menu/urls.py	(date 1777863084152)
+@@ -1,8 +1,9 @@
+ from django.urls import path, include
+ from rest_framework.routers import DefaultRouter
+-from .views import CategoryViewSet, MenuItemViewSet
++from .views import CategoryViewSet, MenuItemViewSet, ContactMessageViewSet
+ 
+ router = DefaultRouter()
++router.register(r'contact-messages', ContactMessageViewSet, basename='contactmessage')
+ router.register(r'categories', CategoryViewSet)
+ router.register(r'', MenuItemViewSet, basename='menuitem')
+ 
+Index: backend/menu/serializers.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>from rest_framework import serializers\r\nfrom .models import Category, MenuItem\r\n\r\n\r\nclass CategorySerializer(serializers.ModelSerializer):\r\n    class Meta:\r\n        model  = Category\r\n        fields = '__all__'\r\n\r\n\r\nclass MenuItemSerializer(serializers.ModelSerializer):\r\n    # Expose category as name string so frontend string-comparison filter works\r\n    category      = serializers.SerializerMethodField()\r\n    category_name = serializers.CharField(source='category.name', read_only=True, default='')\r\n    is_active     = serializers.SerializerMethodField()\r\n\r\n    class Meta:\r\n        model  = MenuItem\r\n        fields = [\r\n            'id', 'category', 'category_name', 'name', 'description',\r\n            'price', 'image', 'status', 'is_active', 'created_at',\r\n        ]\r\n        read_only_fields = ['created_at']\r\n\r\n    def get_category(self, obj):\r\n        \"\"\"Return category name string (not FK int) for frontend filter compatibility.\"\"\"\r\n        return obj.category.name if obj.category else None\r\n\r\n    def get_is_active(self, obj):\r\n        return obj.status == 'active'\r\n\r\n    def _resolve_category(self, raw_data):\r\n        \"\"\"Look up or create a Category from a name string in request data.\"\"\"\r\n        cat_name = raw_data.get('category')\r\n        if cat_name:\r\n            cat, _ = Category.objects.get_or_create(name=cat_name)\r\n            return cat\r\n        return None\r\n\r\n    def create(self, validated_data):\r\n        # Remove computed fields not on the model\r\n        validated_data.pop('category_obj', None)\r\n        raw = self.initial_data\r\n        category = self._resolve_category(raw)\r\n        if category:\r\n            validated_data['category'] = category\r\n        return super().create(validated_data)\r\n\r\n    def update(self, instance, validated_data):\r\n        validated_data.pop('category_obj', None)\r\n        raw = self.initial_data\r\n        category = self._resolve_category(raw)\r\n        if category:\r\n            validated_data['category'] = category\r\n        return super().update(instance, validated_data)\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/backend/menu/serializers.py b/backend/menu/serializers.py
+--- a/backend/menu/serializers.py	(revision b17e05f9477a53c4c9ea788ef4d509aded512ca2)
++++ b/backend/menu/serializers.py	(date 1777863084133)
+@@ -1,24 +1,36 @@
+ from rest_framework import serializers
+-from .models import Category, MenuItem
++from .models import Category, MenuItem, ContactMessage
+ 
+ 
+ class CategorySerializer(serializers.ModelSerializer):
++    """
++    Serializer for the Category model.
++    """
+     class Meta:
+         model  = Category
+         fields = '__all__'
+ 
+ 
+ class MenuItemSerializer(serializers.ModelSerializer):
++    """
++    Serializer for the MenuItem model.
++    Handles custom category resolution from string names to support
++    frontend compatibility, and image uploads via multipart/form-data.
++    """
+     # Expose category as name string so frontend string-comparison filter works
+     category      = serializers.SerializerMethodField()
+     category_name = serializers.CharField(source='category.name', read_only=True, default='')
+     is_active     = serializers.SerializerMethodField()
+ 
++    # image_url: write-only field lets the frontend pass a URL string
++    # (used as a fallback when no file is uploaded)
++    image_url = serializers.CharField(write_only=True, required=False, allow_blank=True)
++
+     class Meta:
+         model  = MenuItem
+         fields = [
+             'id', 'category', 'category_name', 'name', 'description',
+-            'price', 'image', 'status', 'is_active', 'created_at',
++            'price', 'image', 'image_url', 'status', 'is_active', 'created_at',
+         ]
+         read_only_fields = ['created_at']
+ 
+@@ -29,6 +41,16 @@
+     def get_is_active(self, obj):
+         return obj.status == 'active'
+ 
++    def to_representation(self, instance):
++        """Return absolute image URL so the frontend can display uploaded images."""
++        rep = super().to_representation(instance)
++        request = self.context.get('request')
++        if instance.image and request:
++            rep['image'] = request.build_absolute_uri(instance.image.url)
++        elif instance.image:
++            rep['image'] = instance.image.url
++        return rep
++
+     def _resolve_category(self, raw_data):
+         """Look up or create a Category from a name string in request data."""
+         cat_name = raw_data.get('category')
+@@ -38,18 +60,42 @@
+         return None
+ 
+     def create(self, validated_data):
+-        # Remove computed fields not on the model
+         validated_data.pop('category_obj', None)
++        # image_url is not a model field – only used here to pre-populate
++        # the image field when a URL string is sent (no file upload)
++        image_url = validated_data.pop('image_url', None)
++
+         raw = self.initial_data
+         category = self._resolve_category(raw)
+         if category:
+             validated_data['category'] = category
++
++        # If no file was uploaded but a URL string was provided, store it
++        # NOTE: after migrating to ImageField this stores as a path, not a URL.
++        # The recommended flow is file upload; URL-only is kept for backwards compat.
++        if image_url and not validated_data.get('image'):
++            validated_data['image'] = image_url
++
+         return super().create(validated_data)
+ 
+     def update(self, instance, validated_data):
+         validated_data.pop('category_obj', None)
++        image_url = validated_data.pop('image_url', None)
++
+         raw = self.initial_data
+         category = self._resolve_category(raw)
+         if category:
+             validated_data['category'] = category
++
++        if image_url and not validated_data.get('image'):
++            instance.image = image_url
++
+         return super().update(instance, validated_data)
++
++class ContactMessageSerializer(serializers.ModelSerializer):
++    """
++    Serializer for the ContactMessage model.
++    """
++    class Meta:
++        model = ContactMessage
++        fields = '__all__'
+Index: backend/accounts/models.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>from django.contrib.auth.models import AbstractUser\r\nfrom django.db import models\r\n\r\nclass CustomUser(AbstractUser):\r\n    ROLE_CHOICES = (\r\n        ('Admin', 'Admin'),\r\n        ('Manager', 'Manager'),\r\n        ('Staff', 'Staff'),\r\n        ('Employee', 'Employee'),\r\n    )\r\n    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='Staff')\r\n    phone_number = models.CharField(max_length=20, blank=True, null=True)\r\n\r\n    @property\r\n    def full_name(self):\r\n        if self.first_name or self.last_name:\r\n            return f\"{self.first_name} {self.last_name}\".strip()\r\n        return self.username\r\n\r\n    @property\r\n    def is_admin(self):\r\n        return self.role == 'Admin'\r\n\r\n    def __str__(self):\r\n        return f\"{self.username} ({self.get_role_display()})\"\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/backend/accounts/models.py b/backend/accounts/models.py
+--- a/backend/accounts/models.py	(revision b17e05f9477a53c4c9ea788ef4d509aded512ca2)
++++ b/backend/accounts/models.py	(date 1777863083260)
+@@ -2,6 +2,10 @@
+ from django.db import models
+ 
+ class CustomUser(AbstractUser):
++    """
++    Custom user model extending Django's AbstractUser.
++    Adds a role-based access field and phone number.
++    """
+     ROLE_CHOICES = (
+         ('Admin', 'Admin'),
+         ('Manager', 'Manager'),
+@@ -13,12 +17,14 @@
+ 
+     @property
+     def full_name(self):
++        """Returns the user's full name, falling back to username if not set."""
+         if self.first_name or self.last_name:
+             return f"{self.first_name} {self.last_name}".strip()
+         return self.username
+ 
+     @property
+     def is_admin(self):
++        """Returns True if the user has the 'Admin' role."""
+         return self.role == 'Admin'
+ 
+     def __str__(self):
+Index: backend/seed_data.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>\"\"\"\r\nseed_data.py — Seeds the database with demo data.\r\nRun from the backend directory:\r\n    python seed_data.py\r\n\"\"\"\r\nimport os\r\nimport django\r\nfrom decimal import Decimal\r\n\r\nos.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')\r\ndjango.setup()\r\n\r\nfrom menu.models import MenuItem, Category\r\nfrom inventory.models import InventoryItem\r\nfrom employees.models import Employee\r\nfrom accounts.models import CustomUser\r\nfrom orders.models import Order, OrderItem\r\nfrom salaries.models import SalaryRecord\r\n\r\n\r\ndef seed_data():\r\n    print(\"=== Clearing old data ===\")\r\n    SalaryRecord.objects.all().delete()\r\n    OrderItem.objects.all().delete()\r\n    Order.objects.all().delete()\r\n    MenuItem.objects.all().delete()\r\n    Category.objects.all().delete()\r\n    InventoryItem.objects.all().delete()\r\n    Employee.objects.all().delete()\r\n\r\n    # ── Users ────────────────────────────────────────────────────────────────\r\n    print(\"Creating users...\")\r\n    admin_user, _ = CustomUser.objects.get_or_create(\r\n        username='admin',\r\n        defaults={'role': 'Admin', 'email': 'admin@cafeteria.com', 'is_staff': True, 'is_superuser': True},\r\n    )\r\n    if _:\r\n        admin_user.set_password('admin1234')\r\n        admin_user.save()\r\n        print(\"  Created admin / admin1234\")\r\n\r\n    staff_user, _ = CustomUser.objects.get_or_create(\r\n        username='staff',\r\n        defaults={'role': 'Staff', 'email': 'staff@cafeteria.com'},\r\n    )\r\n    if _:\r\n        staff_user.set_password('staff1234')\r\n        staff_user.save()\r\n        print(\"  Created staff / staff1234\")\r\n\r\n    # ── Categories ───────────────────────────────────────────────────────────\r\n    print(\"Seeding categories...\")\r\n    cat_names = ['Main Course', 'Beverages', 'Salads', 'Snacks', 'Desserts']\r\n    cats = {n: Category.objects.create(name=n) for n in cat_names}\r\n\r\n    # ── Menu Items ───────────────────────────────────────────────────────────\r\n    print(\"Seeding menu items...\")\r\n    menu_data = [\r\n        {'name': 'Grilled Chicken Sandwich', 'price': 12.50, 'cat': 'Main Course', 'description': 'Juicy grilled chicken, fresh lettuce & tomato on toasted brioche'},\r\n        {'name': 'Classic Beef Burger',       'price': 15.00, 'cat': 'Main Course', 'description': 'Premium beef patty, cheddar, caramelised onions & house sauce'},\r\n        {'name': 'Pasta Carbonara',           'price': 11.25, 'cat': 'Main Course', 'description': 'Al dente penne, crispy bacon, egg yolk & pecorino romano'},\r\n        {'name': 'Eggs Benedict',             'price': 13.00, 'cat': 'Main Course', 'description': 'Poached eggs, Canadian bacon, hollandaise on English muffin'},\r\n        {'name': 'Fried Rice Bowl',           'price':  9.50, 'cat': 'Main Course', 'description': 'Jasmine rice, seasonal vegetables, soy & sesame'},\r\n        {'name': 'Caesar Salad',              'price':  9.00, 'cat': 'Salads',      'description': 'Crispy romaine, parmesan, croutons & classic Caesar dressing'},\r\n        {'name': 'Greek Salad',               'price':  8.50, 'cat': 'Salads',      'description': 'Tomato, cucumber, olives, feta & extra virgin olive oil'},\r\n        {'name': 'Veggie Buddha Bowl',        'price': 10.50, 'cat': 'Salads',      'description': 'Roasted veggies, quinoa, avocado, tahini & mixed greens'},\r\n        {'name': 'Double Espresso',           'price':  3.50, 'cat': 'Beverages',   'description': 'Rich double-shot Arabica espresso, perfectly extracted'},\r\n        {'name': 'Iced Caramel Latte',        'price':  5.50, 'cat': 'Beverages',   'description': 'Cold brew espresso, steamed milk & house caramel drizzle'},\r\n        {'name': 'Fresh Orange Juice',        'price':  4.50, 'cat': 'Beverages',   'description': 'Freshly squeezed Valencia oranges, no added sugar', 'status': 'inactive'},\r\n        {'name': 'Chocolate Muffin',          'price':  3.00, 'cat': 'Snacks',      'description': 'Freshly baked double-chocolate chunk muffin'},\r\n        {'name': 'Margherita Pizza Slice',    'price':  6.00, 'cat': 'Snacks',      'description': 'San Marzano tomato, fresh mozzarella & basil'},\r\n        {'name': 'Acai Berry Bowl',           'price':  8.00, 'cat': 'Desserts',    'description': 'Blended acai, granola, fresh berries & honey drizzle'},\r\n    ]\r\n    menu_items = {}\r\n    for d in menu_data:\r\n        mi = MenuItem.objects.create(\r\n            category=cats[d['cat']],\r\n            name=d['name'],\r\n            description=d.get('description', ''),\r\n            price=Decimal(str(d['price'])),\r\n            status=d.get('status', 'active'),\r\n        )\r\n        menu_items[mi.name] = mi\r\n\r\n    # ── Inventory ────────────────────────────────────────────────────────────\r\n    print(\"Seeding inventory...\")\r\n    inventory_data = [\r\n        {'item_name': 'Chicken Breast', 'quantity': 50, 'unit': 'kg',     'min_stock': 10, 'category': 'Protein',    'cost': 8.50},\r\n        {'item_name': 'Beef Patties',   'quantity': 40, 'unit': 'pcs',    'min_stock': 15, 'category': 'Protein',    'cost': 3.00},\r\n        {'item_name': 'Coffee Beans',   'quantity': 25, 'unit': 'kg',     'min_stock':  5, 'category': 'Beverages',  'cost': 12.00},\r\n        {'item_name': 'Milk',           'quantity':  8, 'unit': 'liters', 'min_stock': 20, 'category': 'Dairy',      'cost': 1.20},\r\n        {'item_name': 'Lettuce',        'quantity': 15, 'unit': 'kg',     'min_stock':  5, 'category': 'Vegetables', 'cost': 2.50},\r\n        {'item_name': 'Tomatoes',       'quantity': 20, 'unit': 'kg',     'min_stock':  8, 'category': 'Vegetables', 'cost': 1.80},\r\n        {'item_name': 'Cheese Slices',  'quantity': 200,'unit': 'pcs',    'min_stock': 50, 'category': 'Dairy',      'cost': 0.50},\r\n        {'item_name': 'Potatoes',       'quantity':  5, 'unit': 'kg',     'min_stock': 25, 'category': 'Vegetables', 'cost': 0.80},\r\n        {'item_name': 'Cooking Oil',    'quantity': 30, 'unit': 'liters', 'min_stock': 10, 'category': 'Condiments', 'cost': 3.50},\r\n        {'item_name': 'Sugar',          'quantity': 40, 'unit': 'kg',     'min_stock': 10, 'category': 'Condiments', 'cost': 1.00},\r\n    ]\r\n    for d in inventory_data:\r\n        InventoryItem.objects.create(**d)\r\n\r\n    # ── Employees ────────────────────────────────────────────────────────────\r\n    print(\"Seeding employees...\")\r\n    emp_data = [\r\n        {'full_name': 'Ahmed Hassan',  'job_title': 'Head Chef',     'position': 'Head Chef',     'salary': 1500, 'shift': 'Morning',  'hours': '6 AM - 2 PM'},\r\n        {'full_name': 'Sahra Ali',     'job_title': 'Senior Barista','position': 'Senior Barista','salary':  900, 'shift': 'Morning',  'hours': '7 AM - 3 PM'},\r\n        {'full_name': 'Mohamed Farah', 'job_title': 'Waiter',        'position': 'Waiter',        'salary':  600, 'shift': 'Evening',  'hours': '2 PM - 10 PM'},\r\n        {'full_name': 'Hodan Duale',   'job_title': 'Cashier',       'position': 'Cashier',       'salary':  700, 'shift': 'Full Time','hours': '8 AM - 5 PM', 'user': staff_user},\r\n    ]\r\n    employees = []\r\n    for d in emp_data:\r\n        emp = Employee.objects.create(\r\n            full_name=d['full_name'], job_title=d['job_title'],\r\n            position=d['position'],  salary=Decimal(str(d['salary'])),\r\n            shift=d.get('shift',''), hours=d.get('hours',''),\r\n            user=d.get('user'),\r\n        )\r\n        employees.append(emp)\r\n\r\n    # ── Salary Records ───────────────────────────────────────────────────────\r\n    print(\"Seeding salary records...\")\r\n    for emp in employees:\r\n        SalaryRecord.objects.create(\r\n            employee=emp,\r\n            base_salary=emp.salary,\r\n            bonus=Decimal('100.00'),\r\n            deduction=Decimal('50.00'),\r\n            payment_date='2026-05-01',\r\n            status='paid',\r\n        )\r\n\r\n    # ── Sample Orders ────────────────────────────────────────────────────────\r\n    print(\"Seeding sample orders...\")\r\n    burger = menu_items['Classic Beef Burger']\r\n    coffee = menu_items['Double Espresso']\r\n    salad  = menu_items['Caesar Salad']\r\n\r\n    o1 = Order.objects.create(\r\n        employee_name='Ahmed Hassan', payment_method='cash',\r\n        total_price=Decimal('18.50'), status='completed',\r\n    )\r\n    OrderItem.objects.create(order=o1, menu_item=burger, quantity=1, subtotal=Decimal('15.00'))\r\n    OrderItem.objects.create(order=o1, menu_item=coffee, quantity=1, subtotal=Decimal('3.50'))\r\n\r\n    o2 = Order.objects.create(\r\n        employee_name='Sahra Ali', payment_method='zaad',\r\n        total_price=Decimal('9.00'), status='pending',\r\n    )\r\n    OrderItem.objects.create(order=o2, menu_item=salad, quantity=1, subtotal=Decimal('9.00'))\r\n\r\n    o3 = Order.objects.create(\r\n        employee_name='Mohamed Farah', payment_method='mastercard',\r\n        total_price=Decimal('25.00'), status='completed',\r\n    )\r\n    OrderItem.objects.create(order=o3, menu_item=burger, quantity=1, subtotal=Decimal('15.00'))\r\n    OrderItem.objects.create(order=o3, menu_item=salad,  quantity=1, subtotal=Decimal('9.00'))\r\n    OrderItem.objects.create(order=o3, menu_item=coffee, quantity=1, subtotal=Decimal('3.50'))\r\n\r\n    print(\"\\n✅ Database seeding completed!\")\r\n    print(\"   Admin credentials: admin / admin1234\")\r\n    print(\"   Staff credentials: staff / staff1234\")\r\n\r\n\r\nif __name__ == '__main__':\r\n    seed_data()\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/backend/seed_data.py b/backend/seed_data.py
+--- a/backend/seed_data.py	(revision b17e05f9477a53c4c9ea788ef4d509aded512ca2)
++++ b/backend/seed_data.py	(date 1777863084272)
+@@ -79,6 +79,7 @@
+             description=d.get('description', ''),
+             price=Decimal(str(d['price'])),
+             status=d.get('status', 'active'),
++            # image left blank — upload via the Menu admin UI after seeding
+         )
+         menu_items[mi.name] = mi
+ 
+Index: backend/config/settings.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>\"\"\"\r\nDjango settings for backend project.\r\n\"\"\"\r\nimport os\r\nfrom pathlib import Path\r\nfrom decouple import config\r\nfrom datetime import timedelta\r\n\r\nBASE_DIR = Path(__file__).resolve().parent.parent\r\n\r\nSECRET_KEY = config('SECRET_KEY', default='django-insecure-cafeteria-secret-key-123')\r\nDEBUG = config('DEBUG', default=True, cast=bool)\r\nALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')\r\n\r\nINSTALLED_APPS = [\r\n    'django.contrib.admin',\r\n    'django.contrib.auth',\r\n    'django.contrib.contenttypes',\r\n    'django.contrib.sessions',\r\n    'django.contrib.messages',\r\n    'django.contrib.staticfiles',\r\n    \r\n    # Third party\r\n    'rest_framework',\r\n    'rest_framework_simplejwt',\r\n    'corsheaders',\r\n\r\n    # Local apps\r\n    'accounts.apps.AccountsConfig',\r\n    'employees.apps.EmployeesConfig',\r\n    'menu.apps.MenuConfig',\r\n    'inventory.apps.InventoryConfig',\r\n    'orders.apps.OrdersConfig',\r\n    'analytics.apps.AnalyticsConfig',\r\n    'salaries.apps.SalariesConfig',\r\n]\r\n\r\nMIDDLEWARE = [\r\n    'corsheaders.middleware.CorsMiddleware',\r\n    'django.middleware.security.SecurityMiddleware',\r\n    'django.contrib.sessions.middleware.SessionMiddleware',\r\n    'django.middleware.common.CommonMiddleware',\r\n    'django.middleware.csrf.CsrfViewMiddleware',\r\n    'django.contrib.auth.middleware.AuthenticationMiddleware',\r\n    'django.contrib.messages.middleware.MessageMiddleware',\r\n    'django.middleware.clickjacking.XFrameOptionsMiddleware',\r\n]\r\n\r\nROOT_URLCONF = 'config.urls'\r\n\r\nTEMPLATES = [\r\n    {\r\n        'BACKEND': 'django.template.backends.django.DjangoTemplates',\r\n        'DIRS': [],\r\n        'APP_DIRS': True,\r\n        'OPTIONS': {\r\n            'context_processors': [\r\n                'django.template.context_processors.debug',\r\n                'django.template.context_processors.request',\r\n                'django.contrib.auth.context_processors.auth',\r\n                'django.contrib.messages.context_processors.messages',\r\n            ],\r\n        },\r\n    },\r\n]\r\n\r\nWSGI_APPLICATION = 'config.wsgi.application'\r\n\r\nDATABASES = {\r\n    'default': {\r\n        'ENGINE': 'django.db.backends.sqlite3',\r\n        'NAME': BASE_DIR.parent / 'database' / 'db.sqlite3',\r\n    }\r\n}\r\n\r\nAUTH_USER_MODEL = 'accounts.CustomUser'\r\n\r\nAUTH_PASSWORD_VALIDATORS = []\r\n\r\nLANGUAGE_CODE = 'en-us'\r\nTIME_ZONE = 'UTC'\r\nUSE_I18N = True\r\nUSE_TZ = True\r\n\r\nSTATIC_URL = 'static/'\r\nSTATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')\r\n\r\nMEDIA_URL = '/media/'\r\nMEDIA_ROOT = os.path.join(BASE_DIR, 'media')\r\n\r\nDEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'\r\n\r\nREST_FRAMEWORK = {\r\n    'DEFAULT_AUTHENTICATION_CLASSES': (\r\n        'rest_framework_simplejwt.authentication.JWTAuthentication',\r\n    ),\r\n    'DEFAULT_PERMISSION_CLASSES': (\r\n        'rest_framework.permissions.IsAuthenticated',\r\n    ),\r\n}\r\n\r\nSIMPLE_JWT = {\r\n    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),\r\n    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),\r\n    'AUTH_HEADER_TYPES': ('Bearer',),\r\n}\r\n\r\nCORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', default='http://localhost:3000,http://localhost:5173,http://127.0.0.1:5173').split(',')\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/backend/config/settings.py b/backend/config/settings.py
+--- a/backend/config/settings.py	(revision b17e05f9477a53c4c9ea788ef4d509aded512ca2)
++++ b/backend/config/settings.py	(date 1777863083479)
+@@ -8,8 +8,11 @@
+ 
+ BASE_DIR = Path(__file__).resolve().parent.parent
+ 
+-SECRET_KEY = config('SECRET_KEY', default='django-insecure-cafeteria-secret-key-123')
+-DEBUG = config('DEBUG', default=True, cast=bool)
++SECRET_KEY = config('SECRET_KEY', default='django-insecure-cafeteria-secret-key-123' if config('DEBUG', default=False, cast=bool) else None)
++if not SECRET_KEY:
++    raise ValueError("SECRET_KEY environment variable is missing and must be set in production (DEBUG=False).")
++
++DEBUG = config('DEBUG', default=False, cast=bool)
+ ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')
+ 
+ INSTALLED_APPS = [
+@@ -75,7 +78,21 @@
+ 
+ AUTH_USER_MODEL = 'accounts.CustomUser'
+ 
+-AUTH_PASSWORD_VALIDATORS = []
++AUTH_PASSWORD_VALIDATORS = [
++    {
++        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
++    },
++    {
++        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
++        'OPTIONS': {'min_length': 8},
++    },
++    {
++        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
++    },
++    {
++        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
++    },
++]
+ 
+ LANGUAGE_CODE = 'en-us'
+ TIME_ZONE = 'UTC'
+@@ -100,7 +117,7 @@
+ }
+ 
+ SIMPLE_JWT = {
+-    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
++    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),
+     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+     'AUTH_HEADER_TYPES': ('Bearer',),
+ }
+Index: backend/accounts/views.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>from rest_framework_simplejwt.views import TokenObtainPairView\r\nfrom rest_framework.views import APIView\r\nfrom rest_framework.response import Response\r\nfrom rest_framework import status\r\nfrom rest_framework.permissions import IsAuthenticated\r\nfrom .serializers import CustomTokenObtainPairSerializer, UserSerializer, UserCreateSerializer\r\nfrom .models import CustomUser\r\nfrom rest_framework import viewsets\r\n\r\nclass UserViewSet(viewsets.ModelViewSet):\r\n    queryset = CustomUser.objects.all()\r\n    permission_classes = [IsAuthenticated]\r\n\r\n    def get_serializer_class(self):\r\n        if self.action == 'create':\r\n            return UserCreateSerializer\r\n        return UserSerializer\r\n\r\n    def get_queryset(self):\r\n        # Optional: restrict non-admins from seeing others\r\n        if getattr(self.request.user, 'role', '') == 'Admin':\r\n            return CustomUser.objects.all()\r\n        return CustomUser.objects.filter(id=self.request.user.id)\r\n\r\nclass CustomTokenObtainPairView(TokenObtainPairView):\r\n    serializer_class = CustomTokenObtainPairSerializer\r\n\r\nclass LogoutView(APIView):\r\n    permission_classes = (IsAuthenticated,)\r\n\r\n    def post(self, request):\r\n        try:\r\n            return Response({\"message\": \"Successfully logged out.\"}, status=status.HTTP_205_RESET_CONTENT)\r\n        except Exception as e:\r\n            return Response(status=status.HTTP_400_BAD_REQUEST)\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/backend/accounts/views.py b/backend/accounts/views.py
+--- a/backend/accounts/views.py	(revision b17e05f9477a53c4c9ea788ef4d509aded512ca2)
++++ b/backend/accounts/views.py	(date 1777863083391)
+@@ -8,6 +8,9 @@
+ from rest_framework import viewsets
+ 
+ class UserViewSet(viewsets.ModelViewSet):
++    """
++    ViewSet for viewing and editing user instances.
++    """
+     queryset = CustomUser.objects.all()
+     permission_classes = [IsAuthenticated]
+ 
+@@ -23,9 +26,15 @@
+         return CustomUser.objects.filter(id=self.request.user.id)
+ 
+ class CustomTokenObtainPairView(TokenObtainPairView):
++    """
++    View for authenticating and obtaining custom JWT tokens.
++    """
+     serializer_class = CustomTokenObtainPairSerializer
+ 
+ class LogoutView(APIView):
++    """
++    View to handle user logout functionality on the backend.
++    """
+     permission_classes = (IsAuthenticated,)
+ 
+     def post(self, request):
+Index: backend/accounts/permissions.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>from rest_framework.permissions import BasePermission\r\n\r\nclass IsAdminUserRole(BasePermission):\r\n    \"\"\"\r\n    Allows access only to Admin users.\r\n    \"\"\"\r\n    def has_permission(self, request, view):\r\n        return bool(request.user and request.user.is_authenticated and request.user.role == 'admin')\r\n\r\nclass IsManagerOrAdmin(BasePermission):\r\n    \"\"\"\r\n    Allows access to Managers and Admins.\r\n    \"\"\"\r\n    def has_permission(self, request, view):\r\n        return bool(request.user and request.user.is_authenticated and request.user.role in ['admin', 'manager'])\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/backend/accounts/permissions.py b/backend/accounts/permissions.py
+--- a/backend/accounts/permissions.py	(revision b17e05f9477a53c4c9ea788ef4d509aded512ca2)
++++ b/backend/accounts/permissions.py	(date 1777863083276)
+@@ -1,15 +1,37 @@
+-from rest_framework.permissions import BasePermission
++from rest_framework.permissions import BasePermission, SAFE_METHODS
+ 
+-class IsAdminUserRole(BasePermission):
++class IsAdminRole(BasePermission):
+     """
+     Allows access only to Admin users.
+     """
+     def has_permission(self, request, view):
+-        return bool(request.user and request.user.is_authenticated and request.user.role == 'admin')
++        return bool(request.user and request.user.is_authenticated and getattr(request.user, 'role', '') == 'Admin')
++
++class IsAdminRoleOrReadOnly(BasePermission):
++    """
++    Allows read access to any authenticated user,
++    but write/delete access only to users with the 'Admin' role.
++    """
++    def has_permission(self, request, view):
++        if request.method in SAFE_METHODS:
++            return bool(request.user and request.user.is_authenticated)
++        return bool(request.user and request.user.is_authenticated and getattr(request.user, 'role', '') == 'Admin')
+ 
+ class IsManagerOrAdmin(BasePermission):
+     """
+     Allows access to Managers and Admins.
+     """
+     def has_permission(self, request, view):
+-        return bool(request.user and request.user.is_authenticated and request.user.role in ['admin', 'manager'])
++        return bool(request.user and request.user.is_authenticated and getattr(request.user, 'role', '') in ['Admin', 'Manager'])
++class IsAdminOrDeleteDenied(BasePermission):
++    """
++    Allows full access to Admins, but prevents deletion for others.
++    """
++    def has_permission(self, request, view):
++        if not (request.user and request.user.is_authenticated):
++            return False
++        if getattr(request.user, 'role', '') == 'Admin':
++            return True
++        if request.method == 'DELETE':
++            return False
++        return True
+Index: backend/requirements.txt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>Django==5.0.4\r\ndjangorestframework==3.15.1\r\ndjangorestframework-simplejwt==5.3.1\r\ndjango-cors-headers==4.3.1\r\npython-decouple==3.8\r\npsycopg2-binary==2.9.9\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/backend/requirements.txt b/backend/requirements.txt
+--- a/backend/requirements.txt	(revision b17e05f9477a53c4c9ea788ef4d509aded512ca2)
++++ b/backend/requirements.txt	(date 1777863084263)
+@@ -4,3 +4,4 @@
+ django-cors-headers==4.3.1
+ python-decouple==3.8
+ psycopg2-binary==2.9.9
++Pillow==10.3.0
+Index: backend/accounts/serializers.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>from rest_framework import serializers\r\nfrom .models import CustomUser\r\nfrom rest_framework_simplejwt.serializers import TokenObtainPairSerializer\r\n\r\nclass UserSerializer(serializers.ModelSerializer):\r\n    class Meta:\r\n        model = CustomUser\r\n        fields = ['id', 'username', 'email', 'role', 'phone_number']\r\n\r\nclass UserCreateSerializer(serializers.ModelSerializer):\r\n    password = serializers.CharField(write_only=True)\r\n\r\n    class Meta:\r\n        model = CustomUser\r\n        fields = ['id', 'username', 'password', 'role', 'email', 'phone_number']\r\n\r\n    def create(self, validated_data):\r\n        from django.db import IntegrityError\r\n        try:\r\n            user = CustomUser.objects.create_user(\r\n                username=validated_data['username'],\r\n                password=validated_data['password'],\r\n                role=validated_data.get('role', 'Employee'),\r\n                email=validated_data.get('email', ''),\r\n                phone_number=validated_data.get('phone_number', '')\r\n            )\r\n            return user\r\n        except IntegrityError:\r\n            raise serializers.ValidationError({\"username\": [\"A user with that username already exists.\"]})\r\n\r\nclass CustomTokenObtainPairSerializer(TokenObtainPairSerializer):\r\n    @classmethod\r\n    def get_token(cls, user):\r\n        token = super().get_token(user)\r\n        # Add custom claims\r\n        token['role'] = user.role\r\n        token['username'] = user.username\r\n        return token\r\n\r\n    def validate(self, attrs):\r\n        data = super().validate(attrs)\r\n        data['user'] = UserSerializer(self.user).data\r\n        return data\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/backend/accounts/serializers.py b/backend/accounts/serializers.py
+--- a/backend/accounts/serializers.py	(revision b17e05f9477a53c4c9ea788ef4d509aded512ca2)
++++ b/backend/accounts/serializers.py	(date 1777863083311)
+@@ -3,11 +3,18 @@
+ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+ 
+ class UserSerializer(serializers.ModelSerializer):
++    """
++    Serializer for the CustomUser model for reading basic user information.
++    """
+     class Meta:
+         model = CustomUser
+         fields = ['id', 'username', 'email', 'role', 'phone_number']
+ 
+ class UserCreateSerializer(serializers.ModelSerializer):
++    """
++    Serializer used for creating new CustomUser instances.
++    Handles secure password hashing.
++    """
+     password = serializers.CharField(write_only=True)
+ 
+     class Meta:
+@@ -29,6 +36,10 @@
+             raise serializers.ValidationError({"username": ["A user with that username already exists."]})
+ 
+ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
++    """
++    Custom JWT token serializer that includes additional claims
++    like user role and username.
++    """
+     @classmethod
+     def get_token(cls, user):
+         token = super().get_token(user)
+Index: backend/orders/models.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>from django.db import models\r\nfrom django.conf import settings\r\nfrom menu.models import MenuItem\r\n\r\n\r\nclass Order(models.Model):\r\n    STATUS_CHOICES = (\r\n        ('pending',   'Pending'),\r\n        ('processing','Processing'),\r\n        ('completed', 'Completed'),\r\n        ('cancelled', 'Cancelled'),\r\n    )\r\n    PAYMENT_CHOICES = (\r\n        ('cash',       'Cash'),\r\n        ('mastercard', 'Mastercard'),\r\n        ('paypal',     'PayPal'),\r\n        ('zaad',       'Zaad'),\r\n    )\r\n\r\n    user            = models.ForeignKey(\r\n        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True\r\n    )\r\n    customer_name   = models.CharField(max_length=200, blank=True, default='')\r\n    employee_name   = models.CharField(max_length=200, blank=True, default='')  # Added\r\n    payment_method  = models.CharField(\r\n        max_length=20, choices=PAYMENT_CHOICES, default='cash'\r\n    )  # Added\r\n    notes           = models.TextField(blank=True, default='')  # Added\r\n    total_price     = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)\r\n    status          = models.CharField(\r\n        max_length=20, choices=STATUS_CHOICES, default='pending'\r\n    )\r\n    created_at      = models.DateTimeField(auto_now_add=True)\r\n\r\n    def __str__(self):\r\n        return f\"Order #{self.id} — {self.employee_name or self.customer_name} — {self.status}\"\r\n\r\n\r\nclass OrderItem(models.Model):\r\n    order     = models.ForeignKey(Order, related_name='items', on_delete=models.CASCADE)\r\n    menu_item = models.ForeignKey(MenuItem, on_delete=models.PROTECT)\r\n    quantity  = models.PositiveIntegerField(default=1)\r\n    subtotal  = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)\r\n\r\n    def __str__(self):\r\n        return f\"{self.quantity}× {self.menu_item.name} → Order #{self.order.id}\"\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/backend/orders/models.py b/backend/orders/models.py
+--- a/backend/orders/models.py	(revision b17e05f9477a53c4c9ea788ef4d509aded512ca2)
++++ b/backend/orders/models.py	(date 1777863084215)
+@@ -4,6 +4,10 @@
+ 
+ 
+ class Order(models.Model):
++    """
++    Model representing a customer order.
++    Tracks status, payment method, and total price.
++    """
+     STATUS_CHOICES = (
+         ('pending',   'Pending'),
+         ('processing','Processing'),
+@@ -37,6 +41,10 @@
+ 
+ 
+ class OrderItem(models.Model):
++    """
++    Model representing an individual item within an Order.
++    Links a MenuItem to an Order and tracks quantity and subtotal.
++    """
+     order     = models.ForeignKey(Order, related_name='items', on_delete=models.CASCADE)
+     menu_item = models.ForeignKey(MenuItem, on_delete=models.PROTECT)
+     quantity  = models.PositiveIntegerField(default=1)
+Index: backend/menu/admin.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>from django.contrib import admin\r\nfrom .models import Category, MenuItem\r\n\r\nadmin.site.register(Category)\r\nadmin.site.register(MenuItem)\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/backend/menu/admin.py b/backend/menu/admin.py
+--- a/backend/menu/admin.py	(revision b17e05f9477a53c4c9ea788ef4d509aded512ca2)
++++ b/backend/menu/admin.py	(date 1777863084097)
+@@ -1,5 +1,11 @@
+ from django.contrib import admin
+-from .models import Category, MenuItem
++from .models import Category, MenuItem, ContactMessage
++
++@admin.register(ContactMessage)
++class ContactMessageAdmin(admin.ModelAdmin):
++    list_display = ('name', 'email', 'subject', 'created_at')
++    search_fields = ('name', 'email', 'subject')
++    list_filter = ('created_at',)
+ 
+ admin.site.register(Category)
+ admin.site.register(MenuItem)
+Index: backend/employees/models.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>from django.db import models\r\nfrom django.conf import settings\r\n\r\n\r\nclass Employee(models.Model):\r\n    STATUS_CHOICES = (\r\n        ('active', 'Active'),\r\n        ('inactive', 'Inactive'),\r\n    )\r\n\r\n    user = models.OneToOneField(\r\n        settings.AUTH_USER_MODEL,\r\n        on_delete=models.SET_NULL,\r\n        null=True,\r\n        blank=True,\r\n        related_name='employee_profile',\r\n    )\r\n    full_name   = models.CharField(max_length=200)\r\n    job_title   = models.CharField(max_length=100, blank=True, default='')  # Added\r\n    position    = models.CharField(max_length=100, blank=True, default='')  # Kept for compat\r\n    phone       = models.CharField(max_length=20, blank=True, default='')   # Added\r\n    salary      = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)\r\n    hire_date   = models.DateField(auto_now_add=True)\r\n    status      = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')\r\n    shift       = models.CharField(max_length=50, blank=True, default='')   # Added\r\n    hours       = models.CharField(max_length=50, blank=True, default='')   # Added\r\n\r\n    def __str__(self):\r\n        return self.full_name\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/backend/employees/models.py b/backend/employees/models.py
+--- a/backend/employees/models.py	(revision b17e05f9477a53c4c9ea788ef4d509aded512ca2)
++++ b/backend/employees/models.py	(date 1777863083630)
+@@ -3,6 +3,10 @@
+ 
+ 
+ class Employee(models.Model):
++    """
++    Model representing a cafeteria employee.
++    Stores personal info, job details, and optional link to a CustomUser account.
++    """
+     STATUS_CHOICES = (
+         ('active', 'Active'),
+         ('inactive', 'Inactive'),
+Index: frontend/index.html
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><!doctype html>\r\n<html lang=\"en\">\r\n  <head>\r\n    <meta charset=\"UTF-8\" />\r\n    <link rel=\"icon\" type=\"image/png\" href=\"/logo.png\" />\r\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\r\n    <title>Cafeteria Management</title>\r\n  </head>\r\n  <body>\r\n    <div id=\"root\"></div>\r\n    <script type=\"module\" src=\"/src/main.jsx\"></script>\r\n  </body>\r\n</html>\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/frontend/index.html b/frontend/index.html
+--- a/frontend/index.html	(revision b17e05f9477a53c4c9ea788ef4d509aded512ca2)
++++ b/frontend/index.html	(date 1777863084522)
+@@ -5,6 +5,9 @@
+     <link rel="icon" type="image/png" href="/logo.png" />
+     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+     <title>Cafeteria Management</title>
++    <link rel="preconnect" href="https://fonts.googleapis.com">
++    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
++    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&family=Outfit:wght@400;600;800;900&display=swap" rel="stylesheet">
+   </head>
+   <body>
+     <div id="root"></div>
+Index: backend/orders/views.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>from rest_framework import viewsets\r\nfrom rest_framework.decorators import action\r\nfrom rest_framework.response import Response\r\nfrom .models import Order\r\nfrom .serializers import OrderSerializer\r\n\r\nclass OrderViewSet(viewsets.ModelViewSet):\r\n    queryset = Order.objects.all()\r\n    serializer_class = OrderSerializer\r\n\r\n    @action(detail=True, methods=['patch'])\r\n    def status(self, request, pk=None):\r\n        order = self.get_object()\r\n        new_status = request.data.get('status')\r\n        if new_status in dict(Order.STATUS_CHOICES):\r\n            order.status = new_status\r\n            order.save()\r\n            return Response({'status': order.status})\r\n        return Response({'error': 'Invalid status'}, status=400)\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/backend/orders/views.py b/backend/orders/views.py
+--- a/backend/orders/views.py	(revision b17e05f9477a53c4c9ea788ef4d509aded512ca2)
++++ b/backend/orders/views.py	(date 1777863084233)
+@@ -3,13 +3,20 @@
+ from rest_framework.response import Response
+ from .models import Order
+ from .serializers import OrderSerializer
++from accounts.permissions import IsAdminOrDeleteDenied
+ 
+ class OrderViewSet(viewsets.ModelViewSet):
++    """
++    ViewSet for viewing and editing order instances.
++    Provides a custom action to update an order's status.
++    """
+     queryset = Order.objects.all()
+     serializer_class = OrderSerializer
++    permission_classes = [IsAdminOrDeleteDenied]
+ 
+     @action(detail=True, methods=['patch'])
+     def status(self, request, pk=None):
++        """Update the status of an existing order."""
+         order = self.get_object()
+         new_status = request.data.get('status')
+         if new_status in dict(Order.STATUS_CHOICES):
+Index: backend/menu/models.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>from django.db import models\r\n\r\nclass Category(models.Model):\r\n    name = models.CharField(max_length=100, unique=True)\r\n    description = models.TextField(blank=True, null=True)\r\n    created_at = models.DateTimeField(auto_now_add=True)\r\n\r\n    def __str__(self):\r\n        return self.name\r\n\r\nclass MenuItem(models.Model):\r\n    STATUS_CHOICES = (\r\n        ('active', 'Active'),\r\n        ('inactive', 'Inactive'),\r\n    )\r\n    category = models.ForeignKey(Category, related_name='items', on_delete=models.CASCADE, null=True, blank=True)\r\n    name = models.CharField(max_length=200)\r\n    description = models.TextField(blank=True, null=True)\r\n    price = models.DecimalField(max_digits=10, decimal_places=2)\r\n    image = models.URLField(blank=True, null=True)\r\n    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')\r\n    created_at = models.DateTimeField(auto_now_add=True)\r\n\r\n    def __str__(self):\r\n        return self.name\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/backend/menu/models.py b/backend/menu/models.py
+--- a/backend/menu/models.py	(revision b17e05f9477a53c4c9ea788ef4d509aded512ca2)
++++ b/backend/menu/models.py	(date 1777863084121)
+@@ -1,6 +1,9 @@
+ from django.db import models
+ 
+ class Category(models.Model):
++    """
++    Model representing a menu category (e.g., Main Course, Dessert).
++    """
+     name = models.CharField(max_length=100, unique=True)
+     description = models.TextField(blank=True, null=True)
+     created_at = models.DateTimeField(auto_now_add=True)
+@@ -9,6 +12,10 @@
+         return self.name
+ 
+ class MenuItem(models.Model):
++    """
++    Model representing an individual item on the cafeteria menu.
++    Includes pricing, categorization, and active status.
++    """
+     STATUS_CHOICES = (
+         ('active', 'Active'),
+         ('inactive', 'Inactive'),
+@@ -17,9 +24,22 @@
+     name = models.CharField(max_length=200)
+     description = models.TextField(blank=True, null=True)
+     price = models.DecimalField(max_digits=10, decimal_places=2)
+-    image = models.URLField(blank=True, null=True)
++    image = models.ImageField(upload_to='menu_images/', blank=True, null=True)
+     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')
+     created_at = models.DateTimeField(auto_now_add=True)
+ 
+     def __str__(self):
+         return self.name
++
++class ContactMessage(models.Model):
++    """
++    Model representing a contact form message from the public website.
++    """
++    name = models.CharField(max_length=200)
++    email = models.EmailField()
++    subject = models.CharField(max_length=255)
++    message = models.TextField()
++    created_at = models.DateTimeField(auto_now_add=True)
++
++    def __str__(self):
++        return f"{self.subject} - {self.name}"
+Index: backend/employees/views.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>from rest_framework import viewsets\r\nfrom rest_framework.decorators import action\r\nfrom rest_framework.response import Response\r\nfrom .models import Employee\r\nfrom .serializers import EmployeeSerializer\r\n\r\nclass EmployeeViewSet(viewsets.ModelViewSet):\r\n    queryset = Employee.objects.all()\r\n    serializer_class = EmployeeSerializer\r\n\r\n    @action(detail=True, methods=['patch'])\r\n    def toggle(self, request, pk=None):\r\n        emp = self.get_object()\r\n        emp.status = 'inactive' if emp.status == 'active' else 'active'\r\n        emp.save()\r\n        return Response({'status': emp.status})\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/backend/employees/views.py b/backend/employees/views.py
+--- a/backend/employees/views.py	(revision b17e05f9477a53c4c9ea788ef4d509aded512ca2)
++++ b/backend/employees/views.py	(date 1777863083784)
+@@ -3,13 +3,20 @@
+ from rest_framework.response import Response
+ from .models import Employee
+ from .serializers import EmployeeSerializer
++from accounts.permissions import IsAdminRoleOrReadOnly
+ 
+ class EmployeeViewSet(viewsets.ModelViewSet):
++    """
++    ViewSet for viewing and editing employee instances.
++    Provides a custom action to toggle an employee's active status.
++    """
+     queryset = Employee.objects.all()
+     serializer_class = EmployeeSerializer
++    permission_classes = [IsAdminRoleOrReadOnly]
+ 
+     @action(detail=True, methods=['patch'])
+     def toggle(self, request, pk=None):
++        """Toggle active/inactive status of an employee."""
+         emp = self.get_object()
+         emp.status = 'inactive' if emp.status == 'active' else 'active'
+         emp.save()
