@@ -1,4 +1,5 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
+import { useEffect, useState as useReactState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { useTheme } from '../../hooks/useTheme';
 import {
@@ -30,7 +31,7 @@ const NavItem = ({ to, icon: Icon, label, onClick }) => {
     <Link
       to={to}
       onClick={onClick}
-      className={`flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 group relative ${
+      className={`flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 group relative press-effect ${
         isActive
           ? 'bg-primary/15 text-primary'
           : 'text-gray-500 dark:text-slate-400 hover:bg-primary/8 hover:text-primary dark:hover:text-primary'
@@ -40,11 +41,12 @@ const NavItem = ({ to, icon: Icon, label, onClick }) => {
         <motion.div
           layoutId="activeNav"
           className="absolute left-0 top-0 h-full w-1 bg-gradient-to-b from-primary to-accent rounded-r-full"
+          transition={{ type: 'spring', stiffness: 350, damping: 30 }}
         />
       )}
-      <Icon className={`w-5 h-5 transition-transform group-hover:scale-110 ${isActive ? 'text-primary' : ''}`} />
+      <Icon className={`w-5 h-5 transition-transform duration-300 group-hover:scale-110 ${isActive ? 'text-primary' : ''}`} />
       <span className="font-medium text-sm">{label}</span>
-      {isActive && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-primary" />}
+      {isActive && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />}
     </Link>
   );
 };
@@ -53,6 +55,7 @@ export const AdminLayout = () => {
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const location = useLocation();
 
   const SidebarContent = ({ onClose }) => (
     <div className="flex flex-col h-full">
@@ -172,9 +175,16 @@ export const AdminLayout = () => {
           </button>
         </div>
 
-        {/* Page Content */}
+        {/* Page Content with smooth transition */}
         <main className="flex-1 overflow-y-auto p-6 lg:p-8">
-          <Outlet />
+          <motion.div
+            key={location.pathname}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <Outlet />
+          </motion.div>
         </main>
       </div>
     </div>

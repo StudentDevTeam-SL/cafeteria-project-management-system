@@ -187,7 +187,7 @@ const Login = () => {
               <div className="grid grid-cols-2 gap-3">
                 {[
                   {label:'👑 Admin',    u:'admin',    p:'admin',    cls:'border-primary/40 text-primary hover:bg-primary/10'},
-                  {label:'👤 Employee', u:'employee', p:'employee', cls:'border-accent/40 text-accent hover:bg-accent/10'},
+                  {label:'👤 Employee', u:'employee', p:'1234', cls:'border-accent/40 text-accent hover:bg-accent/10'},
                 ].map(b=>(
                   <motion.button key={b.u} type="button" whileHover={{scale:1.04,y:-1}} whileTap={{scale:.97}}
                     onClick={()=>{setUsername(b.u);setPassword(b.p);}}

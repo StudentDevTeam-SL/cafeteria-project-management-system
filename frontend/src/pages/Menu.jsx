@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Plus, X, Edit2, Trash2, ToggleLeft, ToggleRight, UtensilsCrossed, Star, Image as ImageIcon, Check, Clock, ShoppingCart, CreditCard, Minus, MessageSquare } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
@@ -6,6 +6,7 @@ import { useToast } from '../context/ToastContext';
 import ConfirmModal from '../components/ConfirmModal';
 import { FOOD_PHOTOS, CATEGORIES, CAT_EMOJI, INIT_MENU_ITEMS } from '../data/menuCatalog';
 import { useSoundContext } from '../context/SoundContext';
+import api from '../api/axios';
 
 /* ── Item Card — role-aware ── */
 const ItemCard = ({ item, onToggle, onEdit, onDelete, onApprove, onReject, onAddCart, onDecCart, cartQty = 0, isAdmin }) => {
@@ -34,7 +35,7 @@ const ItemCard = ({ item, onToggle, onEdit, onDelete, onApprove, onReject, onAdd
 
       {/* Image */}
       <div className="relative h-44 overflow-hidden">
-        <img src={item.customPhoto || item.photoUrl || FOOD_PHOTOS[item.id] || FOOD_PHOTOS[1]} alt={item.name}
+        <img src={item.customPhoto || item.image || item.photoUrl || FOOD_PHOTOS[item.id] || FOOD_PHOTOS[1]} alt={item.name}
           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
           onError={e=>{e.target.src='https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&h=280&fit=crop';}} />
         <div className="absolute top-3 left-3 flex items-center gap-1 bg-black/60 backdrop-blur-sm rounded-full px-2.5 py-1">
@@ -60,9 +61,9 @@ const ItemCard = ({ item, onToggle, onEdit, onDelete, onApprove, onReject, onAdd
       <div className="p-4">
         <div className="flex items-start justify-between mb-1.5">
           <h3 className="font-bold text-sm leading-tight pr-2 group-hover:text-primary transition-colors">{item.name}</h3>
-          <span className="text-primary font-black text-lg whitespace-nowrap">${item.price.toFixed(2)}</span>
+          <span className="text-primary font-black text-lg whitespace-nowrap">${Number(item.price).toFixed(2)}</span>
         </div>
-        <p className="text-xs text-gray-400 dark:text-slate-500 line-clamp-2 mb-3">{item.desc}</p>
+        <p className="text-xs text-gray-400 dark:text-slate-500 line-clamp-2 mb-3">{item.description || item.desc}</p>
 
         {/* Admin controls & POS Add */}
         {!isPending && (
@@ -121,8 +122,8 @@ const ItemCard = ({ item, onToggle, onEdit, onDelete, onApprove, onReject, onAdd
 /* ── Item Modal ── */
 const ItemModal = ({ item, onClose, onSave, isAdmin }) => {
   const fileRef = useRef(null);
-  const [form, setForm] = useState(item || { name:'', price:'', category:'Main Course', desc:'', is_active:true, rating:4.5, photoUrl:'', customPhoto:'' });
-  const preview = form.customPhoto || form.photoUrl || '';
+  const [form, setForm] = useState(item || { name:'', price:'', category:'Main Course', description:'', desc:'', is_active:true, rating:4.5, image:'', photoUrl:'', customPhoto:'' });
+  const preview = form.customPhoto || form.image || form.photoUrl || '';
   const set = (k,v) => setForm(f=>({...f,[k]:v}));
   const handleFile = e => { const f=e.target.files?.[0]; if(!f)return; const r=new FileReader(); r.onloadend=()=>set('customPhoto',r.result); r.readAsDataURL(f); };
 
@@ -154,8 +155,8 @@ const ItemModal = ({ item, onClose, onSave, isAdmin }) => {
             </motion.div>
           )}
           <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
-          <input className="form-input mt-2 text-xs" placeholder="or paste image URL https://..." value={form.photoUrl}
-            onChange={e=>{set('photoUrl',e.target.value);set('customPhoto','');}} />
+          <input className="form-input mt-2 text-xs" placeholder="or paste image URL https://..." value={form.image || form.photoUrl}
+            onChange={e=>{set('image',e.target.value);set('photoUrl',e.target.value);set('customPhoto','');}} />
         </div>
 
         <div className="space-y-3">
@@ -168,7 +169,7 @@ const ItemModal = ({ item, onClose, onSave, isAdmin }) => {
               <select className="form-input" value={form.category} onChange={e=>set('category',e.target.value)}>{CATEGORIES.slice(1).map(c=><option key={c}>{c}</option>)}</select></div>
           </div>
           <div><label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Description</label>
-            <textarea className="form-input resize-none" rows={2} value={form.desc} onChange={e=>set('desc',e.target.value)} /></div>
+            <textarea className="form-input resize-none" rows={2} value={form.description || form.desc} onChange={e=>{set('description',e.target.value);set('desc',e.target.value);}} /></div>
             <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60">
               <span className="text-sm font-medium">Available for ordering</span>
               <button onClick={()=>set('is_active',!form.is_active)}>
@@ -216,7 +217,7 @@ const CheckoutModal = ({ cart, setCart, onClose }) => {
             <div key={c.id} className="flex items-center justify-between glass-card p-3">
               <div>
                 <p className="text-sm font-bold">{c.name}</p>
-                <p className="text-xs text-primary">${c.price.toFixed(2)}</p>
+                <p className="text-xs text-primary">${Number(c.price).toFixed(2)}</p>
               </div>
               <div className="flex items-center gap-2">
                 <button onClick={()=>{playSound(); setCart(p=>{const ex=p.find(i=>i.id===c.id); if(ex.qty<=1)return p.filter(i=>i.id!==c.id); return p.map(i=>i.id===c.id?{...i,qty:i.qty-1}:i)})}} className="w-7 h-7 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center hover:bg-red-500/20"><Minus className="w-3.5 h-3.5" /></button>
@@ -253,12 +254,26 @@ const Menu = () => {
   const { playSound } = useSoundContext();
   const { showToast } = useToast();
 
-  const [items, setItems]         = useState(INIT_MENU_ITEMS);
+  const [items, setItems]         = useState([]);
   const [search, setSearch]       = useState('');
   const [activeCat, setActiveCat] = useState('All');
   const [modalOpen, setModalOpen] = useState(false);
   const [editItem, setEditItem]   = useState(null);
   const [itemToDelete, setItemToDelete] = useState(null);
+  
+  // Fetch from Django API
+  useEffect(() => {
+    fetchItems();
+  }, []);
+
+  const fetchItems = async () => {
+    try {
+      const res = await api.get('menu/');
+      setItems(res.data.results || res.data);
+    } catch (err) {
+      console.error('Failed to fetch menu:', err);
+    }
+  };
   
   // POS Cart State
   const [cart, setCart]                 = useState([]);
@@ -281,29 +296,44 @@ const Menu = () => {
     });
   };
 
-  const allItems  = items.filter(i => { const mc=activeCat==='All'||i.category===activeCat; const ms=i.name.toLowerCase().includes(search.toLowerCase()); return mc&&ms; });
+  const allItems  = items.filter(i => { const mc=activeCat==='All'||i.category_name===activeCat; const ms=i.name.toLowerCase().includes(search.toLowerCase()); return mc&&ms; });
   const pending   = allItems.filter(i => i.status==='pending');
   const active    = allItems.filter(i => i.status!=='pending');
 
-  const toggle  = id => setItems(p=>p.map(i=>i.id===id?{...i,is_active:!i.is_active}:i));
-  const remove  = item => {
-    setItems(p=>p.filter(i=>i.id!==item.id));
-    showToast(`Deleted ${item.name} from menu`, {
-      type: 'warning',
-      onUndo: () => setItems(p => [...p, item]),
-      duration: 7000
-    });
+  const toggle  = async id => {
+    try {
+      const res = await api.patch(`menu/${id}/toggle/`);
+      // Backend returns the full updated item (including is_active & status)
+      setItems(p=>p.map(i=>i.id===id ? res.data : i));
+    } catch (err) { console.error('Failed to toggle', err); }
+  };
+  const remove  = async item => {
+    try {
+      await api.delete(`menu/${item.id}/`);
+      setItems(p=>p.filter(i=>i.id!==item.id));
+      showToast(`Deleted ${item.name} from menu`, {
+        type: 'warning',
+        duration: 3000
+      });
+    } catch (err) { console.error('Failed to delete', err); }
   };
   const approve = id => setItems(p=>p.map(i=>i.id===id?{...i,status:'active',is_active:true}:i));
   const reject  = id => setItems(p=>p.filter(i=>i.id!==id));
 
-  const save = form => {
-    if (editItem) {
-      setItems(p=>p.map(i=>i.id===editItem.id?{...i,...form}:i));
-    } else {
-      setItems(p=>[...p,{...form,id:Date.now(),rating:4.5, status: 'active'}]);
+  const save = async form => {
+    try {
+      let res;
+      if (editItem) {
+        res = await api.patch(`menu/${editItem.id}/`, form);
+        setItems(p=>p.map(i=>i.id===editItem.id?res.data:i));
+      } else {
+        res = await api.post(`menu/`, {...form, rating:4.5, status: 'active'});
+        setItems(p=>[...p, res.data]);
+      }
+      setModalOpen(false); setEditItem(null);
+    } catch (err) {
+      console.error('Failed to save', err);
     }
-    setModalOpen(false); setEditItem(null);
   };
 
   return (

@@ -1,21 +1,14 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Clock, CheckCircle, XCircle, Loader, ShoppingBag, Eye, X, Plus, Minus, CreditCard, Trash2, BarChart2 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../context/ToastContext';
 import ConfirmModal from '../components/ConfirmModal';
 import PaymentModal from '../components/PaymentModal';
-import { INIT_MENU_ITEMS, FOOD_PHOTOS } from '../data/menuCatalog';
+import { FOOD_PHOTOS } from '../data/menuCatalog';
+import api from '../api/axios';
 
-const MOCK_ORDERS = [
-  { id:'#ORD-001', employee:'Ahmed Hassan',    items:[{name:'Grilled Chicken Sandwich',qty:2,price:12.50},{name:'Iced Latte',qty:1,price:5.00}], total:30.00, status:'completed',  created_at:'2026-04-26 09:02', payment:'Cash'      },
-  { id:'#ORD-002', employee:'Sarah Mohammed',  items:[{name:'Caesar Salad',qty:1,price:9.00},{name:'Espresso',qty:2,price:3.50}],               total:16.00, status:'processing', created_at:'2026-04-26 09:15', payment:'Mastercard' },
-  { id:'#ORD-003', employee:'John Doe',        items:[{name:'Classic Beef Burger',qty:1,price:15.00}],                                          total:15.00, status:'pending',    created_at:'2026-04-26 09:30', payment:'Cash'      },
-  { id:'#ORD-004', employee:'Fatima Ali',      items:[{name:'Pasta Carbonara',qty:2,price:11.25}],                                              total:22.50, status:'completed',  created_at:'2026-04-26 08:45', payment:'PayPal'    },
-  { id:'#ORD-005', employee:'Mohammed Khalid', items:[{name:'Fresh Orange Juice',qty:3,price:4.50}],                                            total:13.50, status:'cancelled',  created_at:'2026-04-26 08:20', payment:'Zaad'      },
-  { id:'#ORD-006', employee:'Aisha Noor',      items:[{name:'Chocolate Muffin',qty:4,price:3.00},{name:'Espresso',qty:2,price:3.50}],           total:19.00, status:'processing', created_at:'2026-04-26 09:45', payment:'Mastercard' },
-  { id:'#ORD-007', employee:'Carlos Mendez',   items:[{name:'Iced Caramel Latte',qty:2,price:5.50}],                                           total:11.00, status:'completed',  created_at:'2026-04-26 10:00', payment:'Cash'      },
-];
+// MOCK_ORDERS removed. Data will be fetched from API.
 
 const STATUS_CFG = {
   completed:  { label:'Completed',  icon:CheckCircle, cls:'badge-green',  dot:'bg-emerald-500'            },
@@ -26,10 +19,10 @@ const STATUS_CFG = {
 const PAY_CFG = { Cash:'badge-green', Mastercard:'badge-purple', PayPal:'badge-blue', Zaad:'badge-yellow' };
 
 /* ── Catalog Item Picker ── */
-const CatalogPicker = ({ cart, setCart }) => {
+const CatalogPicker = ({ cart, setCart, menuItems }) => {
   const [cat, setCat] = useState('All');
   const cats = ['All','Main Course','Beverages','Salads','Snacks','Desserts'];
-  const items = INIT_MENU_ITEMS.filter(i => i.is_active && (cat==='All'||i.category===cat));
+  const items = menuItems.filter(i => i.is_active && (cat==='All'||i.category===cat||i.category_name===cat));
   const qty = id => cart.find(c=>c.id===id)?.qty || 0;
   const add = item => setCart(p => { const ex=p.find(c=>c.id===item.id); return ex?p.map(c=>c.id===item.id?{...c,qty:c.qty+1}:c):[...p,{...item,qty:1}]; });
   const dec = id  => setCart(p => { const ex=p.find(c=>c.id===id); if(!ex||ex.qty<=1)return p.filter(c=>c.id!==id); return p.map(c=>c.id===id?{...c,qty:c.qty-1}:c); });
@@ -43,10 +36,10 @@ const CatalogPicker = ({ cart, setCart }) => {
       <div className="grid grid-cols-2 gap-2 max-h-56 overflow-y-auto pr-1">
         {items.map(item=>(
           <div key={item.id} className="glass-card p-2 flex items-center gap-2">
-            <img src={item.customPhoto||FOOD_PHOTOS[item.id]} alt={item.name} className="w-12 h-12 rounded-xl object-cover flex-shrink-0" onError={e=>{e.target.src=FOOD_PHOTOS[1];}} />
+            <img src={item.customPhoto||item.image||item.photoUrl||FOOD_PHOTOS[item.id]} alt={item.name} className="w-12 h-12 rounded-xl object-cover flex-shrink-0" onError={e=>{e.target.src=FOOD_PHOTOS[1];}} />
             <div className="flex-1 min-w-0">
               <p className="text-xs font-semibold truncate">{item.name}</p>
-              <p className="text-xs text-primary font-bold">${item.price.toFixed(2)}</p>
+              <p className="text-xs text-primary font-bold">${Number(item.price).toFixed(2)}</p>
             </div>
             <div className="flex items-center gap-1">
               {qty(item.id)>0 && <>
@@ -63,16 +56,32 @@ const CatalogPicker = ({ cart, setCart }) => {
 };
 
 /* ── New Order Modal ── */
-const NewOrderModal = ({ onClose, onPlaced }) => {
+const NewOrderModal = ({ onClose, onPlaced, menuItems }) => {
   const [employee, setEmployee] = useState('');
   const [cart, setCart]         = useState([]);
   const [step, setStep]         = useState(1);
   const [error, setError]       = useState('');
   const total = cart.reduce((s,c)=>s+c.price*c.qty,0);
 
-  const handleSuccess = method => {
-    onPlaced({ id:`#ORD-${String(Math.floor(Math.random()*900)+100)}`, employee:employee.trim(), items:cart.map(c=>({name:c.name,qty:c.qty,price:c.price})), total, status:'processing', created_at:new Date().toLocaleString(), payment:method.charAt(0).toUpperCase()+method.slice(1) });
-    onClose();
+  const handleSuccess = async method => {
+    try {
+      const payload = {
+        employee_name: employee.trim(),
+        payment_method: method.toLowerCase(),
+        items: cart.map(c => ({
+          menu_item_id: c.id,
+          quantity: c.qty,
+          unit_price: c.price
+        })),
+        notes: ''
+      };
+      const res = await api.post('orders/', payload);
+      onPlaced(res.data);
+      onClose();
+    } catch (err) {
+      setError(err.response?.data?.detail || 'Failed to place order');
+      setStep(1);
+    }
   };
 
   if (step===2) return <PaymentModal amount={total} onClose={()=>setStep(1)} onSuccess={handleSuccess} />;
@@ -94,7 +103,7 @@ const NewOrderModal = ({ onClose, onPlaced }) => {
           </div>
 
           <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Select Items from Menu</label>
-          <CatalogPicker cart={cart} setCart={setCart} />
+          <CatalogPicker cart={cart} setCart={setCart} menuItems={menuItems} />
 
           {cart.length>0 && (
             <div className="mt-4 p-3 rounded-xl bg-primary/5 border border-primary/20">
@@ -139,16 +148,16 @@ const OrderModal = ({ order, onClose, onStatusChange, isAdmin }) => {
         className="bg-light-card dark:bg-dark-card rounded-2xl shadow-2xl w-full max-w-lg border border-slate-200/60 dark:border-slate-700/50 overflow-hidden">
         <div className={`h-1 ${order.status==='completed'?'bg-emerald-500':order.status==='processing'?'bg-blue-500':order.status==='cancelled'?'bg-red-500':'bg-amber-500'}`}/>
         <div className="p-6 border-b border-slate-200/60 dark:border-slate-700/40 flex items-center justify-between">
-          <div><h2 className="text-xl font-black">{order.id}</h2><p className="text-sm text-slate-400">{order.created_at}</p></div>
+          <div><h2 className="text-xl font-black">{order.order_number || order.id}</h2><p className="text-sm text-slate-400">{new Date(order.created_at).toLocaleString()}</p></div>
           <button onClick={onClose} className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800"><X className="w-5 h-5 text-slate-400"/></button>
         </div>
         <div className="p-6 space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-bold">{order.employee.charAt(0)}</div>
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-bold">{(order.employee_name || 'G').charAt(0)}</div>
               <div>
-                <p className="font-semibold text-sm">{order.employee}</p>
-                <span className={`badge ${PAY_CFG[order.payment]||'badge-blue'} text-xs`}><CreditCard className="w-3 h-3"/> {order.payment}</span>
+                <p className="font-semibold text-sm">{order.employee_name || 'Guest'}</p>
+                <span className={`badge ${PAY_CFG[order.payment_method]||'badge-blue'} text-xs`}><CreditCard className="w-3 h-3"/> {order.payment_method}</span>
               </div>
             </div>
             <span className={`badge ${cfg.cls} gap-1.5`}><cfg.icon className="w-3.5 h-3.5"/> {cfg.label}</span>
@@ -157,12 +166,12 @@ const OrderModal = ({ order, onClose, onStatusChange, isAdmin }) => {
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">Order Items</h3>
             {order.items.map((item,i)=>(
               <div key={i} className="flex items-center justify-between text-sm">
-                <div className="flex items-center gap-2"><span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center font-bold">{item.qty}</span><span>{item.name}</span></div>
-                <span className="font-semibold">${(item.qty*item.price).toFixed(2)}</span>
+                <div className="flex items-center gap-2"><span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center font-bold">{item.quantity || item.qty}</span><span>{item.item_name || item.name}</span></div>
+                <span className="font-semibold">${((item.quantity || item.qty) * (item.unit_price || item.price)).toFixed(2)}</span>
               </div>
             ))}
             <div className="pt-3 border-t border-slate-200 dark:border-slate-700 flex justify-between font-black">
-              <span>Total</span><span className="text-primary text-lg">${order.total.toFixed(2)}</span>
+              <span>Total</span><span className="text-primary text-lg">${Number(order.total_amount || order.total || 0).toFixed(2)}</span>
             </div>
           </div>
           {(order.status==='pending'||order.status==='processing') && (
@@ -180,16 +189,16 @@ const OrderModal = ({ order, onClose, onStatusChange, isAdmin }) => {
 /* ── Sales Report Panel ── */
 const SalesReport = ({ orders }) => {
   const completed = orders.filter(o=>o.status!=='cancelled');
-  const revenue   = completed.reduce((s,o)=>s+o.total,0);
-  const byMethod  = ['Cash','PayPal','Mastercard','Zaad'].map(m=>({ method:m, total:completed.filter(o=>o.payment===m).reduce((s,o)=>s+o.total,0), count:completed.filter(o=>o.payment===m).length }));
+  const revenue   = completed.reduce((s,o)=>s+Number(o.total_amount || o.total || 0),0);
+  const byMethod  = ['cash','paypal','mastercard','zaad'].map(m=>({ method:m, total:completed.filter(o=>o.payment_method?.toLowerCase()===m).reduce((s,o)=>s+Number(o.total_amount || o.total || 0),0), count:completed.filter(o=>o.payment_method?.toLowerCase()===m).length }));
   const maxRev    = Math.max(...byMethod.map(b=>b.total),1);
 
   // Top items
   const itemMap = {};
-  completed.forEach(o=>o.items.forEach(i=>{ itemMap[i.name]=(itemMap[i.name]||0)+i.qty; }));
+  completed.forEach(o=>(o.items||[]).forEach(i=>{ itemMap[i.item_name || i.name]=(itemMap[i.item_name || i.name]||0)+(i.quantity || i.qty); }));
   const topItems = Object.entries(itemMap).sort((a,b)=>b[1]-a[1]).slice(0,5);
 
-  const methodColors = { Cash:'bg-emerald-500', PayPal:'bg-blue-500', Mastercard:'bg-violet-500', Zaad:'bg-amber-500' };
+  const methodColors = { cash:'bg-emerald-500', paypal:'bg-blue-500', mastercard:'bg-violet-500', zaad:'bg-amber-500' };
 
   return (
     <motion.div initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} className="glass-card p-6">
@@ -246,36 +255,56 @@ const Orders = () => {
   const { showToast } = useToast();
   const isAdmin  = user?.role === 'Admin';
 
-  const [orders, setOrders]       = useState(MOCK_ORDERS);
+  const [orders, setOrders]       = useState([]);
   const [search, setSearch]       = useState('');
   const [statusFilter, setFilter] = useState('all');
   const [selected, setSelected]   = useState(null);
   const [newOpen, setNewOpen]     = useState(false);
   const [orderToDelete, setOrderToDelete] = useState(null);
+  const [menuItems, setMenuItems] = useState([]);
+  
+
+  useEffect(() => {
+    fetchOrders();
+    fetchMenuItems();
+  }, []);
+
+  const fetchOrders = async () => {
+    try {
+      const res = await api.get('orders/');
+      setOrders(res.data.results || res.data);
+    } catch (err) { console.error('Failed to fetch orders:', err); }
+  };
+
+  const fetchMenuItems = async () => {
+    try {
+      const res = await api.get('menu/');
+      setMenuItems(res.data.results || res.data);
+    } catch (err) { console.error('Failed to fetch menu items:', err); }
+  };
 
   const filtered = orders.filter(o=>{
     const ms = statusFilter==='all'||o.status===statusFilter;
-    const mq = o.id.toLowerCase().includes(search.toLowerCase())||o.employee.toLowerCase().includes(search.toLowerCase());
+    const q = search.toLowerCase();
+    const mq = (o.order_number||'').toLowerCase().includes(q) || (o.employee_name||'').toLowerCase().includes(q);
     return ms&&mq;
   });
 
-  const handleStatusChange = (order, s) => {
-    setOrders(p=>p.map(o=>o.id===order.id?{...o,status:s}:o));
-    if (s === 'cancelled') {
-      showToast(`Cancelled order ${order.id}`, {
-        type: 'warning',
-        onUndo: () => setOrders(p=>p.map(o=>o.id===order.id?{...o,status:order.status}:o)),
-        duration: 7000
-      });
-    }
+  const handleStatusChange = async (order, s) => {
+    try {
+      await api.patch(`orders/${order.id}/status/`, { status: s });
+      setOrders(p=>p.map(o=>o.id===order.id?{...o,status:s}:o));
+      if (s === 'cancelled') {
+        showToast(`Cancelled order ${order.order_number || order.id}`, { type: 'warning', duration: 3000 });
+      }
+    } catch (err) { console.error('Failed to change status:', err); }
   };
-  const handleDelete       = order => {
-    setOrders(p=>p.filter(o=>o.id!==order.id));
-    showToast(`Deleted order ${order.id}`, {
-      type: 'warning',
-      onUndo: () => setOrders(p=>[order,...p]),
-      duration: 7000
-    });
+  const handleDelete       = async order => {
+    try {
+      await api.delete(`orders/${order.id}/`);
+      setOrders(p=>p.filter(o=>o.id!==order.id));
+      showToast(`Deleted order ${order.order_number || order.id}`, { type: 'warning', duration: 3000 });
+    } catch (err) { console.error('Failed to delete order:', err); }
   };
   const handlePlaced       = order => setOrders(p=>[order,...p]);
 
@@ -283,7 +312,7 @@ const Orders = () => {
     total:    orders.length,
     completed:orders.filter(o=>o.status==='completed').length,
     processing:orders.filter(o=>o.status==='processing').length,
-    revenue:  orders.filter(o=>o.status!=='cancelled').reduce((s,o)=>s+o.total,0),
+    revenue:  orders.filter(o=>o.status!=='cancelled').reduce((s,o)=>s+Number(o.total_amount||o.total||0),0),
   };
 
   return (
@@ -347,13 +376,13 @@ const Orders = () => {
                   const cfg=STATUS_CFG[order.status];
                   return (
                     <motion.tr key={order.id} initial={{opacity:0,x:-10}} animate={{opacity:1,x:0}} exit={{opacity:0,x:10}} transition={{delay:idx*.04}}>
-                      <td className="font-mono text-xs font-bold text-primary">{order.id}</td>
-                      <td><div className="flex items-center gap-2"><div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary/30 to-accent/30 flex items-center justify-center text-xs font-bold text-primary">{order.employee.charAt(0)}</div><span className="text-sm font-medium">{order.employee}</span></div></td>
-                      <td className="text-xs text-slate-400">{order.items.length} item{order.items.length>1?'s':''}</td>
-                      <td className="font-bold text-emerald-500">${order.total.toFixed(2)}</td>
-                      <td><span className={`badge ${PAY_CFG[order.payment]||'badge-blue'} text-xs`}>{order.payment}</span></td>
+                      <td className="font-mono text-xs font-bold text-primary">{order.order_number || order.id}</td>
+                      <td><div className="flex items-center gap-2"><div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary/30 to-accent/30 flex items-center justify-center text-xs font-bold text-primary">{(order.employee_name || 'G').charAt(0)}</div><span className="text-sm font-medium">{order.employee_name || 'Guest'}</span></div></td>
+                      <td className="text-xs text-slate-400">{order.items?.length || 0} item{order.items?.length>1?'s':''}</td>
+                      <td className="font-bold text-emerald-500">${Number(order.total_amount || order.total || 0).toFixed(2)}</td>
+                      <td><span className={`badge ${PAY_CFG[order.payment_method]||'badge-blue'} text-xs capitalize`}>{order.payment_method}</span></td>
                       <td><span className={`badge ${cfg.cls} gap-1.5`}><span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`}/>{cfg.label}</span></td>
-                      <td className="text-xs text-slate-400">{order.created_at.split(' ')[1]}</td>
+                      <td className="text-xs text-slate-400">{new Date(order.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</td>
                       <td>
                         <div className="flex items-center gap-1">
                           <motion.button whileHover={{scale:1.15}} whileTap={{scale:.9}} onClick={()=>setSelected(order)} className="p-2 rounded-lg hover:bg-primary/10 text-slate-400 hover:text-primary transition-colors" title="View details"><Eye className="w-4 h-4"/></motion.button>
@@ -379,7 +408,7 @@ const Orders = () => {
 
       <AnimatePresence>
         {selected  && <OrderModal order={selected} onClose={()=>setSelected(null)} onStatusChange={handleStatusChange} isAdmin={isAdmin}/>}
-        {newOpen   && <NewOrderModal onClose={()=>setNewOpen(false)} onPlaced={handlePlaced}/>}
+        {newOpen   && <NewOrderModal onClose={()=>setNewOpen(false)} onPlaced={handlePlaced} menuItems={menuItems} />}
       </AnimatePresence>
 
       <ConfirmModal
