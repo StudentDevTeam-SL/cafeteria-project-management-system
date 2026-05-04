@@ -4,6 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
+<<<<<<< HEAD
     <list default="true" id="6fde6323-7d13-44a9-9616-5dbd0d87e11c" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/backend/accounts/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/accounts/models.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/accounts/permissions.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/accounts/permissions.py" afterDir="false" />
@@ -29,6 +30,9 @@
       <change beforePath="$PROJECT_DIR$/frontend/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/index.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/test.md" beforeDir="false" />
     </list>
+=======
+    <list default="true" id="c84be4b9-db51-4074-8c39-17c354cb8c3c" name="Changes" comment="" />
+>>>>>>> b325ad7182c5baad77031f09a5792d0299422072
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -36,28 +40,60 @@
   </component>
   <component name="CopilotPersistence">
     <persistenceIdMap>
+<<<<<<< HEAD
       <entry key="_C:/Users/pc/Desktop/catateria-project-management-system" value="3DEzzEzGGr1OPWifhXGDncMZVjA" />
     </persistenceIdMap>
   </component>
   <component name="EmbeddingIndexingInfo">
     <option name="cachedIndexableFilesCount" value="5452" />
+=======
+      <entry key="_C:/Users/pc/Desktop/catateria-project-management-system" value="3CRj79WhxRsYePsQVGu1t7Lei7e" />
+    </persistenceIdMap>
+  </component>
+  <component name="EmbeddingIndexingInfo">
+    <option name="cachedIndexableFilesCount" value="22" />
+>>>>>>> b325ad7182c5baad77031f09a5792d0299422072
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+<<<<<<< HEAD
+=======
+  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
+  "lastFilter": {
+    "state": "OPEN",
+    "assignee": "Abdifataah-SEng"
+  }
+}]]></component>
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/StudentDevTeam-SL/catateria-project-management-system.git",
+    "accountId": "9f71798f-404b-4cc2-8ced-175edc2c7032"
+  }
+}]]></component>
+>>>>>>> b325ad7182c5baad77031f09a5792d0299422072
   <component name="McpProjectServerCommands">
     <commands />
     <urls />
   </component>
+<<<<<<< HEAD
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 8,
   &quot;fromUser&quot;: false
 }</component>
   <component name="ProjectId" id="3DEzzEzGGr1OPWifhXGDncMZVjA" />
+=======
+  <component name="ProjectColorInfo"><![CDATA[{
+  "associatedIndex": 2,
+  "fromUser": false
+}]]></component>
+  <component name="ProjectId" id="3CRj79WhxRsYePsQVGu1t7Lei7e" />
+>>>>>>> b325ad7182c5baad77031f09a5792d0299422072
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
+<<<<<<< HEAD
   <component name="PropertiesComponent">{
   &quot;keyToString&quot;: {
     &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
@@ -94,11 +130,37 @@
     <attachedChunks>
       <set>
         <option value="bundled-js-predefined-d6986cc7102b-3bd3a6803838-JavaScript-WS-261.22158.274" />
+=======
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.MCP Project settings loaded": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "codeWithMe.voiceChat.enabledByDefault": "false",
+    "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
+    "git-widget-placeholder": "main",
+    "junie.onboarding.icon.badge.shown": "true",
+    "last_opened_file_path": "C:/Users/pc/Desktop/catateria-project-management-system",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "to.speed.mode.migration.done": "true"
+  }
+}]]></component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-python-sdk-b63d5a1f7c97-b61e75351b1f-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-261.22158.340" />
+>>>>>>> b325ad7182c5baad77031f09a5792d0299422072
       </set>
     </attachedChunks>
   </component>
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
+<<<<<<< HEAD
       <changelist id="6fde6323-7d13-44a9-9616-5dbd0d87e11c" name="Changes" comment="" />
       <created>1777862278109</created>
       <option name="number" value="Default" />
@@ -106,6 +168,13 @@
       <updated>1777862278109</updated>
       <workItem from="1777862279719" duration="852000" />
       <workItem from="1777863221577" duration="183000" />
+=======
+      <changelist id="c84be4b9-db51-4074-8c39-17c354cb8c3c" name="Changes" comment="" />
+      <created>1776355106759</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1776355106759</updated>
+>>>>>>> b325ad7182c5baad77031f09a5792d0299422072
     </task>
     <servers />
   </component>

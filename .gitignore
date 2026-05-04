@@ -1,0 +1,17 @@
+# ===== Secrets and Environment Variables =====
+.env
+backend/.env
+frontend/.env
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+
+# ===== Local Databases =====
+backend/db.sqlite3
+
+# ===== Massive Dependency Folders (Do not commit) =====
+frontend/node_modules/
+venv/
+env/
+.venv/
