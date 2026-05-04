@@ -1,9 +1,11 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
+import React, { useEffect, useState as useReactState, useMemo } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { useTheme } from '../../hooks/useTheme';
+import { usePerformance } from '../../hooks/usePerformance';
 import {
   LogOut, ChefHat, Moon, Sun, LayoutDashboard, UtensilsCrossed,
-  Package, FileText, Settings, Users, DollarSign, Menu, X
+  Package, FileText, Settings, Users, DollarSign, Menu, X, Zap, ZapOff
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
@@ -16,13 +18,16 @@ const NAV_ITEMS = [
   { to: '/settings', icon: Settings, label: 'Settings' },
 ];
 
-// Admin-only sidebar items
 const ADMIN_ITEMS = [
   { to: '/employees', icon: Users, label: 'Employees' },
   { to: '/salaries', icon: DollarSign, label: 'Salaries' },
 ];
 
-const NavItem = ({ to, icon: Icon, label, onClick }) => {
+/**
+ * Optimized NavItem component
+ * Uses memoization and performance-aware hover animations.
+ */
+const NavItem = React.memo(({ to, icon: Icon, label, onClick, enableHover }) => {
   const location = useLocation();
   const isActive = location.pathname === to;
 
@@ -30,7 +35,7 @@ const NavItem = ({ to, icon: Icon, label, onClick }) => {
     <Link
       to={to}
       onClick={onClick}
-      className={`flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 group relative ${
+      className={`flex items-center space-x-3 px-4 py-3 rounded-xl transition-colors duration-200 group relative ${
         isActive
           ? 'bg-primary/15 text-primary'
           : 'text-gray-500 dark:text-slate-400 hover:bg-primary/8 hover:text-primary dark:hover:text-primary'
@@ -39,34 +44,52 @@ const NavItem = ({ to, icon: Icon, label, onClick }) => {
       {isActive && (
         <motion.div
           layoutId="activeNav"
-          className="absolute left-0 top-0 h-full w-1 bg-gradient-to-b from-primary to-accent rounded-r-full"
+          initial={false}
+          className="absolute left-0 top-0 h-full w-1 bg-primary rounded-r-full"
+          transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
         />
       )}
-      <Icon className={`w-5 h-5 transition-transform group-hover:scale-110 ${isActive ? 'text-primary' : ''}`} />
+      <Icon className={`w-5 h-5 transition-transform duration-200 ${enableHover ? 'group-hover:scale-110' : ''} ${isActive ? 'text-primary' : ''}`} />
       <span className="font-medium text-sm">{label}</span>
       {isActive && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-primary" />}
     </Link>
   );
-};
+});
 
 export const AdminLayout = () => {
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const { lowPerformance, togglePerformance, animationConfig } = usePerformance();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const location = useLocation();
+
+  // Performance-optimized animation variants
+  const sidebarVariants = useMemo(() => ({
+    open: { 
+      x: 0, 
+      opacity: 1,
+      transition: animationConfig.transition 
+    },
+    closed: { 
+      x: -280, 
+      opacity: 0,
+      transition: { duration: 0.2, ease: 'easeIn' } // Faster close
+    }
+  }), [animationConfig, lowPerformance]);
 
   const SidebarContent = ({ onClose }) => (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full bg-light dark:bg-dark border-r border-gray-200/50 dark:border-slate-700/50">
       {/* Logo */}
       <div className="p-6 flex items-center justify-between border-b border-gray-200/50 dark:border-slate-700/50">
         <Link to="/dashboard" className="flex items-center space-x-3" onClick={onClose}>
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center">
             <ChefHat className="w-6 h-6 text-white" />
           </div>
           <div>
             <h1 className="text-lg font-black bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent leading-tight">
               Cafeteria Management
             </h1>
-            <p className="text-xs text-gray-400">v1.0.0</p>
+            <p className="text-xs text-gray-400">v1.1.0</p>
           </div>
         </Link>
         {onClose && (
@@ -79,18 +102,31 @@ export const AdminLayout = () => {
       {/* Nav */}
       <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
         <p className="text-xs font-bold uppercase tracking-widest text-gray-400 dark:text-slate-500 px-4 pb-2">Main</p>
-        {NAV_ITEMS.map(item => <NavItem key={item.to} {...item} onClick={onClose} />)}
+        {NAV_ITEMS.map(item => <NavItem key={item.to} {...item} onClick={onClose} enableHover={animationConfig.enableHover} />)}
 
         {user?.role === 'Admin' && ADMIN_ITEMS.length > 0 && (
           <>
             <p className="text-xs font-bold uppercase tracking-widest text-gray-400 dark:text-slate-500 px-4 pt-4 pb-2">Admin Only</p>
-            {ADMIN_ITEMS.map(item => <NavItem key={item.to} {...item} onClick={onClose} />)}
+            {ADMIN_ITEMS.map(item => <NavItem key={item.to} {...item} onClick={onClose} enableHover={animationConfig.enableHover} />)}
           </>
         )}
       </nav>
 
-      {/* User */}
+      {/* Performance Toggle & User */}
       <div className="p-4 border-t border-gray-200/50 dark:border-slate-700/50 space-y-3">
+        <button
+          onClick={togglePerformance}
+          className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-bold transition-all"
+        >
+          <div className="flex items-center space-x-2">
+            {lowPerformance ? <ZapOff className="w-3.5 h-3.5 text-amber-500" /> : <Zap className="w-3.5 h-3.5 text-primary" />}
+            <span className="text-gray-500">Performance Mode</span>
+          </div>
+          <span className={lowPerformance ? 'text-amber-500' : 'text-primary'}>
+            {lowPerformance ? 'Power Save' : 'Ultra'}
+          </span>
+        </button>
+
         <div className="flex items-center space-x-3 px-2">
           <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-black text-sm flex-shrink-0">
             {user?.full_name?.charAt(0) || 'A'}
@@ -121,13 +157,14 @@ export const AdminLayout = () => {
   );
 
   return (
-    <div className="flex h-screen bg-light dark:bg-dark transition-colors duration-300 overflow-hidden">
+    <div className="flex h-[100dvh] bg-light dark:bg-dark transition-colors duration-300 overflow-hidden">
       {/* Desktop Sidebar */}
       <motion.aside
-        initial={{ x: -280 }}
-        animate={{ x: 0 }}
-        transition={{ type: 'spring', stiffness: 120, damping: 20 }}
-        className="hidden lg:flex w-64 flex-col glass dark:glass-dark shadow-2xl border-r border-gray-200/50 dark:border-slate-700/50 flex-shrink-0"
+        initial="closed"
+        animate="open"
+        variants={sidebarVariants}
+        className="hidden lg:flex w-64 flex-col bg-light dark:bg-dark border-r border-gray-200/50 dark:border-slate-700/50 flex-shrink-0"
+        style={{ willChange: 'transform, opacity' }}
       >
         <SidebarContent />
       </motion.aside>
@@ -140,15 +177,17 @@ export const AdminLayout = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm lg:hidden"
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 z-40 bg-black/50 lg:hidden"
               onClick={() => setSidebarOpen(false)}
             />
             <motion.aside
-              initial={{ x: -280 }}
-              animate={{ x: 0 }}
-              exit={{ x: -280 }}
-              transition={{ type: 'spring', stiffness: 200, damping: 25 }}
-              className="fixed left-0 top-0 h-full z-50 w-64 flex flex-col glass dark:glass-dark shadow-2xl lg:hidden"
+              initial="closed"
+              animate="open"
+              exit="closed"
+              variants={sidebarVariants}
+              className="fixed left-0 top-0 h-full z-50 w-64 flex flex-col bg-light dark:bg-dark shadow-2xl lg:hidden"
+              style={{ willChange: 'transform, opacity' }}
             >
               <SidebarContent onClose={() => setSidebarOpen(false)} />
             </motion.aside>
@@ -159,7 +198,7 @@ export const AdminLayout = () => {
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Mobile Top Bar */}
-        <div className="lg:hidden flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-slate-700 glass dark:glass-dark">
+        <div className="lg:hidden flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-slate-700 bg-light dark:bg-dark">
           <button onClick={() => setSidebarOpen(true)} className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors">
             <Menu className="w-5 h-5 text-gray-500" />
           </button>
@@ -172,9 +211,16 @@ export const AdminLayout = () => {
           </button>
         </div>
 
-        {/* Page Content */}
+        {/* Page Content with smooth transition */}
         <main className="flex-1 overflow-y-auto p-6 lg:p-8">
-          <Outlet />
+          <motion.div
+            key={location.pathname}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
+          >
+            <Outlet />
+          </motion.div>
         </main>
       </div>
     </div>

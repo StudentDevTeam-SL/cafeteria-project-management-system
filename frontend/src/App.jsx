@@ -1,32 +1,3 @@
-<<<<<<< HEAD
-import { AuthProvider } from './store/AuthContext.jsx';
-import { CartProvider } from './store/CartContext.jsx';
-import { useToast }    from './hooks/useToast.js';
-import Toast           from './components/Toast.jsx';
-import AppRouter       from './routes/AppRouter.jsx';
-import './styles/index.css';
-
-function AppWithProviders() {
-  const { toasts, toast, dismiss } = useToast();
-
-  return (
-    <>
-      <AppRouter toast={toast} />
-      <Toast toasts={toasts} onDismiss={dismiss} />
-    </>
-  );
-}
-
-export default function App() {
-  return (
-    <AuthProvider>
-      <CartProvider>
-        <AppWithProviders />
-      </CartProvider>
-    </AuthProvider>
-  );
-}
-=======
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
@@ -91,4 +62,3 @@ function App() {
 }
 
 export default App;
->>>>>>> b17e05f9477a53c4c9ea788ef4d509aded512ca2

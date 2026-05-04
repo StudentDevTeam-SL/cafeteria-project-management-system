@@ -1,10 +1,12 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Settings as SettingsIcon, Bell, Lock, Moon, Palette, Save, Check, User, Shield, Database, Zap, Camera, Type, Sliders } from 'lucide-react';
+import { Settings as SettingsIcon, Bell, Lock, Moon, Palette, Save, Check, User, Shield, Database, Zap, Camera, Type, Sliders, Trash2, PlusCircle, Users as UsersIcon } from 'lucide-react';
 import { useTheme } from '../hooks/useTheme';
 import { useAuth } from '../hooks/useAuth';
 import { useSoundContext } from '../context/SoundContext';
 import { Volume2, VolumeX, Music } from 'lucide-react';
+import api from '../api/axios';
+import { useToast } from '../context/ToastContext';
 
 /* ── Accent color presets — live-update CSS variable ── */
 const ACCENT_COLORS = [
@@ -62,6 +64,41 @@ const Settings = () => {
   const [profile, setProfile] = useState({ full_name: user?.full_name||'Admin User', email: user?.email||'admin@cafe.com', phone:'+252 63 000 0000' });
   const [notifications, setNotifications] = useState({ emailAlerts:true, lowStockAlerts:true, orderUpdates:false, payrollReminders:true });
   const fileRef = useRef(null);
+  const { showToast } = useToast();
+
+  const [systemUsers, setSystemUsers] = useState([]);
+  const [newUser, setNewUser] = useState({ username: '', password: '', role: 'Employee', email: '', phone_number: '' });
+
+  useEffect(() => {
+    if (isAdmin && tab === 'system') {
+      api.get('auth/users/').then(res => setSystemUsers(res.data.results || res.data)).catch(console.error);
+    }
+  }, [isAdmin, tab]);
+
+  const handleCreateUser = async () => {
+    if(!newUser.username || !newUser.password) {
+      showToast('Username and password are required', {type:'error'}); return;
+    }
+    try {
+      const res = await api.post('auth/users/', newUser);
+      setSystemUsers([...systemUsers, res.data]);
+      setNewUser({ username: '', password: '', role: 'Employee', email: '', phone_number: '' });
+      showToast('User created successfully', {type:'success'});
+    } catch(err) {
+      console.error(err);
+      showToast('Failed to create user', {type:'error'});
+    }
+  };
+
+  const handleDeleteUser = async (id) => {
+    try {
+      await api.delete(`auth/users/${id}/`);
+      setSystemUsers(systemUsers.filter(u => u.id !== id));
+      showToast('User deleted successfully', {type:'warning'});
+    } catch(err) {
+      console.error(err);
+    }
+  };
 
   /* Apply accent color to CSS variables */
   const applyAccent = idx => {
@@ -237,13 +274,65 @@ const Settings = () => {
           </div>
         </Section>
 
+        {/* User Management */}
+        <Section icon={UsersIcon} title="User Management" delay={.08}>
+          <div className="mb-6 space-y-4">
+            <h3 className="text-sm font-bold text-gray-500 uppercase">Create New User</h3>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              <input className="form-input text-sm" placeholder="Username" value={newUser.username} onChange={e=>setNewUser({...newUser, username:e.target.value})} />
+              <input className="form-input text-sm" type="password" placeholder="Password" value={newUser.password} onChange={e=>setNewUser({...newUser, password:e.target.value})} />
+              <select className="form-input text-sm" value={newUser.role} onChange={e=>setNewUser({...newUser, role:e.target.value})}>
+                <option value="Employee">Employee</option>
+                <option value="Staff">Staff</option>
+                <option value="Manager">Manager</option>
+                <option value="Admin">Admin</option>
+              </select>
+            </div>
+            <button onClick={handleCreateUser} className="btn-primary w-full py-2 text-sm flex items-center justify-center gap-2">
+              <PlusCircle className="w-4 h-4" /> Create User Account
+            </button>
+          </div>
+
+          <div className="pt-4 border-t border-gray-100 dark:border-slate-700/50">
+            <h3 className="text-sm font-bold text-gray-500 uppercase mb-3">System Users</h3>
+            <div className="space-y-2">
+              {systemUsers.map(u => (
+                <div key={u.id} className="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-slate-800/50 border border-gray-100 dark:border-slate-700/50">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white text-xs font-bold shadow-lg shadow-primary/20">
+                      {(u.username || '?').charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold leading-tight">{u.username}</p>
+                      <p className="text-xs text-slate-400">{u.role}</p>
+                    </div>
+                  </div>
+                  {u.id !== user?.id && (
+                    <button onClick={() => handleDeleteUser(u.id)} className="p-1.5 rounded-lg text-slate-400 hover:bg-red-500/10 hover:text-red-500 transition-colors">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </Section>
+
         {/* System info */}
-        <Section icon={Database} title="System Information" delay={.1}>
+        <Section icon={Database} title="Cafeteria System Data" delay={.1}>
           <div className="space-y-3">
-            {[{label:'Frontend',value:'React 19 + Vite 5'},{label:'Styling',value:'Tailwind CSS 3'},{label:'Animations',value:'Framer Motion 11'},{label:'Backend',value:'Django 5 (DRF)'},{label:'Database',value:'PostgreSQL 15'},{label:'Version',value:'v1.0.0'},{label:'Last Updated',value:'2026-04-26'}].map(info=>(
+            {[
+              {label:'Core Framework',     value:'Cafeteria OS Enterprise'},
+              {label:'Branch Network',     value:'Hargeisa, Somaliland HQ'},
+              {label:'Database Engine',    value:'Secure PostgreSQL Cluster'},
+              {label:'Security Protocol',  value:'JWT Auth & SSL Active'},
+              {label:'Server Status',      value:'Online / Active'},
+              {label:'System Version',     value:'v2.5.0-production'},
+              {label:'Last Audit Sync',    value:'May 2026'}
+            ].map(info=>(
               <div key={info.label} className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-slate-700/50 last:border-0">
                 <span className="text-sm text-gray-500 dark:text-slate-400">{info.label}</span>
-                <span className="text-sm font-semibold">{info.value}</span>
+                <span className="text-sm font-semibold text-primary">{info.value}</span>
               </div>
             ))}
           </div>

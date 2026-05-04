@@ -10,11 +10,15 @@
  * ─────────────────────────────────────────────────────────────
  */
 
+import { useState, useMemo } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { useTheme } from '../../hooks/useTheme';
-import { Moon, Sun, ChefHat, Menu, X, MapPin, Phone, Mail, ExternalLink } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useState } from 'react';
+import { usePerformance } from '../../hooks/usePerformance';
+import { useTheme } from '../../hooks/useTheme';
+import {
+  Moon, Sun, ChefHat, Menu, X, MapPin, Phone, Mail,
+  ExternalLink, Zap, ZapOff
+} from 'lucide-react';
 
 /* ── Social media icon components (inline SVG for no extra deps) ── */
 const XIcon = () => (
@@ -60,6 +64,7 @@ const SOCIAL_LINKS = [
 
 export const PublicLayout = () => {
   const { theme, toggleTheme } = useTheme();
+  const { lowPerformance, togglePerformance, animationConfig } = usePerformance();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -69,27 +74,45 @@ export const PublicLayout = () => {
     { to: '/contact-us', label: 'Contact' },
   ];
 
+  // Performance-optimized variants
+  const menuVariants = useMemo(() => ({
+    initial: { opacity: 0, y: -10, scale: 0.98 },
+    animate: { 
+      opacity: 1, 
+      y: 0,   
+      scale: 1,
+      transition: animationConfig.transition 
+    },
+    exit: { 
+      opacity: 0, 
+      y: -10, 
+      transition: { duration: 0.15, ease: 'easeIn' } 
+    }
+  }), [animationConfig]);
+
   return (
     <div className="min-h-screen bg-light dark:bg-dark text-slate-800 dark:text-slate-100 font-sans transition-colors duration-300 flex flex-col">
 
-      {/* ════ Floating Glass Navbar ════ */}
+      {/* ════ Floating Navbar ════ */}
       <motion.nav
         initial={{ y: -100, opacity: 0 }}
         animate={{ y: 0,    opacity: 1 }}
-        transition={{ type: 'spring', stiffness: 80, damping: 20 }}
+        transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
         className="fixed top-0 left-0 right-0 z-50 h-20"
+        style={{ willChange: 'transform, opacity' }}
       >
-        <div className="mx-4 mt-3 px-6 h-14 glass dark:glass-dark rounded-2xl shadow-xl flex items-center justify-between">
+        <div className={`mx-4 mt-3 px-6 h-14 rounded-2xl shadow-xl flex items-center justify-between border border-gray-200/50 dark:border-slate-700/50 ${
+          lowPerformance 
+            ? 'bg-light/95 dark:bg-dark/95' 
+            : 'glass dark:glass-dark'
+        }`}>
           {/* Logo */}
           <Link to="/home" className="flex items-center space-x-2.5 group">
-            <motion.div
-              whileHover={{ scale: 1.12, rotate: 5 }}
-              className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg shadow-primary/30"
-            >
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center">
               <ChefHat className="w-5 h-5 text-white" />
-            </motion.div>
+            </div>
             <span className="text-xl font-black bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent">
-              Cafeteria Management
+              The Grand Cafeteria
             </span>
           </Link>
 
@@ -99,18 +122,19 @@ export const PublicLayout = () => {
               <Link
                 key={link.to}
                 to={link.to}
-                className={`relative px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 group ${
+                className={`relative px-4 py-2 rounded-xl text-sm font-semibold transition-colors duration-200 group ${
                   location.pathname === link.to
                     ? 'text-primary bg-primary/10'
                     : 'text-slate-600 dark:text-slate-300 hover:text-primary hover:bg-primary/5'
                 }`}
               >
                 {link.label}
-                {/* Animated underline for active link */}
                 {location.pathname === link.to && (
                   <motion.div
                     layoutId="nav-underline"
+                    initial={false}
                     className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary"
+                    transition={{ duration: 0.2 }}
                   />
                 )}
               </Link>
@@ -119,28 +143,25 @@ export const PublicLayout = () => {
 
           {/* Right Controls */}
           <div className="flex items-center space-x-2">
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
+            <button
+              onClick={togglePerformance}
+              title={`Performance: ${lowPerformance ? 'Power Save' : 'Ultra'}`}
+              className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/60 transition-colors hidden sm:block"
+            >
+              {lowPerformance ? <ZapOff className="w-4 h-4 text-amber-500" /> : <Zap className="w-4 h-4 text-primary" />}
+            </button>
+            <button
               onClick={toggleTheme}
               className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/60 transition-colors"
-              aria-label="Toggle dark mode"
             >
-              {theme === 'dark'
-                ? <Sun  className="w-4 h-4 text-amber-400" />
-                : <Moon className="w-4 h-4 text-slate-500" />
-              }
-            </motion.button>
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}>
-              <Link to="/login" className="hidden md:inline-flex btn-primary px-5 py-2 text-sm">
-                Sign In
-              </Link>
-            </motion.div>
-            {/* Mobile hamburger */}
+              {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-500" />}
+            </button>
+            <Link to="/login" className="hidden md:inline-flex btn-primary px-5 py-2 text-sm">
+              Sign In
+            </Link>
             <button
               className="md:hidden p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/60 transition-colors"
               onClick={() => setMobileMenuOpen(v => !v)}
-              aria-label="Toggle menu"
             >
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
@@ -151,18 +172,21 @@ export const PublicLayout = () => {
         <AnimatePresence>
           {mobileMenuOpen && (
             <motion.div
-              initial={{ opacity: 0, y: -10, scale: 0.97 }}
-              animate={{ opacity: 1, y: 0,   scale: 1 }}
-              exit={{   opacity: 0, y: -10, scale: 0.97 }}
-              transition={{ duration: 0.2 }}
-              className="mx-4 mt-1 glass dark:glass-dark rounded-2xl shadow-xl p-4 space-y-1"
+              variants={menuVariants}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              className={`mx-4 mt-1 rounded-2xl shadow-xl p-4 space-y-1 border border-gray-200/50 dark:border-slate-700/50 ${
+                lowPerformance ? 'bg-light/98 dark:bg-dark/98' : 'glass dark:glass-dark'
+              }`}
+              style={{ willChange: 'transform, opacity' }}
             >
               {navLinks.map(link => (
                 <Link
                   key={link.to}
                   to={link.to}
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`block px-4 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+                  className={`block px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
                     location.pathname === link.to
                       ? 'text-primary bg-primary/10'
                       : 'hover:text-primary hover:bg-primary/5'
@@ -197,11 +221,10 @@ export const PublicLayout = () => {
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg">
                 <ChefHat className="w-5 h-5 text-white" />
               </div>
-              <span className="text-xl font-black text-white">Cafeteria Management</span>
+              <span className="text-xl font-black text-white">The Grand Cafeteria</span>
             </Link>
             <p className="text-sm leading-relaxed mb-6">
-              The intelligent cafeteria management platform built for professionals.
-              Orders, inventory, payroll, and team management — all in one place.
+              A premier dining destination offering a rich variety of freshly cooked meals, healthy alternatives, and the finest artisan coffee.
             </p>
             {/* Social media icons */}
             <div className="flex flex-wrap gap-2">
@@ -231,7 +254,7 @@ export const PublicLayout = () => {
                 { to: '/home',       label: '🏠 Home' },
                 { to: '/about',      label: 'ℹ️ About Us' },
                 { to: '/contact-us', label: '📧 Contact' },
-                { to: '/login',      label: '🔐 Admin Login' },
+                { to: '/login',      label: '🔐 Staff Login' },
               ].map(l => (
                 <li key={l.to}>
                   <Link to={l.to}
@@ -248,13 +271,13 @@ export const PublicLayout = () => {
             <h4 className="text-white font-bold uppercase tracking-wider text-xs mb-5">Features</h4>
             <ul className="space-y-3 text-sm">
               {[
-                '📊 Real-Time Dashboard',
-                '🍽️ Menu Management',
-                '📦 Order Tracking',
-                '🗃️ Inventory Control',
-                '👥 Employee Manager',
-                '💰 Payroll System',
-                '💳 Multi-Payment Support',
+                '🍽️ Artisan Coffee',
+                '🥗 Fresh Ingredients',
+                '🍔 Daily Specials',
+                '🍰 Fresh Pastries',
+                '🥑 Vegan Options',
+                '🥡 Takeout Available',
+                '🎉 Catering Services',
               ].map(f => (
                 <li key={f} className="hover:text-primary transition-colors duration-200 cursor-default">{f}</li>
               ))}
@@ -279,15 +302,15 @@ export const PublicLayout = () => {
               </li>
               <li className="flex items-center space-x-3 group">
                 <Mail className="w-4 h-4 text-violet-400 flex-shrink-0 group-hover:scale-110 transition-transform" />
-                <a href="mailto:info@cafeteriamanagement.com" className="hover:text-white transition-colors">
-                  info@cafeteriamanagement.com
+                <a href="mailto:info@grandcafe.com" className="hover:text-white transition-colors">
+                  info@grandcafe.com
                 </a>
               </li>
               <li className="flex items-center space-x-3">
                 <ExternalLink className="w-4 h-4 text-amber-400 flex-shrink-0" />
-                <a href="https://cafeteriamanagement.com" target="_blank" rel="noopener noreferrer"
+                <a href="https://grandcafe.com" target="_blank" rel="noopener noreferrer"
                   className="hover:text-white transition-colors">
-                  www.cafeteriamanagement.com
+                  www.grandcafe.com
                 </a>
               </li>
             </ul>
@@ -304,12 +327,11 @@ export const PublicLayout = () => {
         {/* ── Bottom bar ── */}
         <div className="border-t border-slate-800">
           <div className="max-w-7xl mx-auto px-6 py-5 flex flex-col md:flex-row items-center justify-between gap-3 text-xs">
-            <p>© 2026 <span className="text-primary font-bold">Cafeteria Management</span>. All rights reserved.</p>
+            <p>© 2026 <span className="text-primary font-bold">The Grand Cafeteria</span>. All rights reserved.</p>
             <div className="flex items-center space-x-1 text-slate-500">
-              <span>Built with</span>
-              <span className="text-primary font-semibold">React 19</span>
-              <span>+</span>
-              <span className="text-emerald-400 font-semibold">Django REST</span>
+              <span>Made with</span>
+              <span className="text-red-500 font-semibold">❤️</span>
+              <span>for great food</span>
             </div>
             <div className="flex space-x-4 text-slate-500">
               <a href="#" className="hover:text-primary transition-colors">Privacy Policy</a>

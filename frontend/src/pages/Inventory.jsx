@@ -1,23 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Plus, AlertTriangle, Package, Edit2, Trash2, X, TrendingDown, TrendingUp, ArrowUpDown } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
 import ConfirmModal from '../components/ConfirmModal';
 import inventoryImg from '../assets/inventory.png';
+import api from '../api/axios';
 
-/* ── Mock Inventory Data ── */
-const mockInventory = [
-  { id: 1, item_name: 'Chicken Breast', quantity: 45, unit: 'kg', min_stock: 10, category: 'Protein', cost: 8.50, last_updated: '2026-04-26' },
-  { id: 2, item_name: 'Arabica Coffee Beans', quantity: 8, unit: 'kg', min_stock: 10, category: 'Beverages', cost: 22.00, last_updated: '2026-04-25' },
-  { id: 3, item_name: 'Fresh Lettuce', quantity: 3, unit: 'kg', min_stock: 5, category: 'Vegetables', cost: 3.00, last_updated: '2026-04-26' },
-  { id: 4, item_name: 'Pasta (Penne)', quantity: 60, unit: 'kg', min_stock: 15, category: 'Grains', cost: 2.50, last_updated: '2026-04-24' },
-  { id: 5, item_name: 'Beef Patties', quantity: 25, unit: 'units', min_stock: 20, category: 'Protein', cost: 4.00, last_updated: '2026-04-26' },
-  { id: 6, item_name: 'Whole Milk', quantity: 40, unit: 'liters', min_stock: 30, category: 'Dairy', cost: 1.80, last_updated: '2026-04-26' },
-  { id: 7, item_name: 'Bread Rolls', quantity: 12, unit: 'units', min_stock: 50, category: 'Bakery', cost: 0.80, last_updated: '2026-04-25' },
-  { id: 8, item_name: 'Orange Juice (Fresh)', quantity: 20, unit: 'liters', min_stock: 15, category: 'Beverages', cost: 3.50, last_updated: '2026-04-26' },
-  { id: 9, item_name: 'Parmesan Cheese', quantity: 7, unit: 'kg', min_stock: 5, category: 'Dairy', cost: 18.00, last_updated: '2026-04-24' },
-  { id: 10, item_name: 'Olive Oil', quantity: 15, unit: 'liters', min_stock: 8, category: 'Condiments', cost: 6.50, last_updated: '2026-04-23' },
-];
+// MOCK_INVENTORY removed, fetching from API
 
 const CATEGORIES = ['All', 'Protein', 'Beverages', 'Vegetables', 'Grains', 'Dairy', 'Bakery', 'Condiments'];
 
@@ -99,13 +88,26 @@ const InventoryModal = ({ item, onClose, onSave }) => {
 /* ── Main ── */
 const Inventory = () => {
   const { showToast } = useToast();
-  const [items, setItems] = useState(mockInventory);
+  const [items, setItems] = useState([]);
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('All');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editItem, setEditItem] = useState(null);
   const [sortField, setSortField] = useState('item_name');
   const [itemToDelete, setItemToDelete] = useState(null);
+
+  useEffect(() => {
+    fetchInventory();
+  }, []);
+
+  const fetchInventory = async () => {
+    try {
+      const res = await api.get('inventory/');
+      setItems(res.data.results || res.data);
+    } catch (err) {
+      console.error('Failed to fetch inventory:', err);
+    }
+  };
 
   const lowStock = items.filter(i => i.quantity <= i.min_stock);
 
@@ -121,23 +123,33 @@ const Inventory = () => {
       return a.item_name.localeCompare(b.item_name);
     });
 
-  const handleSave = (form) => {
-    if (editItem) {
-      setItems(prev => prev.map(i => i.id === editItem.id ? { ...i, ...form } : i));
-    } else {
-      setItems(prev => [...prev, { ...form, id: Date.now(), last_updated: new Date().toISOString().split('T')[0] }]);
+  const handleSave = async (form) => {
+    try {
+      if (editItem) {
+        const res = await api.patch(`inventory/${editItem.id}/`, form);
+        setItems(prev => prev.map(i => i.id === editItem.id ? res.data : i));
+      } else {
+        const res = await api.post('inventory/', form);
+        setItems(prev => [...prev, res.data]);
+      }
+      setIsModalOpen(false);
+      setEditItem(null);
+    } catch (err) {
+      console.error('Failed to save inventory item:', err);
     }
-    setIsModalOpen(false);
-    setEditItem(null);
   };
 
-  const handleDelete = (item) => {
-    setItems(prev => prev.filter(i => i.id !== item.id));
-    showToast(`Deleted ${item.item_name} from inventory`, {
-      type: 'warning',
-      onUndo: () => setItems(p => [...p, item]),
-      duration: 7000
-    });
+  const handleDelete = async (item) => {
+    try {
+      await api.delete(`inventory/${item.id}/`);
+      setItems(prev => prev.filter(i => i.id !== item.id));
+      showToast(`Deleted ${item.item_name} from inventory`, {
+        type: 'warning',
+        duration: 3000
+      });
+    } catch (err) {
+      console.error('Failed to delete inventory item:', err);
+    }
   };
 
   return (
@@ -260,7 +272,7 @@ const Inventory = () => {
                       </div>
                       <p className="text-xs text-gray-400 mt-0.5">Min: {item.min_stock} {item.unit}</p>
                     </td>
-                    <td className="text-sm">${item.cost.toFixed(2)}</td>
+                    <td className="text-sm">${Number(item.cost).toFixed(2)}</td>
                     <td className="font-bold text-emerald-500">${(item.quantity * item.cost).toFixed(2)}</td>
                     <td><span className={`badge ${status.cls}`}>{status.label}</span></td>
                     <td>

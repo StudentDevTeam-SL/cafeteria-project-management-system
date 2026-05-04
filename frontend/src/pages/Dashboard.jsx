@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth';
 import {
@@ -11,48 +11,31 @@ import {
   Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend
 } from 'recharts';
 import dashboardImg from '../assets/dashboard_analytics.png';
+import api from '../api/axios';
 
-/* ── Mock Data ── */
-const weeklyData = [
-  { name: 'Mon', sales: 4200, orders: 42 },
-  { name: 'Tue', sales: 3800, orders: 38 },
-  { name: 'Wed', sales: 5600, orders: 56 },
-  { name: 'Thu', sales: 4900, orders: 49 },
-  { name: 'Fri', sales: 7200, orders: 72 },
-  { name: 'Sat', sales: 8100, orders: 81 },
-  { name: 'Sun', sales: 6800, orders: 68 },
-];
-
+// MOCK_DATA removed, using API for stats and recent orders
 const categoryData = [
-  { name: 'Main Course', value: 38, color: '#3b82f6' },
-  { name: 'Beverages', value: 25, color: '#10b981' },
-  { name: 'Snacks', value: 20, color: '#8b5cf6' },
-  { name: 'Desserts', value: 17, color: '#f59e0b' },
-];
-
-const recentOrders = [
-  { id: '#ORD-001', item: 'Grilled Chicken Sandwich', employee: 'Ahmed H.', amount: 12.50, status: 'completed', time: '2 min ago' },
-  { id: '#ORD-002', item: 'Caesar Salad + Coffee', employee: 'Sarah M.', amount: 9.75, status: 'processing', time: '5 min ago' },
-  { id: '#ORD-003', item: 'Beef Burger Combo', employee: 'John D.', amount: 15.00, status: 'completed', time: '8 min ago' },
-  { id: '#ORD-004', item: 'Pasta Carbonara', employee: 'Fatima A.', amount: 11.25, status: 'pending', time: '12 min ago' },
-  { id: '#ORD-005', item: 'Fresh Orange Juice', employee: 'Mohammed K.', amount: 4.50, status: 'cancelled', time: '15 min ago' },
+  { name: 'Main Course', value: 45, color: '#3b82f6' },
+  { name: 'Beverages', value: 25, color: '#8b5cf6' },
+  { name: 'Snacks', value: 20, color: '#ec4899' },
+  { name: 'Others', value: 10, color: '#f59e0b' },
 ];
 
 const topItems = [
-  { name: 'Grilled Chicken', sales: 142, revenue: 1775, trend: 'up' },
-  { name: 'Beef Burger', sales: 98, revenue: 1470, trend: 'up' },
-  { name: 'Caesar Salad', sales: 87, revenue: 783, trend: 'down' },
-  { name: 'Pasta Carbonara', sales: 76, revenue: 855, trend: 'up' },
+  { name: 'Double Burger', sales: 142, trend: 'up' },
+  { name: 'Chicken Pizza', sales: 98, trend: 'up' },
+  { name: 'Iced Latte', sales: 76, trend: 'down' },
+  { name: 'Caesar Salad', sales: 54, trend: 'up' },
 ];
 
 /* ── Stat Card ── */
-const StatCard = ({ title, value, icon: Icon, trend, trendValue, color, bg, delay }) => (
+const StatCard = React.memo(({ title, value, icon: Icon, trend, trendValue, color, bg, delay }) => (
   <motion.div
     initial={{ opacity: 0, y: 30 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ delay, duration: 0.5 }}
     whileHover={{ y: -4, scale: 1.01 }}
-    className="glass-card p-6 cursor-default"
+    className="glass-card p-6 cursor-default hover-lift"
   >
     <div className="flex items-start justify-between mb-4">
       <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${bg}`}>
@@ -66,13 +49,22 @@ const StatCard = ({ title, value, icon: Icon, trend, trendValue, color, bg, dela
       </span>
     </div>
     <p className="text-gray-500 dark:text-slate-400 text-xs font-medium uppercase tracking-wider mb-1">{title}</p>
-    <h3 className="text-2xl font-black">{value}</h3>
+    <h3 className="text-2xl font-black">
+      <motion.span
+        key={value}
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+      >
+        {value}
+      </motion.span>
+    </h3>
     <p className="text-xs text-gray-400 mt-1">vs last week</p>
   </motion.div>
-);
+));
 
 /* ── Status Badge ── */
-const StatusBadge = ({ status }) => {
+const StatusBadge = React.memo(({ status }) => {
   const map = {
     completed: { cls: 'badge-green', icon: CheckCircle, label: 'Completed' },
     processing: { cls: 'badge-blue', icon: Loader, label: 'Processing' },
@@ -86,7 +78,7 @@ const StatusBadge = ({ status }) => {
       {label}
     </span>
   );
-};
+});
 
 /* ── Custom Tooltip ── */
 const CustomTooltip = ({ active, payload, label }) => {
@@ -110,10 +102,37 @@ const Dashboard = () => {
   const { user } = useAuth();
   const [time, setTime] = useState(new Date());
   const [activeChart, setActiveChart] = useState('sales');
+  const [stats, setStats] = useState({ revenue: 0, orders: 0, staff: 0, lowStock: 0 });
+  const [orders, setOrders] = useState([]);
+  const [weeklyData, setWeeklyData] = useState([]);
 
   useEffect(() => {
     const t = setInterval(() => setTime(new Date()), 1000);
+    fetchDashboardData();
     return () => clearInterval(t);
+  }, []);
+
+  const fetchDashboardData = useCallback(async () => {
+    try {
+      const [sRes, oRes] = await Promise.all([
+        api.get('dashboard/stats/'),
+        api.get('orders/')
+      ]);
+      setStats(sRes.data);
+      setOrders((oRes.data.results || oRes.data).slice(0, 5));
+      // Mock weekly data if API doesn't provide it yet
+      setWeeklyData([
+        { name: 'Mon', sales: 4200, orders: 42 },
+        { name: 'Tue', sales: 3800, orders: 38 },
+        { name: 'Wed', sales: 5600, orders: 56 },
+        { name: 'Thu', sales: 4900, orders: 49 },
+        { name: 'Fri', sales: 7200, orders: 72 },
+        { name: 'Sat', sales: 8100, orders: 81 },
+        { name: 'Sun', sales: 6800, orders: 68 },
+      ]);
+    } catch (err) {
+      console.error('Failed to fetch dashboard data:', err);
+    }
   }, []);
 
   const greetingHour = time.getHours();
@@ -176,10 +195,10 @@ const Dashboard = () => {
 
       {/* ── Stat Cards ── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
-        <StatCard title="Total Revenue" value="$12,426" icon={DollarSign} trend="up" trendValue="14" color="text-blue-500" bg="bg-blue-500/10" delay={0.1} />
-        <StatCard title="Today's Orders" value="156" icon={ShoppingBag} trend="up" trendValue="8" color="text-violet-500" bg="bg-violet-500/10" delay={0.2} />
-        <StatCard title="Active Staff" value="18" icon={Users} trend="up" trendValue="5" color="text-emerald-500" bg="bg-emerald-500/10" delay={0.3} />
-        <StatCard title="Low Stock Items" value="12" icon={AlertTriangle} trend="down" trendValue="3" color="text-amber-500" bg="bg-amber-500/10" delay={0.4} />
+        <StatCard title="Total Revenue" value={`$${stats.revenue.toLocaleString()}`} icon={DollarSign} trend="up" trendValue="14" color="text-blue-500" bg="bg-blue-500/10" delay={0.1} />
+        <StatCard title="Total Orders" value={stats.orders} icon={ShoppingBag} trend="up" trendValue="8" color="text-violet-500" bg="bg-violet-500/10" delay={0.2} />
+        <StatCard title="Active Staff" value={stats.staff} icon={Users} trend="up" trendValue="5" color="text-emerald-500" bg="bg-emerald-500/10" delay={0.3} />
+        <StatCard title="Low Stock Items" value={stats.lowStock} icon={AlertTriangle} trend="down" trendValue="3" color="text-amber-500" bg="bg-amber-500/10" delay={0.4} />
       </div>
 
       {/* ── Charts ── */}
@@ -302,19 +321,19 @@ const Dashboard = () => {
                 </tr>
               </thead>
               <tbody>
-                {recentOrders.map((order, idx) => (
+                {orders.map((order, idx) => (
                   <motion.tr
                     key={order.id}
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: idx * 0.08 }}
                   >
-                    <td className="font-mono text-xs text-primary">{order.id}</td>
-                    <td className="font-medium text-xs max-w-32 truncate">{order.item}</td>
-                    <td className="text-gray-500 dark:text-slate-400 text-xs">{order.employee}</td>
-                    <td className="font-bold text-emerald-500">${order.amount.toFixed(2)}</td>
+                    <td className="font-mono text-xs text-primary">#ORD-{order.id}</td>
+                    <td className="font-medium text-xs max-w-32 truncate">{order.items?.[0]?.menu_item_name || 'N/A'}</td>
+                    <td className="text-gray-500 dark:text-slate-400 text-xs">{order.employee_name || 'System'}</td>
+                    <td className="font-bold text-emerald-500">${Number(order.total_price).toFixed(2)}</td>
                     <td><StatusBadge status={order.status} /></td>
-                    <td className="text-gray-400 text-xs">{order.time}</td>
+                    <td className="text-gray-400 text-xs">{new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
                   </motion.tr>
                 ))}
               </tbody>
