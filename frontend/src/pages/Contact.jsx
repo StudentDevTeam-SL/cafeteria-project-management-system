@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Mail, Phone, MapPin, Send, CheckCircle, MessageSquare, Clock, ChefHat } from 'lucide-react';
+import api from '../api/axios';
 
 const Contact = () => {
   const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' });
@@ -10,15 +11,21 @@ const Contact = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
-    await new Promise(r => setTimeout(r, 1500));
-    setSubmitting(false);
-    setSubmitted(true);
+    try {
+      await api.post('menu/contact-messages/', form);
+      setSubmitted(true);
+    } catch (error) {
+      console.error('Failed to send message:', error);
+      // Optional: Add toast notification for failure
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
     <div className="overflow-x-hidden">
       {/* Hero */}
-      <section className="pt-16 pb-12 px-6 relative overflow-hidden">
+      <section className="pt-24 lg:pt-32 pb-16 px-6 relative overflow-hidden">
         <div className="absolute inset-0 particles-bg grid-pattern opacity-50" />
         <div className="relative max-w-6xl mx-auto text-center">
           <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}>
@@ -30,27 +37,27 @@ const Contact = () => {
               Get in <span className="gradient-text">Touch</span>
             </h1>
             <p className="text-lg text-gray-500 dark:text-slate-400 max-w-xl mx-auto">
-              Have a question about Cafeteria Management? Need help setting up? We'd love to hear from you.
+              Have a question about our menu, catering services, or reservations? We'd love to hear from you.
             </p>
           </motion.div>
         </div>
       </section>
 
       {/* Content */}
-      <section className="pb-20 px-6">
-        <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12">
+      <section className="pt-12 lg:pt-16 pb-20 px-6 relative z-10">
+        <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
           {/* Info */}
           <motion.div initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 }} className="space-y-8">
             <div>
-              <h2 className="text-2xl font-black mb-6">Let's start a conversation</h2>
+              <h2 className="text-4xl font-black mb-6 gradient-text">Let's start a conversation</h2>
               <p className="text-gray-500 dark:text-slate-400 leading-relaxed">
-                Whether you're looking for a demo, have technical questions, or want to report a bug — our team is here to help. We typically respond within 24 hours.
+                Whether you're looking to book our space for an event, have dietary questions, or want to give feedback on your recent visit — our staff is here to help. We typically respond within 24 hours.
               </p>
             </div>
 
             <div className="space-y-4">
               {[
-                { icon: Mail, label: 'Email', value: 'support@cafeteriamanagement.app', color: 'text-blue-500 bg-blue-500/10' },
+                { icon: Mail, label: 'Email', value: 'hello@grandcafe.com', color: 'text-blue-500 bg-blue-500/10' },
                 { icon: Phone, label: 'Phone', value: '+252 63 123 4567', color: 'text-emerald-500 bg-emerald-500/10' },
                 { icon: MapPin, label: 'Location', value: 'Hargeisa, Somaliland', color: 'text-violet-500 bg-violet-500/10' },
                 { icon: Clock, label: 'Working Hours', value: 'Sun – Thu, 8:00 AM – 5:00 PM', color: 'text-amber-500 bg-amber-500/10' },
@@ -79,9 +86,9 @@ const Contact = () => {
               <h3 className="font-bold mb-4">Common Questions</h3>
               <div className="space-y-3">
                 {[
-                  { q: 'Is Cafeteria Management free to use?', a: 'The frontend is open-source. Backend deployment may have hosting costs.' },
-                  { q: 'Does it work with any cafeteria size?', a: 'Yes! From small coffee shops to large corporate cafeterias.' },
-                  { q: 'Can I customize it for my brand?', a: 'Absolutely. The color theme and branding are fully customizable.' },
+                  { q: 'Do you offer catering for corporate events?', a: 'Yes! We provide full-service catering for events of all sizes.' },
+                  { q: 'Are there gluten-free or vegan options available?', a: 'Absolutely. We have a dedicated menu for various dietary requirements.' },
+                  { q: 'Do I need to make a reservation for lunch?', a: 'Reservations are recommended for groups of 6 or more during peak hours.' },
                 ].map((faq, i) => (
                   <motion.div key={i} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.1 + 0.5 }} className="glass-card p-4">
                     <p className="font-semibold text-sm text-primary mb-1">{faq.q}</p>
@@ -152,7 +159,7 @@ const Contact = () => {
       <footer className="py-8 px-6 border-t border-gray-200 dark:border-slate-800">
         <div className="max-w-6xl mx-auto flex items-center justify-center space-x-2 text-gray-400">
           <ChefHat className="w-4 h-4 text-primary" />
-          <p className="text-sm">© 2026 Cafeteria Management · All rights reserved.</p>
+          <p className="text-sm">© 2026 The Grand Cafeteria · All rights reserved.</p>
         </div>
       </footer>
     </div>

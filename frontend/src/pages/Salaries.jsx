@@ -1,29 +1,61 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { DollarSign, Plus, Search, Edit2, Trash2, X, TrendingUp, Users, Calendar, CheckCircle, Clock, AlertCircle } from 'lucide-react';
+import {
+  DollarSign, Plus, Search, Edit2, Trash2, X,
+  TrendingUp, Users, Calendar, CheckCircle, Clock, AlertCircle
+} from 'lucide-react';
 import staffTeamImg from '../assets/staff_team.png';
+import api from '../api/axios';
 
-/* ── Mock Salary Data ── */
-const mockSalaries = [
-  { id: 1, employee_id: 1, employee_name: 'Ahmed Hassan', job_title: 'Head Chef', base_salary: 3500, bonus: 500, deduction: 0, payment_date: '2026-04-30', status: 'paid' },
-  { id: 2, employee_id: 2, employee_name: 'Sarah Mohammed', job_title: 'Cashier', base_salary: 2000, bonus: 200, deduction: 50, payment_date: '2026-04-30', status: 'pending' },
-  { id: 3, employee_id: 3, employee_name: 'John Doe', job_title: 'Kitchen Staff', base_salary: 1800, bonus: 0, deduction: 100, payment_date: '2026-04-30', status: 'paid' },
-  { id: 4, employee_id: 4, employee_name: 'Fatima Ali', job_title: 'Server', base_salary: 1700, bonus: 150, deduction: 0, payment_date: '2026-04-30', status: 'pending' },
-  { id: 5, employee_id: 5, employee_name: 'Mohammed Khalid', job_title: 'Barista', base_salary: 2200, bonus: 300, deduction: 75, payment_date: '2026-04-30', status: 'paid' },
-  { id: 6, employee_id: 6, employee_name: 'Aisha Noor', job_title: 'Inventory Manager', base_salary: 2800, bonus: 400, deduction: 0, payment_date: '2026-04-30', status: 'processing' },
-];
-
-const getNet = (s) => s.base_salary + s.bonus - s.deduction;
+// Helper: compute net from plain numbers
+const getNet = (s) => Number(s.base_salary) + Number(s.bonus) - Number(s.deduction);
 
 const STATUS_CFG = {
-  paid: { label: 'Paid', cls: 'badge-green', icon: CheckCircle },
-  pending: { label: 'Pending', cls: 'badge-yellow', icon: Clock },
-  processing: { label: 'Processing', cls: 'badge-blue', icon: AlertCircle },
+  paid:       { label: 'Paid',       cls: 'badge-green',  icon: CheckCircle },
+  pending:    { label: 'Pending',    cls: 'badge-yellow', icon: Clock       },
+  processing: { label: 'Processing', cls: 'badge-blue',   icon: AlertCircle },
 };
 
-/* ── Salary Modal ── */
-const SalaryModal = ({ record, onClose, onSave }) => {
-  const [form, setForm] = useState(record || { employee_name: '', job_title: '', base_salary: '', bonus: '0', deduction: '0', payment_date: '', status: 'pending' });
+/* ── Salary Modal — uses employee dropdown (FK-safe) ── */
+const SalaryModal = ({ record, employees, onClose, onSave }) => {
+  const defaultForm = {
+    employee:     '',
+    base_salary:  '',
+    bonus:        '0',
+    deduction:    '0',
+    payment_date: '',
+    status:       'pending',
+  };
+
+  // When editing, seed form from existing record
+  const [form, setForm] = useState(
+    record
+      ? {
+          employee:     record.employee ?? '',
+          base_salary:  record.base_salary,
+          bonus:        record.bonus,
+          deduction:    record.deduction,
+          payment_date: record.payment_date,
+          status:       record.status,
+        }
+      : defaultForm
+  );
+
+  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+  const net = Number(form.base_salary || 0) + Number(form.bonus || 0) - Number(form.deduction || 0);
+
+  const handleSave = () => {
+    if (!form.employee) { alert('Please select an employee'); return; }
+    onSave({
+      employee:     Number(form.employee),
+      base_salary:  Number(form.base_salary),
+      bonus:        Number(form.bonus),
+      deduction:    Number(form.deduction),
+      payment_date: form.payment_date,
+      status:       form.status,
+    });
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
       <motion.div
@@ -36,45 +68,53 @@ const SalaryModal = ({ record, onClose, onSave }) => {
           <X className="w-5 h-5" />
         </button>
         <h2 className="text-2xl font-black gradient-text mb-6">{record ? 'Edit Salary' : 'Add Salary Record'}</h2>
+
         <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1.5">Employee Name</label>
-              <input className="form-input" value={form.employee_name} onChange={e => setForm({ ...form, employee_name: e.target.value })} />
-            </div>
-            <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1.5">Job Title</label>
-              <input className="form-input" value={form.job_title} onChange={e => setForm({ ...form, job_title: e.target.value })} />
-            </div>
+          {/* Employee dropdown — sends FK integer, not a free-text name */}
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1.5">Employee</label>
+            <select
+              className="form-input"
+              value={form.employee}
+              onChange={e => set('employee', e.target.value)}
+            >
+              <option value="">Select employee...</option>
+              {employees.map(emp => (
+                <option key={emp.id} value={emp.id}>
+                  {emp.full_name} — {emp.job_title || emp.position}
+                </option>
+              ))}
+            </select>
           </div>
+
           <div className="grid grid-cols-3 gap-3">
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1.5">Base ($)</label>
-              <input className="form-input" type="number" value={form.base_salary} onChange={e => setForm({ ...form, base_salary: e.target.value })} />
+              <input className="form-input" type="number" min="0" value={form.base_salary} onChange={e => set('base_salary', e.target.value)} />
             </div>
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1.5">Bonus ($)</label>
-              <input className="form-input" type="number" value={form.bonus} onChange={e => setForm({ ...form, bonus: e.target.value })} />
+              <input className="form-input" type="number" min="0" value={form.bonus} onChange={e => set('bonus', e.target.value)} />
             </div>
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1.5">Deduction ($)</label>
-              <input className="form-input" type="number" value={form.deduction} onChange={e => setForm({ ...form, deduction: e.target.value })} />
+              <input className="form-input" type="number" min="0" value={form.deduction} onChange={e => set('deduction', e.target.value)} />
             </div>
           </div>
+
           <div className="glass-card p-3 flex items-center justify-between">
             <span className="text-sm font-medium text-gray-500">Net Salary</span>
-            <span className="text-xl font-black text-emerald-500">
-              ${(Number(form.base_salary || 0) + Number(form.bonus || 0) - Number(form.deduction || 0)).toFixed(2)}
-            </span>
+            <span className="text-xl font-black text-emerald-500">${net.toFixed(2)}</span>
           </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1.5">Payment Date</label>
-              <input className="form-input" type="date" value={form.payment_date} onChange={e => setForm({ ...form, payment_date: e.target.value })} />
+              <input className="form-input" type="date" value={form.payment_date} onChange={e => set('payment_date', e.target.value)} />
             </div>
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1.5">Status</label>
-              <select className="form-input" value={form.status} onChange={e => setForm({ ...form, status: e.target.value })}>
+              <select className="form-input" value={form.status} onChange={e => set('status', e.target.value)}>
                 <option value="pending">Pending</option>
                 <option value="processing">Processing</option>
                 <option value="paid">Paid</option>
@@ -82,9 +122,10 @@ const SalaryModal = ({ record, onClose, onSave }) => {
             </div>
           </div>
         </div>
+
         <div className="flex space-x-3 mt-6">
           <button onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-gray-200 dark:border-slate-700 text-sm font-semibold hover:bg-gray-50 dark:hover:bg-slate-800">Cancel</button>
-          <button onClick={() => onSave({ ...form, base_salary: Number(form.base_salary), bonus: Number(form.bonus), deduction: Number(form.deduction) })} className="flex-1 btn-primary py-2.5 text-sm">Save</button>
+          <button onClick={handleSave} className="flex-1 btn-primary py-2.5 text-sm">Save</button>
         </div>
       </motion.div>
     </div>
@@ -93,29 +134,61 @@ const SalaryModal = ({ record, onClose, onSave }) => {
 
 /* ── Main ── */
 const Salaries = () => {
-  const [salaries, setSalaries] = useState(mockSalaries);
-  const [search, setSearch] = useState('');
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editRecord, setEditRecord] = useState(null);
+  const [salaries,     setSalaries]     = useState([]);
+  const [employees,    setEmployees]    = useState([]);   // for dropdown
+  const [search,       setSearch]       = useState('');
+  const [isModalOpen,  setIsModalOpen]  = useState(false);
+  const [editRecord,   setEditRecord]   = useState(null);
 
-  const totalPayroll = salaries.reduce((s, r) => s + getNet(r), 0);
-  const paidCount = salaries.filter(r => r.status === 'paid').length;
-  const totalBonuses = salaries.reduce((s, r) => s + r.bonus, 0);
-  const totalDeductions = salaries.reduce((s, r) => s + r.deduction, 0);
+  useEffect(() => {
+    fetchSalaries();
+    fetchEmployees();
+  }, []);
 
+  const fetchSalaries = async () => {
+    try {
+      const res = await api.get('salaries/');
+      setSalaries(res.data.results || res.data);
+    } catch (err) { console.error('Failed to fetch salaries:', err); }
+  };
+
+  const fetchEmployees = async () => {
+    try {
+      const res = await api.get('employees/');
+      setEmployees(res.data.results || res.data);
+    } catch (err) { console.error('Failed to fetch employees:', err); }
+  };
+
+  const totalPayroll    = salaries.reduce((s, r) => s + getNet(r), 0);
+  const paidCount       = salaries.filter(r => r.status === 'paid').length;
+  const totalBonuses    = salaries.reduce((s, r) => s + Number(r.bonus), 0);
+  const totalDeductions = salaries.reduce((s, r) => s + Number(r.deduction), 0);
+
+  // Search by employee_name or employee_position returned by serializer
   const filtered = salaries.filter(s =>
-    s.employee_name.toLowerCase().includes(search.toLowerCase()) ||
-    s.job_title.toLowerCase().includes(search.toLowerCase())
+    (s.employee_name     || '').toLowerCase().includes(search.toLowerCase()) ||
+    (s.employee_position || '').toLowerCase().includes(search.toLowerCase())
   );
 
-  const handleSave = (form) => {
-    if (editRecord) {
-      setSalaries(prev => prev.map(s => s.id === editRecord.id ? { ...s, ...form } : s));
-    } else {
-      setSalaries(prev => [...prev, { ...form, id: Date.now(), employee_id: Date.now() }]);
-    }
-    setIsModalOpen(false);
-    setEditRecord(null);
+  const handleSave = async (form) => {
+    try {
+      if (editRecord) {
+        const res = await api.patch(`salaries/${editRecord.id}/`, form);
+        setSalaries(prev => prev.map(s => s.id === editRecord.id ? res.data : s));
+      } else {
+        const res = await api.post('salaries/', form);
+        setSalaries(prev => [...prev, res.data]);
+      }
+      setIsModalOpen(false);
+      setEditRecord(null);
+    } catch (err) { console.error('Failed to save salary record:', err); }
+  };
+
+  const handleDelete = async (id) => {
+    try {
+      await api.delete(`salaries/${id}/`);
+      setSalaries(prev => prev.filter(s => s.id !== id));
+    } catch (err) { console.error('Failed to delete salary record:', err); }
   };
 
   return (
@@ -123,12 +196,11 @@ const Salaries = () => {
       {/* Header */}
       <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-4xl font-black gradient-text">Salary & Payroll</h1>
+          <h1 className="text-4xl font-black gradient-text">Salary &amp; Payroll</h1>
           <p className="text-gray-500 dark:text-slate-400 mt-1">Manage employee salaries, bonuses and deductions.</p>
         </div>
         <button onClick={() => { setEditRecord(null); setIsModalOpen(true); }} className="btn-primary flex items-center space-x-2 self-start">
-          <Plus className="w-5 h-5" />
-          <span>Add Record</span>
+          <Plus className="w-5 h-5" /><span>Add Record</span>
         </button>
       </motion.div>
 
@@ -146,10 +218,10 @@ const Salaries = () => {
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { label: 'Total Payroll', value: `$${totalPayroll.toLocaleString()}`, icon: DollarSign, color: 'text-primary', bg: 'bg-primary/10' },
-          { label: 'Employees', value: salaries.length, icon: Users, color: 'text-violet-500', bg: 'bg-violet-500/10' },
-          { label: 'Total Bonuses', value: `$${totalBonuses.toLocaleString()}`, icon: TrendingUp, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
-          { label: 'Deductions', value: `$${totalDeductions.toLocaleString()}`, icon: Calendar, color: 'text-red-400', bg: 'bg-red-400/10' },
+          { label: 'Total Payroll',  value: `$${totalPayroll.toLocaleString()}`,    icon: DollarSign, color: 'text-primary',     bg: 'bg-primary/10'     },
+          { label: 'Employees',      value: salaries.length,                        icon: Users,      color: 'text-violet-500',  bg: 'bg-violet-500/10'  },
+          { label: 'Total Bonuses',  value: `$${totalBonuses.toLocaleString()}`,    icon: TrendingUp, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
+          { label: 'Deductions',     value: `$${totalDeductions.toLocaleString()}`, icon: Calendar,   color: 'text-red-400',     bg: 'bg-red-400/10'     },
         ].map((s, i) => (
           <motion.div key={s.label} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }} className="glass-card p-4">
             <div className={`w-9 h-9 rounded-xl ${s.bg} flex items-center justify-center mb-2`}>
@@ -170,12 +242,14 @@ const Salaries = () => {
         <div className="h-3 bg-gray-100 dark:bg-slate-700 rounded-full overflow-hidden">
           <motion.div
             initial={{ width: 0 }}
-            animate={{ width: `${(paidCount / salaries.length) * 100}%` }}
+            animate={{ width: salaries.length ? `${(paidCount / salaries.length) * 100}%` : '0%' }}
             transition={{ duration: 1.5, ease: 'easeOut' }}
             className="h-full bg-gradient-to-r from-primary to-accent rounded-full"
           />
         </div>
-        <p className="text-xs text-gray-400 mt-2">{Math.round((paidCount / salaries.length) * 100)}% payroll completed</p>
+        <p className="text-xs text-gray-400 mt-2">
+          {salaries.length ? Math.round((paidCount / salaries.length) * 100) : 0}% payroll completed
+        </p>
       </motion.div>
 
       {/* Search */}
@@ -203,33 +277,28 @@ const Salaries = () => {
             </thead>
             <tbody>
               {filtered.map((record, idx) => {
-                const cfg = STATUS_CFG[record.status];
+                const cfg = STATUS_CFG[record.status] || STATUS_CFG.pending;
                 return (
-                  <motion.tr
-                    key={record.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.07 }}
-                  >
+                  <motion.tr key={record.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.07 }}>
                     <td>
                       <div className="flex items-center space-x-3">
                         <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white text-xs font-bold">
-                          {record.employee_name.charAt(0)}
+                          {(record.employee_name || '?').charAt(0)}
                         </div>
                         <span className="font-semibold text-sm">{record.employee_name}</span>
                       </div>
                     </td>
-                    <td className="text-xs text-gray-400">{record.job_title}</td>
-                    <td className="font-medium">${record.base_salary.toLocaleString()}</td>
-                    <td className="text-emerald-500 font-medium">+${record.bonus}</td>
-                    <td className="text-red-400 font-medium">-${record.deduction}</td>
+                    <td className="text-xs text-gray-400">{record.employee_position}</td>
+                    <td className="font-medium">${Number(record.base_salary).toLocaleString()}</td>
+                    <td className="text-emerald-500 font-medium">+${Number(record.bonus)}</td>
+                    <td className="text-red-400 font-medium">-${Number(record.deduction)}</td>
                     <td className="font-black text-primary">${getNet(record).toLocaleString()}</td>
                     <td className="text-xs text-gray-400">{record.payment_date}</td>
                     <td><span className={`badge ${cfg.cls} gap-1`}><cfg.icon className="w-3 h-3" />{cfg.label}</span></td>
                     <td>
                       <div className="flex space-x-2">
                         <button onClick={() => { setEditRecord(record); setIsModalOpen(true); }} className="p-1.5 rounded-lg hover:bg-primary/10 text-gray-400 hover:text-primary transition-colors"><Edit2 className="w-4 h-4" /></button>
-                        <button onClick={() => setSalaries(prev => prev.filter(s => s.id !== record.id))} className="p-1.5 rounded-lg hover:bg-red-500/10 text-gray-400 hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
+                        <button onClick={() => handleDelete(record.id)} className="p-1.5 rounded-lg hover:bg-red-500/10 text-gray-400 hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
                       </div>
                     </td>
                   </motion.tr>
@@ -248,7 +317,12 @@ const Salaries = () => {
 
       <AnimatePresence>
         {isModalOpen && (
-          <SalaryModal record={editRecord} onClose={() => { setIsModalOpen(false); setEditRecord(null); }} onSave={handleSave} />
+          <SalaryModal
+            record={editRecord}
+            employees={employees}
+            onClose={() => { setIsModalOpen(false); setEditRecord(null); }}
+            onSave={handleSave}
+          />
         )}
       </AnimatePresence>
     </div>

@@ -8,6 +8,10 @@ import {
 } from 'lucide-react';
 
 /* ── Animated Counter ── */
+/**
+ * Counter Component
+ * Animates a number from 0 to the target end value when it scrolls into view.
+ */
 const Counter = ({ end, suffix = '' }) => {
   const [count, setCount] = useState(0);
   const ref = useRef(null);
@@ -27,22 +31,35 @@ const Counter = ({ end, suffix = '' }) => {
 };
 
 /* ── 3D Tilt Card ── */
+/**
+ * TiltCard Component
+ * Wraps content in a 3D tilt effect on hover based on mouse position.
+ */
 const TiltCard = ({ children, className = '', intensity = 15 }) => {
   const ref = useRef(null);
-  const [tilt, setTilt] = useState({ x: 0, y: 0, shine: { x: 50, y: 50 } });
 
   const handleMove = (e) => {
     const rect = ref.current?.getBoundingClientRect();
     if (!rect) return;
     const x = (e.clientX - rect.left) / rect.width;
     const y = (e.clientY - rect.top) / rect.height;
-    setTilt({
-      x: (y - 0.5) * -intensity,
-      y: (x - 0.5) * intensity,
-      shine: { x: x * 100, y: y * 100 },
-    });
+    
+    const tx = (y - 0.5) * -intensity;
+    const ty = (x - 0.5) * intensity;
+    
+    ref.current.style.setProperty('--tx', `${tx}deg`);
+    ref.current.style.setProperty('--ty', `${ty}deg`);
+    ref.current.style.setProperty('--gx', `${x * 100}%`);
+    ref.current.style.setProperty('--gy', `${y * 100}%`);
   };
-  const handleLeave = () => setTilt({ x: 0, y: 0, shine: { x: 50, y: 50 } });
+
+  const handleLeave = () => {
+    if (!ref.current) return;
+    ref.current.style.setProperty('--tx', '0deg');
+    ref.current.style.setProperty('--ty', '0deg');
+    ref.current.style.setProperty('--gx', '50%');
+    ref.current.style.setProperty('--gy', '50%');
+  };
 
   return (
     <div
@@ -50,7 +67,7 @@ const TiltCard = ({ children, className = '', intensity = 15 }) => {
       onMouseMove={handleMove}
       onMouseLeave={handleLeave}
       style={{
-        transform: `perspective(800px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg) scale3d(1.02,1.02,1.02)`,
+        transform: `perspective(800px) rotateX(var(--tx, 0deg)) rotateY(var(--ty, 0deg)) scale3d(1.02,1.02,1.02)`,
         transition: 'transform 0.1s ease-out',
       }}
       className={`relative ${className}`}
@@ -59,7 +76,7 @@ const TiltCard = ({ children, className = '', intensity = 15 }) => {
       <div
         className="absolute inset-0 rounded-2xl pointer-events-none z-10 opacity-0 hover:opacity-100 transition-opacity"
         style={{
-          background: `radial-gradient(circle at ${tilt.shine.x}% ${tilt.shine.y}%, rgba(255,255,255,0.15) 0%, transparent 60%)`,
+          background: `radial-gradient(circle at var(--gx, 50%) var(--gy, 50%), rgba(255,255,255,0.15) 0%, transparent 60%)`,
         }}
       />
       {children}
@@ -96,6 +113,10 @@ const Orb = ({ className }) => (
 );
 
 /* ── Main ── */
+/**
+ * Home Component
+ * Landing page with animated hero, features, and testimonials.
+ */
 const Home = () => {
   const [muted, setMuted] = useState(true);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
@@ -148,10 +169,6 @@ const Home = () => {
             src="https://videos.pexels.com/video-files/3769033/3769033-hd_1920_1080_25fps.mp4"
             type="video/mp4"
           />
-          <source
-            src="https://videos.pexels.com/video-files/3212076/3212076-uhd_2560_1440_25fps.mp4"
-            type="video/mp4"
-          />
         </video>
 
         {/* Video overlay (neutral black so food colors show) */}
@@ -190,7 +207,7 @@ const Home = () => {
               className="inline-flex items-center space-x-2 px-5 py-2.5 rounded-full bg-white/10 backdrop-blur-md mb-10 text-white/90 border border-white/20 shadow-2xl"
             >
               <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
-              <span className="text-sm font-semibold">🚀 Now Powered by Django REST + React 19</span>
+              <span className="text-sm font-semibold">🌟 Serving freshly prepared meals every day</span>
             </motion.div>
 
             {/* Headline */}
@@ -200,9 +217,9 @@ const Home = () => {
               transition={{ duration: 0.9, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
               className="text-6xl md:text-8xl lg:text-9xl font-black mb-6 leading-none text-white"
             >
-              Cafe
+              The Grand
               <span className="block bg-clip-text text-transparent bg-gradient-to-r from-primary via-cyan-400 to-accent animate-gradient bg-[length:200%_200%]">
-                Manager
+                Cafeteria
               </span>
             </motion.h1>
 
@@ -212,7 +229,7 @@ const Home = () => {
               transition={{ duration: 0.8, delay: 0.25 }}
               className="text-xl md:text-2xl text-white/60 max-w-2xl mx-auto mb-12 leading-relaxed font-light"
             >
-              The intelligent platform that transforms how your cafeteria operates — orders, inventory, team and payroll in one place.
+              Welcome to The Grand Cafeteria. We serve freshly prepared meals, artisan coffee, and daily specials made with locally sourced ingredients.
             </motion.p>
 
             <motion.div
@@ -227,7 +244,7 @@ const Home = () => {
                   className="inline-flex items-center space-x-3 px-10 py-5 bg-gradient-to-r from-primary to-cyan-500 text-white font-bold rounded-2xl shadow-2xl shadow-primary/40 text-lg group"
                 >
                   <Zap className="w-5 h-5 group-hover:rotate-12 transition-transform" />
-                  <span>Launch Dashboard</span>
+                  <span>View Menu</span>
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </Link>
               </motion.div>
@@ -251,10 +268,10 @@ const Home = () => {
             className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto"
           >
             {[
-              { value: 500, suffix: '+', label: 'Daily Orders', icon: '📦' },
-              { value: 98, suffix: '%', label: 'Uptime SLA', icon: '⚡' },
-              { value: 50, suffix: '+', label: 'Staff Managed', icon: '👥' },
-              { value: 12000, suffix: '', label: 'Items Tracked', icon: '📊' },
+              { value: 50, suffix: '+', label: 'Fresh Meals', icon: '🍽️' },
+              { value: 100, suffix: '%', label: 'Locally Sourced', icon: '🌱' },
+              { value: 500, suffix: '+', label: 'Daily Customers', icon: '👥' },
+              { value: 5, suffix: ' Stars', label: 'Hygiene Rating', icon: '⭐' },
             ].map((s, i) => (
               <motion.div
                 key={i}
@@ -291,9 +308,9 @@ const Home = () => {
           className="flex space-x-16 whitespace-nowrap"
         >
           {Array.from({ length: 3 }).flatMap(() => [
-            '🍽️ Menu Management', '📊 Real-Time Analytics', '👥 Team Manager',
-            '📦 Inventory Control', '💰 Payroll System', '🔒 Role-Based Access',
-            '📱 Mobile Responsive', '🌙 Dark Mode Ready', '⚡ Django REST API',
+            '🍽️ Artisan Coffee', '🌱 Locally Sourced', '👨‍🍳 Expert Chefs',
+            '🥗 Fresh Ingredients', '🍔 Daily Specials', '🍰 Fresh Pastries',
+            '🥑 Vegan Options', '🥡 Takeout Available', '🎉 Catering Services',
           ]).map((item, i) => (
             <span key={i} className="text-gray-500 dark:text-slate-400 font-semibold text-sm">{item}</span>
           ))}
@@ -315,14 +332,14 @@ const Home = () => {
               viewport={{ once: true }}
               className="badge badge-blue mb-4 text-sm px-5 py-2"
             >
-              ✨ Features
+              ✨ What we offer
             </motion.span>
             <h2 className="text-5xl md:text-6xl font-black mb-5">
-              Everything your café<br />
-              <span className="gradient-text">needs to thrive</span>
+              Why Choose<br />
+              <span className="gradient-text">The Grand Cafeteria</span>
             </h2>
             <p className="text-gray-500 dark:text-slate-400 text-lg max-w-xl mx-auto">
-              From real-time orders to payroll — Cafeteria Management puts every tool at your fingertips.
+              We believe great food brings people together. That's why we focus on quality ingredients, fast service, and a welcoming atmosphere.
             </p>
           </motion.div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -373,14 +390,35 @@ const Home = () => {
       {/* ════ TESTIMONIALS ════ */}
       <section className="py-28 px-6">
         <div className="max-w-6xl mx-auto">
-          <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} className="text-center mb-16">
-            <h2 className="text-5xl font-black mb-4">Loved by <span className="gradient-text">Managers</span></h2>
-          </motion.div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="text-center max-w-3xl mx-auto mb-20">
+            <h2 className="text-4xl md:text-5xl font-black mb-6 text-slate-800 dark:text-white">
+              What Our <span className="text-primary">Guests Say</span>
+            </h2>
+            <p className="text-lg text-slate-600 dark:text-slate-400">
+              Don't just take our word for it. Here's what people love about The Grand Cafeteria.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
             {[
-              { name: 'Ahmed Al-Rashidi', role: 'Head Cafeteria Manager', text: 'Cafeteria Management completely transformed how we run daily operations. Orders are faster, inventory is accurate.', stars: 5, avatar: 'A' },
-              { name: 'Sarah Johnson', role: 'Operations Director', text: 'The real-time dashboard gives me exactly what I need. Sales, orders, stock — all at a glance.', stars: 5, avatar: 'S' },
-              { name: 'Mohammed Hassan', role: 'HR & Payroll Manager', text: 'Managing 40+ employees used to be a nightmare. Now payroll and roles are all in one beautiful system.', stars: 5, avatar: 'M' },
+              {
+                name: "Sarah Jenkins",
+                role: "Daily Customer",
+                text: "The artisan coffee here is the best I've ever had. And the lunch specials are always fresh and delicious!",
+                stars: 5, avatar: "S"
+              },
+              {
+                name: "Marcus Chen",
+                role: "Local Business Owner",
+                text: "We use their catering services for all our corporate events. Professional, punctual, and amazing food.",
+                stars: 5, avatar: "M"
+              },
+              {
+                name: "Elena Rodriguez",
+                role: "Student",
+                text: "Great atmosphere to study, friendly staff, and the vegan options are incredible. Highly recommend!",
+                stars: 5, avatar: "E"
+              }
             ].map((t, i) => (
               <motion.div
                 key={i}
@@ -422,14 +460,14 @@ const Home = () => {
             <motion.div animate={{ rotate: [0, 10, -10, 0] }} transition={{ duration: 3, repeat: Infinity }}>
               <Coffee className="w-20 h-20 text-primary mx-auto mb-8" />
             </motion.div>
-            <h2 className="text-6xl font-black mb-6">Ready to <span className="gradient-text">Get Started?</span></h2>
+            <h2 className="text-6xl font-black mb-6">Ready to <span className="gradient-text">Taste the Difference?</span></h2>
             <p className="text-gray-500 dark:text-slate-400 mb-10 text-xl max-w-xl mx-auto">
-              Join the future of cafeteria management today.
+              Visit us today or get in touch for catering inquiries.
             </p>
             <motion.div whileHover={{ scale: 1.05, y: -4 }} whileTap={{ scale: 0.97 }}>
               <Link to="/login" className="inline-flex items-center space-x-3 px-14 py-6 bg-gradient-to-r from-primary via-violet-500 to-accent text-white font-black text-xl rounded-3xl shadow-2xl shadow-primary/30 animate-gradient bg-[length:200%_200%]">
                 <Zap className="w-6 h-6" />
-                <span>Launch Now</span>
+                <span>View Our Menu</span>
                 <ArrowRight className="w-6 h-6" />
               </Link>
             </motion.div>
@@ -442,9 +480,9 @@ const Home = () => {
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0">
           <div className="flex items-center space-x-2">
             <ChefHat className="w-5 h-5 text-primary" />
-            <span className="font-black gradient-text-blue">Cafeteria Management</span>
+            <span className="font-black gradient-text-blue">The Grand Cafeteria</span>
           </div>
-          <p className="text-sm text-gray-400">© 2026 Cafeteria Management · Built with React + Django</p>
+          <p className="text-sm text-gray-400">© 2026 The Grand Cafeteria · All rights reserved</p>
           <div className="flex space-x-6 text-sm text-gray-400">
             <Link to="/about" className="hover:text-primary transition-colors">About</Link>
             <Link to="/contact-us" className="hover:text-primary transition-colors">Contact</Link>

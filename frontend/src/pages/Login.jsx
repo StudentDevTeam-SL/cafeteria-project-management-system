@@ -3,17 +3,32 @@ import { useAuth } from '../hooks/useAuth';
 import { motion } from 'framer-motion';
 import { Lock, User, AlertCircle, ChefHat, Eye, EyeOff, ArrowRight, Zap, Volume2, VolumeX } from 'lucide-react';
 
+/**
+ * Login Component
+ * Handles user authentication and presentation of the login interface.
+ */
 const Login = () => {
   const { login, isLoading } = useAuth();
+  /** @type {[string, Function]} Username state */
   const [username, setUsername] = useState('');
+  /** @type {[string, Function]} Password state */
   const [password, setPassword] = useState('');
+  /** @type {[string, Function]} Error message state */
   const [error, setError]       = useState('');
+  /** @type {[boolean, Function]} Form submission loading state */
   const [submitting, setSubmitting] = useState(false);
+  /** @type {[boolean, Function]} Password visibility toggle */
   const [showPw, setShowPw]     = useState(false);
+  /** @type {[boolean, Function]} Video mute toggle */
   const [muted, setMuted]       = useState(true);
+  /** @type {[{x:number, y:number}, Function]} 3D card tilt state */
   const [tilt, setTilt]         = useState({ x:0, y:0 });
   const cardRef = useRef(null);
 
+  /**
+   * Calculates the tilt effect based on mouse movement over the card.
+   * @param {MouseEvent} e - Mouse move event
+   */
   const onMove = (e) => {
     const r = cardRef.current?.getBoundingClientRect();
     if (!r) return;
@@ -22,8 +37,14 @@ const Login = () => {
       y: ((e.clientX - r.left) / r.width  - 0.5) *  14,
     });
   };
+  
+  /** Resets the tilt effect when the mouse leaves the card */
   const onLeave = () => setTilt({ x:0, y:0 });
 
+  /**
+   * Handles form submission for user authentication.
+   * @param {Event} e - Form submit event
+   */
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true); setError('');
@@ -33,19 +54,18 @@ const Login = () => {
   };
 
   if (isLoading) return (
-    <div className="h-screen flex items-center justify-center bg-dark">
+    <div className="min-h-[100dvh] flex items-center justify-center bg-dark">
       <div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin"/>
     </div>
   );
 
   return (
-    <div className="flex h-screen w-full overflow-hidden bg-dark">
+    <div className="flex min-h-[100dvh] w-full overflow-hidden bg-dark">
 
       {/* ── LEFT: Video Loop ── */}
       <div className="hidden lg:flex w-1/2 relative overflow-hidden">
         <video autoPlay loop muted={muted} playsInline className="absolute inset-0 w-full h-full object-cover scale-105">
           <source src="https://videos.pexels.com/video-files/3769033/3769033-hd_1920_1080_25fps.mp4" type="video/mp4"/>
-          <source src="https://videos.pexels.com/video-files/3212076/3212076-uhd_2560_1440_25fps.mp4" type="video/mp4"/>
         </video>
         <div className="absolute inset-0 bg-black/60"/>
 
@@ -181,22 +201,7 @@ const Login = () => {
               </motion.button>
             </form>
 
-            {/* Quick login */}
-            <div className="mt-6 pt-5 border-t border-gray-100 dark:border-slate-700">
-              <p className="text-center text-xs font-bold uppercase tracking-wider text-gray-400 mb-3">Quick Demo Login</p>
-              <div className="grid grid-cols-2 gap-3">
-                {[
-                  {label:'👑 Admin',    u:'admin',    p:'admin',    cls:'border-primary/40 text-primary hover:bg-primary/10'},
-                  {label:'👤 Employee', u:'employee', p:'employee', cls:'border-accent/40 text-accent hover:bg-accent/10'},
-                ].map(b=>(
-                  <motion.button key={b.u} type="button" whileHover={{scale:1.04,y:-1}} whileTap={{scale:.97}}
-                    onClick={()=>{setUsername(b.u);setPassword(b.p);}}
-                    className={`py-2.5 rounded-xl border text-xs font-bold transition-all ${b.cls}`}>
-                    {b.label}
-                  </motion.button>
-                ))}
-              </div>
-            </div>
+
           </div>
 
           <p className="text-center text-xs text-gray-400 mt-4">© 2026 Cafeteria Management · React + Django</p>

@@ -28,35 +28,39 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   /**
-   * login — mock login with two demo accounts.
-   * Replace setTimeout block with: axios.post('/api/auth/login/', { username, password })
+   * login — authenticates via Django REST API
    */
-  const login = (username, password) =>
-    new Promise((resolve, reject) => {
-      setTimeout(() => {
-        if (username === 'admin' && password === 'admin') {
-          const u = { id: 1, username: 'admin', role: 'Admin', email: 'admin@cafe.com', full_name: 'Super Admin' };
-          setUser(u);
-          localStorage.setItem('token', 'fake-jwt-token-admin');
-          localStorage.setItem('user', JSON.stringify(u));
-          resolve(u);
-        } else if (username === 'employee' && password === 'employee') {
-          const u = { id: 2, username: 'employee', role: 'Employee', email: 'emp@cafe.com', full_name: 'John Doe' };
-          setUser(u);
-          localStorage.setItem('token', 'fake-jwt-token-emp');
-          localStorage.setItem('user', JSON.stringify(u));
-          resolve(u);
-        } else {
-          reject(new Error('Invalid credentials'));
-        }
-      }, 800);
-    });
+  const login = async (username, password) => {
+    try {
+      const res = await import('../api/axios').then(module => module.default.post('auth/login/', { username, password }));
+      const { access, refresh, user: userData } = res.data;
+      
+      localStorage.setItem('token', access);
+      localStorage.setItem('refresh', refresh);
+      localStorage.setItem('user', JSON.stringify(userData));
+      
+      setUser(userData);
+      return userData;
+    } catch (error) {
+      throw new Error(error.response?.data?.detail || 'Invalid credentials');
+    }
+  };
 
-  /** logout — clear user and session storage */
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+  /** logout — clear user and session storage, optionally call backend to blacklist token */
+  const logout = async () => {
+    try {
+      const refresh = localStorage.getItem('refresh');
+      if (refresh) {
+        await import('../api/axios').then(module => module.default.post('auth/logout/', { refresh }));
+      }
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      setUser(null);
+      localStorage.removeItem('token');
+      localStorage.removeItem('refresh');
+      localStorage.removeItem('user');
+    }
   };
 
   /**

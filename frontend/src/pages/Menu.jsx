@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Plus, X, Edit2, Trash2, ToggleLeft, ToggleRight, UtensilsCrossed, Star, Image as ImageIcon, Check, Clock, ShoppingCart, CreditCard, Minus, MessageSquare } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
@@ -6,24 +6,51 @@ import { useToast } from '../context/ToastContext';
 import ConfirmModal from '../components/ConfirmModal';
 import { FOOD_PHOTOS, CATEGORIES, CAT_EMOJI, INIT_MENU_ITEMS } from '../data/menuCatalog';
 import { useSoundContext } from '../context/SoundContext';
+import api from '../api/axios';
 
 /* ── Item Card — role-aware ── */
-const ItemCard = ({ item, onToggle, onEdit, onDelete, onApprove, onReject, onAddCart, onDecCart, cartQty = 0, isAdmin }) => {
+/**
+ * ItemCard Component
+ * Displays individual menu items and provides interaction controls.
+ * Memoized to prevent unnecessary re-renders.
+ */
+const ItemCard = React.memo(({ item, onToggle, onEdit, onDelete, onApprove, onReject, onAddCart, onDecCart, cartQty = 0, isAdmin }) => {
   const ref = useRef(null);
-  const [tilt, setTilt] = useState({ x:0, y:0, gx:50, gy:50 });
-  const onMove = e => { const r=ref.current?.getBoundingClientRect(); if(!r)return; const x=(e.clientX-r.left)/r.width,y=(e.clientY-r.top)/r.height; setTilt({x:(y-.5)*-12,y:(x-.5)*12,gx:x*100,gy:y*100}); };
-  const onLeave = () => setTilt({x:0,y:0,gx:50,gy:50});
+  
+  const onMove = e => {
+    const r = ref.current?.getBoundingClientRect();
+    if (!r) return;
+    const x = (e.clientX - r.left) / r.width;
+    const y = (e.clientY - r.top) / r.height;
+    const tx = (y - 0.5) * -12;
+    const ty = (x - 0.5) * 12;
+    ref.current.style.setProperty('--tx', `${tx}deg`);
+    ref.current.style.setProperty('--ty', `${ty}deg`);
+    ref.current.style.setProperty('--gx', `${x * 100}%`);
+    ref.current.style.setProperty('--gy', `${y * 100}%`);
+  };
+
+  const onLeave = () => {
+    if (!ref.current) return;
+    ref.current.style.setProperty('--tx', '0deg');
+    ref.current.style.setProperty('--ty', '0deg');
+    ref.current.style.setProperty('--gx', '50%');
+    ref.current.style.setProperty('--gy', '50%');
+  };
 
   const isPending = item.status === 'pending';
 
   return (
-    <motion.div layout ref={ref} onMouseMove={onMove} onMouseLeave={onLeave}
+    <motion.div ref={ref} onMouseMove={onMove} onMouseLeave={onLeave}
       initial={{opacity:0,scale:.9}} animate={{opacity:1,scale:1}} exit={{opacity:0,scale:.85}}
-      style={{ transform:`perspective(900px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`, transition:'transform 0.12s ease-out' }}
+      style={{ 
+        transform: `perspective(900px) rotateX(var(--tx, 0deg)) rotateY(var(--ty, 0deg))`,
+        transition: 'transform 0.12s ease-out' 
+      }}
       className={`glass-card overflow-hidden group cursor-default relative ${isPending ? 'ring-2 ring-amber-400/50' : ''}`}>
       {/* Shine */}
       <div className="absolute inset-0 z-10 rounded-2xl pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity"
-        style={{background:`radial-gradient(circle at ${tilt.gx}% ${tilt.gy}%, rgba(255,255,255,0.12) 0%, transparent 60%)`}} />
+        style={{background:`radial-gradient(circle at var(--gx, 50%) var(--gy, 50%), rgba(255,255,255,0.12) 0%, transparent 60%)`}} />
 
       {/* Pending badge */}
       {isPending && (
@@ -34,7 +61,8 @@ const ItemCard = ({ item, onToggle, onEdit, onDelete, onApprove, onReject, onAdd
 
       {/* Image */}
       <div className="relative h-44 overflow-hidden">
-        <img src={item.customPhoto || item.photoUrl || FOOD_PHOTOS[item.id] || FOOD_PHOTOS[1]} alt={item.name}
+        <img src={item.customPhoto || item.image || item.photoUrl || FOOD_PHOTOS[item.id] || FOOD_PHOTOS[1]} alt={item.name}
+          loading="lazy"
           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
           onError={e=>{e.target.src='https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&h=280&fit=crop';}} />
         <div className="absolute top-3 left-3 flex items-center gap-1 bg-black/60 backdrop-blur-sm rounded-full px-2.5 py-1">
@@ -60,9 +88,9 @@ const ItemCard = ({ item, onToggle, onEdit, onDelete, onApprove, onReject, onAdd
       <div className="p-4">
         <div className="flex items-start justify-between mb-1.5">
           <h3 className="font-bold text-sm leading-tight pr-2 group-hover:text-primary transition-colors">{item.name}</h3>
-          <span className="text-primary font-black text-lg whitespace-nowrap">${item.price.toFixed(2)}</span>
+          <span className="text-primary font-black text-lg whitespace-nowrap">${Number(item.price).toFixed(2)}</span>
         </div>
-        <p className="text-xs text-gray-400 dark:text-slate-500 line-clamp-2 mb-3">{item.desc}</p>
+        <p className="text-xs text-gray-400 dark:text-slate-500 line-clamp-2 mb-3">{item.description || item.desc}</p>
 
         {/* Admin controls & POS Add */}
         {!isPending && (
@@ -116,15 +144,23 @@ const ItemCard = ({ item, onToggle, onEdit, onDelete, onApprove, onReject, onAdd
       </div>
     </motion.div>
   );
-};
+});
 
 /* ── Item Modal ── */
 const ItemModal = ({ item, onClose, onSave, isAdmin }) => {
   const fileRef = useRef(null);
-  const [form, setForm] = useState(item || { name:'', price:'', category:'Main Course', desc:'', is_active:true, rating:4.5, photoUrl:'', customPhoto:'' });
-  const preview = form.customPhoto || form.photoUrl || '';
+  const [form, setForm] = useState(item || { name:'', price:'', category:'Main Course', description:'', desc:'', is_active:true, rating:4.5, image:'', photoUrl:'', customPhoto:'' });
+  const [fileObj, setFileObj] = useState(null); // actual File for upload
+  const preview = form.customPhoto || form.image || form.photoUrl || '';
   const set = (k,v) => setForm(f=>({...f,[k]:v}));
-  const handleFile = e => { const f=e.target.files?.[0]; if(!f)return; const r=new FileReader(); r.onloadend=()=>set('customPhoto',r.result); r.readAsDataURL(f); };
+  const handleFile = e => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    setFileObj(f);
+    const r = new FileReader();
+    r.onloadend = () => set('customPhoto', r.result);
+    r.readAsDataURL(f);
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
@@ -154,8 +190,8 @@ const ItemModal = ({ item, onClose, onSave, isAdmin }) => {
             </motion.div>
           )}
           <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
-          <input className="form-input mt-2 text-xs" placeholder="or paste image URL https://..." value={form.photoUrl}
-            onChange={e=>{set('photoUrl',e.target.value);set('customPhoto','');}} />
+          <input className="form-input mt-2 text-xs" placeholder="or paste image URL https://..." value={form.image || form.photoUrl}
+            onChange={e=>{set('image',e.target.value);set('photoUrl',e.target.value);set('customPhoto','');}} />
         </div>
 
         <div className="space-y-3">
@@ -168,7 +204,7 @@ const ItemModal = ({ item, onClose, onSave, isAdmin }) => {
               <select className="form-input" value={form.category} onChange={e=>set('category',e.target.value)}>{CATEGORIES.slice(1).map(c=><option key={c}>{c}</option>)}</select></div>
           </div>
           <div><label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Description</label>
-            <textarea className="form-input resize-none" rows={2} value={form.desc} onChange={e=>set('desc',e.target.value)} /></div>
+            <textarea className="form-input resize-none" rows={2} value={form.description || form.desc} onChange={e=>{set('description',e.target.value);set('desc',e.target.value);}} /></div>
             <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60">
               <span className="text-sm font-medium">Available for ordering</span>
               <button onClick={()=>set('is_active',!form.is_active)}>
@@ -178,7 +214,7 @@ const ItemModal = ({ item, onClose, onSave, isAdmin }) => {
         </div>
         <div className="flex gap-3 mt-5">
           <button onClick={onClose} className="flex-1 py-3 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">Cancel</button>
-          <button onClick={()=>onSave({...form, price:Number(form.price)})} className="flex-1 btn-primary py-3 text-sm">
+          <button onClick={()=>onSave({...form, price:Number(form.price)}, fileObj)} className="flex-1 btn-primary py-3 text-sm">
             {item ? 'Update Item' : 'Add to Menu'}
           </button>
         </div>
@@ -194,7 +230,7 @@ const CheckoutModal = ({ cart, setCart, onClose }) => {
   const { playSound } = useSoundContext();
   const [step, setStep] = useState(1);
   const [comment, setComment] = useState('');
-  const total = cart.reduce((s,c)=>s+c.price*c.qty, 0);
+  const total = React.useMemo(() => cart.reduce((s,c)=>s+c.price*c.qty, 0), [cart]);
 
   if (step === 2) return (
     <PaymentModal amount={total} onClose={()=>setStep(1)} onSuccess={()=>{
@@ -216,7 +252,7 @@ const CheckoutModal = ({ cart, setCart, onClose }) => {
             <div key={c.id} className="flex items-center justify-between glass-card p-3">
               <div>
                 <p className="text-sm font-bold">{c.name}</p>
-                <p className="text-xs text-primary">${c.price.toFixed(2)}</p>
+                <p className="text-xs text-primary">${Number(c.price).toFixed(2)}</p>
               </div>
               <div className="flex items-center gap-2">
                 <button onClick={()=>{playSound(); setCart(p=>{const ex=p.find(i=>i.id===c.id); if(ex.qty<=1)return p.filter(i=>i.id!==c.id); return p.map(i=>i.id===c.id?{...i,qty:i.qty-1}:i)})}} className="w-7 h-7 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center hover:bg-red-500/20"><Minus className="w-3.5 h-3.5" /></button>
@@ -247,63 +283,129 @@ const CheckoutModal = ({ cart, setCart, onClose }) => {
 };
 
 /* ── Main Menu Page ── */
+/**
+ * Menu Component
+ * Renders the cafeteria menu, handles admin controls, and manages POS cart.
+ */
 const Menu = () => {
   const { user } = useAuth();
   const isAdmin = user?.role === 'Admin';
   const { playSound } = useSoundContext();
   const { showToast } = useToast();
 
-  const [items, setItems]         = useState(INIT_MENU_ITEMS);
+  const [items, setItems]         = useState([]);
   const [search, setSearch]       = useState('');
   const [activeCat, setActiveCat] = useState('All');
   const [modalOpen, setModalOpen] = useState(false);
   const [editItem, setEditItem]   = useState(null);
   const [itemToDelete, setItemToDelete] = useState(null);
   
+  // Fetch from Django API
+  useEffect(() => {
+    fetchItems();
+  }, []);
+
+  const fetchItems = async () => {
+    try {
+      const res = await api.get('menu/');
+      setItems(res.data.results || res.data);
+    } catch (err) {
+      console.error('Failed to fetch menu:', err);
+    }
+  };
+  
   // POS Cart State
   const [cart, setCart]                 = useState([]);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
 
-  const addToCart = item => {
+  const addToCart = useCallback(item => {
     playSound();
     setCart(p => {
       const ex = p.find(c => c.id === item.id);
       return ex ? p.map(c => c.id === item.id ? {...c, qty: c.qty+1} : c) : [...p, {...item, qty:1}];
     });
-  };
+  }, [playSound]);
 
-  const decCart = id => {
+  const decCart = useCallback(id => {
     playSound();
     setCart(p => {
       const ex = p.find(c => c.id === id);
       if (!ex || ex.qty <= 1) return p.filter(c => c.id !== id);
       return p.map(c => c.id === id ? {...c, qty: c.qty-1} : c);
     });
-  };
+  }, [playSound]);
 
-  const allItems  = items.filter(i => { const mc=activeCat==='All'||i.category===activeCat; const ms=i.name.toLowerCase().includes(search.toLowerCase()); return mc&&ms; });
-  const pending   = allItems.filter(i => i.status==='pending');
-  const active    = allItems.filter(i => i.status!=='pending');
+  const allItems = React.useMemo(() => 
+    items.filter(i => {
+      const mc = activeCat === 'All' || i.category_name === activeCat;
+      const ms = i.name.toLowerCase().includes(search.toLowerCase());
+      return mc && ms;
+    }), [items, activeCat, search]
+  );
 
-  const toggle  = id => setItems(p=>p.map(i=>i.id===id?{...i,is_active:!i.is_active}:i));
-  const remove  = item => {
-    setItems(p=>p.filter(i=>i.id!==item.id));
-    showToast(`Deleted ${item.name} from menu`, {
-      type: 'warning',
-      onUndo: () => setItems(p => [...p, item]),
-      duration: 7000
-    });
-  };
-  const approve = id => setItems(p=>p.map(i=>i.id===id?{...i,status:'active',is_active:true}:i));
-  const reject  = id => setItems(p=>p.filter(i=>i.id!==id));
+  const pending = React.useMemo(() => allItems.filter(i => i.status === 'pending'), [allItems]);
+  const active = React.useMemo(() => allItems.filter(i => i.status !== 'pending'), [allItems]);
 
-  const save = form => {
-    if (editItem) {
-      setItems(p=>p.map(i=>i.id===editItem.id?{...i,...form}:i));
-    } else {
-      setItems(p=>[...p,{...form,id:Date.now(),rating:4.5, status: 'active'}]);
+  const cartTotal = React.useMemo(() => cart.reduce((s,c)=>s+c.price*c.qty, 0), [cart]);
+  const cartCount = React.useMemo(() => cart.reduce((s,c)=>s+c.qty, 0), [cart]);
+
+  const toggle  = useCallback(async id => {
+    try {
+      const res = await api.patch(`menu/${id}/toggle/`);
+      // Backend returns the full updated item (including is_active & status)
+      setItems(p=>p.map(i=>i.id===id ? res.data : i));
+    } catch (err) { console.error('Failed to toggle', err); }
+  }, []);
+  
+  const remove  = useCallback(async item => {
+    try {
+      await api.delete(`menu/${item.id}/`);
+      setItems(p=>p.filter(i=>i.id!==item.id));
+      showToast(`Deleted ${item.name} from menu`, {
+        type: 'warning',
+        duration: 3000
+      });
+    } catch (err) { console.error('Failed to delete', err); }
+  }, [showToast]);
+  
+  const approve = useCallback(id => setItems(p=>p.map(i=>i.id===id?{...i,status:'active',is_active:true}:i)), []);
+  const reject  = useCallback(id => setItems(p=>p.filter(i=>i.id!==id)), []);
+
+  const handleEdit = useCallback(i => { setEditItem(i); setModalOpen(true); }, []);
+  const handleDelete = useCallback(i => setItemToDelete(i), []);
+
+  const save = async (form, fileObj) => {
+    try {
+      let res;
+      // Build FormData so that image files are correctly multipart-encoded
+      const fd = new FormData();
+      fd.append('name', form.name);
+      fd.append('price', form.price);
+      fd.append('description', form.description || form.desc || '');
+      fd.append('category', form.category || '');
+      fd.append('status', form.is_active ? 'active' : 'inactive');
+      if (fileObj) {
+        // Actual file upload — sent as multipart
+        fd.append('image', fileObj);
+      } else if (form.image && !form.customPhoto) {
+        // URL string fallback — kept for backwards compatibility
+        fd.append('image_url', form.image || form.photoUrl || '');
+      }
+
+      const config = { headers: { 'Content-Type': 'multipart/form-data' } };
+
+      if (editItem) {
+        res = await api.patch(`menu/${editItem.id}/`, fd, config);
+        setItems(p=>p.map(i=>i.id===editItem.id?res.data:i));
+      } else {
+        res = await api.post('menu/', fd, config);
+        setItems(p=>[...p, res.data]);
+      }
+      setModalOpen(false); setEditItem(null);
+    } catch (err) {
+      console.error('Failed to save menu item:', err.response?.data || err.message);
+      showToast(`Save failed: ${JSON.stringify(err.response?.data || err.message)}`, { type: 'error', duration: 5000 });
     }
-    setModalOpen(false); setEditItem(null);
   };
 
   return (
@@ -326,7 +428,7 @@ const Menu = () => {
       {/* Video Banner */}
       <motion.div initial={{opacity:0}} animate={{opacity:1}} className="relative rounded-3xl overflow-hidden h-44 shadow-2xl">
         <video autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-cover scale-105">
-          <source src="https://videos.pexels.com/video-files/3195394/3195394-uhd_2560_1440_25fps.mp4" type="video/mp4" />
+          <source src="https://videos.pexels.com/video-files/3195394/3195394-hd_1920_1080_25fps.mp4" type="video/mp4" />
         </video>
         <div className="absolute inset-0 bg-gradient-to-r from-dark/80 via-dark/50 to-transparent" />
         <div className="relative z-10 flex items-center h-full px-8">
@@ -343,7 +445,7 @@ const Menu = () => {
           <h3 className="text-sm font-bold text-amber-500 mb-3">⏳ Pending Approval ({pending.length})</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {pending.map(item=>(
-              <ItemCard key={item.id} item={item} isAdmin={isAdmin} onToggle={toggle} onEdit={i=>{setEditItem(i);setModalOpen(true);}} onDelete={i=>setItemToDelete(i)} onApprove={approve} onReject={reject} />
+              <ItemCard key={item.id} item={item} isAdmin={isAdmin} onToggle={toggle} onEdit={handleEdit} onDelete={handleDelete} onApprove={approve} onReject={reject} />
             ))}
           </div>
         </motion.div>
@@ -370,7 +472,7 @@ const Menu = () => {
         <AnimatePresence>
           {active.map(item=>(
             <ItemCard key={item.id} item={item} onToggle={toggle} isAdmin={isAdmin}
-              onEdit={i=>{setEditItem(i);setModalOpen(true);}} onDelete={i=>setItemToDelete(i)} onApprove={approve} onReject={reject} 
+              onEdit={handleEdit} onDelete={handleDelete} onApprove={approve} onReject={reject} 
               onAddCart={addToCart} onDecCart={decCart} cartQty={cart.find(c=>c.id===item.id)?.qty || 0} />
           ))}
         </AnimatePresence>
@@ -403,12 +505,12 @@ const Menu = () => {
             <div className="w-14 h-14 rounded-full bg-primary flex items-center justify-center relative">
               <ShoppingCart className="w-6 h-6 text-white" />
               <span className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-red-500 border-2 border-slate-900 text-white text-xs font-black flex items-center justify-center">
-                {cart.reduce((s,c)=>s+c.qty,0)}
+                {cartCount}
               </span>
             </div>
             <div>
               <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Total</p>
-              <p className="text-xl font-black text-white">${cart.reduce((s,c)=>s+c.price*c.qty,0).toFixed(2)}</p>
+              <p className="text-xl font-black text-white">${cartTotal.toFixed(2)}</p>
             </div>
             <button onClick={()=>setCheckoutOpen(true)} className="bg-emerald-500 hover:bg-emerald-400 text-white font-black py-2.5 px-6 rounded-full transition-colors">
               Pay Now
