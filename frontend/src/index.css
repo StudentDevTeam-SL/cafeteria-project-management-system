@@ -14,8 +14,8 @@
   html { scroll-behavior: smooth; }
 
   body {
-    /* Warm slate in light, deep navy in dark */
-    @apply bg-light dark:bg-dark text-slate-800 dark:text-slate-100 transition-colors duration-300;
+    /* Strong readable text — slate-900 light / white dark */
+    @apply bg-light dark:bg-dark text-slate-900 dark:text-white transition-colors duration-300;
     font-family: 'Inter', sans-serif;
     overflow-x: hidden;
   }
@@ -114,12 +114,13 @@
   .data-table { @apply w-full border-collapse; }
   .data-table th {
     @apply p-4 text-left text-xs font-bold uppercase tracking-wider
-           text-slate-500 dark:text-slate-400
+           text-slate-600 dark:text-slate-300
            bg-slate-50 dark:bg-slate-800/80
            border-b border-slate-200 dark:border-slate-700;
   }
   .data-table td {
-    @apply p-4 border-b border-slate-100 dark:border-slate-800/80 text-sm;
+    @apply p-4 border-b border-slate-100 dark:border-slate-800/80 text-sm
+           text-slate-800 dark:text-slate-100;
   }
   .data-table tr:hover td {
     @apply bg-primary/5 transition-colors;
@@ -221,8 +222,15 @@
 }
 
 .field-label {
-  @apply block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1.5;
+  /* Stronger label color — readable in both light and dark mode */
+  @apply block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300 mb-1.5;
 }
+
+/* ── Readable secondary / muted text helpers ── */
+/* Use these instead of raw text-slate-400 / text-gray-400 */
+.text-muted    { @apply text-slate-500 dark:text-slate-300; }
+.text-hint     { @apply text-slate-500 dark:text-slate-400; }
+.text-subtitle { @apply text-slate-600 dark:text-slate-300 font-medium; }
 
 /* ════════════════════════════════════════
    KEYFRAMES

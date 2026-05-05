@@ -32,19 +32,19 @@ const Toggle = ({ checked, onChange }) => (
 
 const Section = ({ icon:Icon, title, children, delay=0 }) => (
   <motion.div initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} transition={{delay}} className="glass-card p-6">
-    <div className="flex items-center gap-3 mb-5 pb-4 border-b border-gray-100 dark:border-slate-700/50">
+    <div className="flex items-center gap-3 mb-5 pb-4 border-b border-slate-200 dark:border-slate-700/60">
       <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center"><Icon className="w-5 h-5 text-white"/></div>
-      <h2 className="text-lg font-bold">{title}</h2>
+      <h2 className="text-lg font-bold text-slate-900 dark:text-white">{title}</h2>
     </div>
     {children}
   </motion.div>
 );
 
 const Row = ({ icon:Icon, label, desc, children }) => (
-  <div className="flex items-center justify-between py-4 border-b border-gray-100 dark:border-slate-700/50 last:border-0">
+  <div className="flex items-center justify-between py-4 border-b border-slate-100 dark:border-slate-700/50 last:border-0">
     <div className="flex items-center gap-3">
       <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center"><Icon className="w-4 h-4 text-primary"/></div>
-      <div><p className="text-sm font-semibold">{label}</p><p className="text-xs text-gray-400">{desc}</p></div>
+      <div><p className="text-sm font-semibold text-slate-800 dark:text-slate-100">{label}</p><p className="text-xs text-slate-500 dark:text-slate-300 mt-0.5">{desc}</p></div>
     </div>
     {children}
   </div>
@@ -52,16 +52,23 @@ const Row = ({ icon:Icon, label, desc, children }) => (
 
 const Settings = () => {
   const { theme, toggleTheme } = useTheme();
-  const { user, logout, switchRole } = useAuth();
+  const { user, logout, updateUser, switchRole } = useAuth();
   const { soundEnabled, setSoundEnabled, volume, setVolume, soundType, setSoundType, playSound } = useSoundContext();
   const isAdmin = user?.role === 'Admin';
 
   const [saved, setSaved]   = useState(false);
+  const [saving, setSaving] = useState(false);
   const [tab, setTab]       = useState('personal'); // 'personal' | 'system'
-  const [avatar, setAvatar] = useState('');
+  // Avatar: persist locally in localStorage (no backend field required)
+  const [avatar, setAvatar] = useState(() => localStorage.getItem('avatar') || '');
   const [accentIdx, setAccentIdx] = useState(0);
   const [fontSize, setFontSize]   = useState(1); // index into FONT_SIZES
-  const [profile, setProfile] = useState({ full_name: user?.full_name||'Admin User', email: user?.email||'admin@cafe.com', phone:'+252 63 000 0000' });
+  // Pre-populate from the authenticated user object
+  const [profile, setProfile] = useState({
+    full_name:    user?.full_name || user?.username || '',
+    email:        user?.email        || '',
+    phone:        user?.phone_number || '',
+  });
   const [notifications, setNotifications] = useState({ emailAlerts:true, lowStockAlerts:true, orderUpdates:false, payrollReminders:true });
   const fileRef = useRef(null);
   const { showToast } = useToast();
@@ -118,11 +125,43 @@ const Settings = () => {
     const f = e.target.files?.[0];
     if (!f) return;
     const r = new FileReader();
-    r.onloadend = () => setAvatar(r.result);
+    r.onloadend = () => {
+      const dataUrl = r.result;
+      setAvatar(dataUrl);
+      // Persist avatar in localStorage so it survives page reloads
+      localStorage.setItem('avatar', dataUrl);
+    };
     r.readAsDataURL(f);
   };
 
-  const handleSave = () => { setSaved(true); setTimeout(()=>setSaved(false), 2500); };
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      // Split full_name back into first / last for the Django backend
+      const nameParts = (profile.full_name || '').trim().split(' ');
+      const first_name = nameParts[0] || '';
+      const last_name  = nameParts.slice(1).join(' ');
+
+      await updateUser({
+        first_name,
+        last_name,
+        email:        profile.email,
+        phone_number: profile.phone,
+      });
+
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2500);
+      showToast('Profile saved successfully!', { type: 'success' });
+    } catch (err) {
+      console.error('Failed to save profile:', err);
+      showToast(
+        err.response?.data ? JSON.stringify(err.response.data) : 'Failed to save profile.',
+        { type: 'error', duration: 5000 }
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const tabs = [{ id:'personal', label:'Personal' }, ...(isAdmin ? [{ id:'system', label:'System & Admin' }] : [])];
 
@@ -175,7 +214,7 @@ const Settings = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {[{label:'Full Name',key:'full_name'},{label:'Email',key:'email'},{label:'Phone',key:'phone'}].map(f=>(
               <div key={f.key}>
-                <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1.5">{f.label}</label>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300 mb-1.5">{f.label}</label>
                 <input className="form-input" value={profile[f.key]} onChange={e=>setProfile({...profile,[f.key]:e.target.value})}/>
               </div>
             ))}
@@ -188,7 +227,7 @@ const Settings = () => {
 
           {/* Accent Color */}
           <div className="pt-4">
-            <p className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3">Accent Color</p>
+            <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300 mb-3">Accent Color</p>
             <div className="grid grid-cols-6 gap-3">
               {ACCENT_COLORS.map((c,i)=>(
                 <button key={i} onClick={()=>applyAccent(i)} title={c.name}
@@ -203,7 +242,7 @@ const Settings = () => {
           <div className="pt-5">
             <div className="flex items-center gap-2 mb-3">
               <Type className="w-4 h-4 text-primary"/>
-              <p className="text-xs font-bold uppercase tracking-wider text-gray-400">Font Size</p>
+              <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">Font Size</p>
             </div>
             <div className="flex gap-3">
               {FONT_SIZES.map((f,i)=>(
@@ -226,11 +265,11 @@ const Settings = () => {
             <div className="pt-4">
               <div className="flex flex-col gap-4">
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">Volume</p>
+                  <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300 mb-2">Volume</p>
                   <input type="range" min="0" max="1" step="0.1" value={volume} onChange={e => setVolume(parseFloat(e.target.value))} onMouseUp={playSound} onTouchEnd={playSound} className="w-full accent-primary" />
                 </div>
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">Sound Type</p>
+                  <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300 mb-2">Sound Type</p>
                   <div className="flex gap-2">
                     {['pop', 'click', 'bell'].map(t => (
                       <button key={t} onClick={() => { setSoundType(t); setTimeout(playSound, 10); }} className={`px-4 py-2 rounded-xl text-xs font-bold capitalize transition-colors ${soundType === t ? 'bg-primary text-white shadow-md' : 'bg-gray-100 dark:bg-slate-800 text-slate-500 hover:text-primary'}`}>
@@ -265,7 +304,7 @@ const Settings = () => {
           <Row icon={Lock} label="Two-Factor Authentication" desc="Add an extra layer of security"><Toggle checked={false} onChange={()=>{}}/></Row>
           <Row icon={Zap} label="Session Timeout" desc="Auto-logout after 30 minutes of inactivity"><Toggle checked={true} onChange={()=>{}}/></Row>
           <div className="pt-4">
-            <p className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3">Change Password</p>
+            <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300 mb-3">Change Password</p>
             <div className="space-y-3">
               {['Current Password','New Password','Confirm New Password'].map(p=>(
                 <input key={p} className="form-input" type="password" placeholder={p}/>
@@ -341,9 +380,12 @@ const Settings = () => {
 
       {/* Save + Logout */}
       <motion.div className="flex items-center gap-4 pb-6">
-        <button onClick={handleSave} className={`btn-primary flex items-center gap-2 transition-all ${saved?'bg-emerald-500 shadow-emerald-500/30':''}`}>
-          {saved ? <Check className="w-5 h-5"/> : <Save className="w-5 h-5"/>}
-          <span>{saved?'Saved!':'Save Changes'}</span>
+        <button onClick={handleSave} disabled={saving}
+          className={`btn-primary flex items-center gap-2 transition-all disabled:opacity-70 ${saved ? 'bg-emerald-500 shadow-emerald-500/30' : ''}`}>
+          {saving
+            ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            : saved ? <Check className="w-5 h-5"/> : <Save className="w-5 h-5"/>}
+          <span>{saving ? 'Saving…' : saved ? 'Saved!' : 'Save Changes'}</span>
         </button>
         <button onClick={logout} className="px-6 py-3 rounded-xl border border-red-500/30 text-red-500 hover:bg-red-500/10 font-semibold text-sm transition-all">Logout</button>
       </motion.div>

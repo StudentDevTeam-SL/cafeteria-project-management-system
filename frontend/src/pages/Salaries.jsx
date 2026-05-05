@@ -64,7 +64,7 @@ const SalaryModal = ({ record, employees, onClose, onSave }) => {
         exit={{ opacity: 0, scale: 0.9 }}
         className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl p-8 w-full max-w-md border border-gray-100 dark:border-slate-700 relative"
       >
-        <button onClick={onClose} className="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-400">
+        <button onClick={onClose} className="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-300">
           <X className="w-5 h-5" />
         </button>
         <h2 className="text-2xl font-black gradient-text mb-6">{record ? 'Edit Salary' : 'Add Salary Record'}</h2>
@@ -227,7 +227,7 @@ const Salaries = () => {
             <div className={`w-9 h-9 rounded-xl ${s.bg} flex items-center justify-center mb-2`}>
               <s.icon className={`w-4 h-4 ${s.color}`} />
             </div>
-            <p className="text-xs text-gray-400">{s.label}</p>
+            <p className="text-xs text-slate-500 dark:text-slate-300">{s.label}</p>
             <p className={`text-2xl font-black ${s.color}`}>{s.value}</p>
           </motion.div>
         ))}
@@ -237,7 +237,7 @@ const Salaries = () => {
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="glass-card p-5">
         <div className="flex items-center justify-between mb-3">
           <h3 className="font-bold">Payroll Status</h3>
-          <span className="text-sm text-gray-400">{paidCount}/{salaries.length} processed</span>
+          <span className="text-sm text-slate-500 dark:text-slate-300">{paidCount}/{salaries.length} processed</span>
         </div>
         <div className="h-3 bg-gray-100 dark:bg-slate-700 rounded-full overflow-hidden">
           <motion.div
@@ -247,14 +247,14 @@ const Salaries = () => {
             className="h-full bg-gradient-to-r from-primary to-accent rounded-full"
           />
         </div>
-        <p className="text-xs text-gray-400 mt-2">
+        <p className="text-xs text-slate-500 dark:text-slate-300 mt-2">
           {salaries.length ? Math.round((paidCount / salaries.length) * 100) : 0}% payroll completed
         </p>
       </motion.div>
 
       {/* Search */}
       <div className="relative max-w-sm">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 dark:text-slate-300" />
         <input className="form-input pl-9 text-sm" placeholder="Search employees..." value={search} onChange={e => setSearch(e.target.value)} />
       </div>
 
@@ -288,17 +288,17 @@ const Salaries = () => {
                         <span className="font-semibold text-sm">{record.employee_name}</span>
                       </div>
                     </td>
-                    <td className="text-xs text-gray-400">{record.employee_position}</td>
+                    <td className="text-xs text-slate-500 dark:text-slate-300">{record.employee_position}</td>
                     <td className="font-medium">${Number(record.base_salary).toLocaleString()}</td>
                     <td className="text-emerald-500 font-medium">+${Number(record.bonus)}</td>
                     <td className="text-red-400 font-medium">-${Number(record.deduction)}</td>
                     <td className="font-black text-primary">${getNet(record).toLocaleString()}</td>
-                    <td className="text-xs text-gray-400">{record.payment_date}</td>
+                    <td className="text-xs text-slate-500 dark:text-slate-300">{record.payment_date}</td>
                     <td><span className={`badge ${cfg.cls} gap-1`}><cfg.icon className="w-3 h-3" />{cfg.label}</span></td>
                     <td>
                       <div className="flex space-x-2">
-                        <button onClick={() => { setEditRecord(record); setIsModalOpen(true); }} className="p-1.5 rounded-lg hover:bg-primary/10 text-gray-400 hover:text-primary transition-colors"><Edit2 className="w-4 h-4" /></button>
-                        <button onClick={() => handleDelete(record.id)} className="p-1.5 rounded-lg hover:bg-red-500/10 text-gray-400 hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
+                        <button onClick={() => { setEditRecord(record); setIsModalOpen(true); }} className="p-1.5 rounded-lg hover:bg-primary/10 text-slate-500 dark:text-slate-300 hover:text-primary transition-colors"><Edit2 className="w-4 h-4" /></button>
+                        <button onClick={() => handleDelete(record.id)} className="p-1.5 rounded-lg hover:bg-red-500/10 text-slate-500 dark:text-slate-300 hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
                       </div>
                     </td>
                   </motion.tr>
@@ -308,7 +308,7 @@ const Salaries = () => {
           </table>
         </div>
         {filtered.length === 0 && (
-          <div className="py-16 text-center text-gray-400">
+          <div className="py-16 text-center text-slate-500 dark:text-slate-300">
             <DollarSign className="w-14 h-14 mx-auto mb-3 opacity-30" />
             <p>No salary records found</p>
           </div>

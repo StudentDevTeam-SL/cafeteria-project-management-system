@@ -38,7 +38,7 @@ const InventoryModal = ({ item, onClose, onSave }) => {
         exit={{ opacity: 0, scale: 0.9 }}
         className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl p-8 w-full max-w-md border border-gray-100 dark:border-slate-700"
       >
-        <button onClick={onClose} className="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-400 transition-colors">
+        <button onClick={onClose} className="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-300 transition-colors">
           <X className="w-5 h-5" />
         </button>
         <h2 className="text-2xl font-black gradient-text mb-6">{item ? 'Edit Item' : 'Add Inventory Item'}</h2>
@@ -202,7 +202,7 @@ const Inventory = () => {
             <div className={`w-9 h-9 rounded-xl ${s.bg} flex items-center justify-center mb-2`}>
               <s.icon className={`w-4 h-4 ${s.color}`} />
             </div>
-            <p className="text-xs text-gray-400">{s.label}</p>
+            <p className="text-xs text-slate-500 dark:text-slate-300">{s.label}</p>
             <p className={`text-2xl font-black ${s.color}`}>{s.value}</p>
           </motion.div>
         ))}
@@ -211,7 +211,7 @@ const Inventory = () => {
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 dark:text-slate-300" />
           <input className="form-input pl-9 text-sm" placeholder="Search items..." value={search} onChange={e => setSearch(e.target.value)} />
         </div>
         <div className="flex space-x-2 overflow-x-auto">
@@ -220,8 +220,8 @@ const Inventory = () => {
           ))}
         </div>
         <div className="flex space-x-2">
-          <button onClick={() => setSortField('item_name')} className={`px-3 py-2 rounded-lg text-xs font-semibold transition-all flex items-center space-x-1 ${sortField === 'item_name' ? 'bg-primary/10 text-primary' : 'glass-card text-gray-400'}`}><ArrowUpDown className="w-3 h-3" /><span>Name</span></button>
-          <button onClick={() => setSortField('quantity')} className={`px-3 py-2 rounded-lg text-xs font-semibold transition-all flex items-center space-x-1 ${sortField === 'quantity' ? 'bg-primary/10 text-primary' : 'glass-card text-gray-400'}`}><ArrowUpDown className="w-3 h-3" /><span>Qty</span></button>
+          <button onClick={() => setSortField('item_name')} className={`px-3 py-2 rounded-lg text-xs font-semibold transition-all flex items-center space-x-1 ${sortField === 'item_name' ? 'bg-primary/10 text-primary' : 'glass-card text-slate-500 dark:text-slate-300'}`}><ArrowUpDown className="w-3 h-3" /><span>Name</span></button>
+          <button onClick={() => setSortField('quantity')} className={`px-3 py-2 rounded-lg text-xs font-semibold transition-all flex items-center space-x-1 ${sortField === 'quantity' ? 'bg-primary/10 text-primary' : 'glass-card text-slate-500 dark:text-slate-300'}`}><ArrowUpDown className="w-3 h-3" /><span>Qty</span></button>
         </div>
       </div>
 
@@ -260,7 +260,7 @@ const Inventory = () => {
                       </div>
                     </td>
                     <td><span className={`badge text-xs ${CATEGORY_COLORS[item.category]}`}>{item.category}</span></td>
-                    <td className="font-bold">{item.quantity} <span className="text-gray-400 font-normal text-xs">{item.unit}</span></td>
+                    <td className="font-bold">{item.quantity} <span className="text-slate-500 dark:text-slate-300 font-normal text-xs">{item.unit}</span></td>
                     <td className="w-32">
                       <div className="w-full h-1.5 bg-gray-100 dark:bg-slate-700 rounded-full overflow-hidden">
                         <motion.div
@@ -270,15 +270,15 @@ const Inventory = () => {
                           className={`h-full rounded-full ${status.bar}`}
                         />
                       </div>
-                      <p className="text-xs text-gray-400 mt-0.5">Min: {item.min_stock} {item.unit}</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-300 mt-0.5">Min: {item.min_stock} {item.unit}</p>
                     </td>
                     <td className="text-sm">${Number(item.cost).toFixed(2)}</td>
                     <td className="font-bold text-emerald-500">${(item.quantity * item.cost).toFixed(2)}</td>
                     <td><span className={`badge ${status.cls}`}>{status.label}</span></td>
                     <td>
                       <div className="flex space-x-2">
-                        <button onClick={() => { setEditItem(item); setIsModalOpen(true); }} className="p-1.5 rounded-lg hover:bg-primary/10 text-gray-400 hover:text-primary transition-colors"><Edit2 className="w-4 h-4" /></button>
-                        <button onClick={() => setItemToDelete(item)} className="p-1.5 rounded-lg hover:bg-red-500/10 text-gray-400 hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
+                        <button onClick={() => { setEditItem(item); setIsModalOpen(true); }} className="p-1.5 rounded-lg hover:bg-primary/10 text-slate-500 dark:text-slate-300 hover:text-primary transition-colors"><Edit2 className="w-4 h-4" /></button>
+                        <button onClick={() => setItemToDelete(item)} className="p-1.5 rounded-lg hover:bg-red-500/10 text-slate-500 dark:text-slate-300 hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
                       </div>
                     </td>
                   </motion.tr>
@@ -288,7 +288,7 @@ const Inventory = () => {
           </table>
         </div>
         {filtered.length === 0 && (
-          <div className="py-16 text-center text-gray-400">
+          <div className="py-16 text-center text-slate-500 dark:text-slate-300">
             <Package className="w-14 h-14 mx-auto mb-3 opacity-30" />
             <p>No inventory items found</p>
           </div>

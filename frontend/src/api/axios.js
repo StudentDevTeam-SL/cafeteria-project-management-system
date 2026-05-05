@@ -2,7 +2,9 @@ import axios from 'axios';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000/api/',
-  headers: { 'Content-Type': 'application/json' },
+  // NOTE: Do NOT set a global Content-Type here.
+  // axios auto-detects JSON vs multipart/form-data based on the request body.
+  // A hardcoded 'application/json' would break FormData (image) uploads.
 });
 
 // ── Request interceptor: attach access token ──────────────────────────────

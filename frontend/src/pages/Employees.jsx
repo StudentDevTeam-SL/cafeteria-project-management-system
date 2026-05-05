@@ -123,12 +123,21 @@ const Employees = () => {
   const handleSave = async form => {
     try {
       const payload = { ...form };
-      if (!payload.user_id || payload.user_id === '') {
-        payload.user_id = null;
+
+      // Only send user_id when the user actually provided one.
+      // Sending null still triggers backend PK validation on some DRF versions,
+      // so we remove the key entirely when no value is given.
+      if (!payload.user_id && payload.user_id !== 0) {
+        delete payload.user_id;
       } else {
-        payload.user_id = parseInt(payload.user_id, 10);
+        const parsed = parseInt(payload.user_id, 10);
+        if (isNaN(parsed)) {
+          delete payload.user_id;
+        } else {
+          payload.user_id = parsed;
+        }
       }
-      
+
       if (editEmp) {
         const res = await api.patch(`employees/${editEmp.id}/`, payload);
         setEmployees(p => p.map(e => e.id === editEmp.id ? res.data : e));
@@ -166,7 +175,7 @@ const Employees = () => {
       <motion.div initial={{opacity:0,y:-20}} animate={{opacity:1,y:0}} className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-4xl font-black gradient-text">Employee Management</h1>
-          <p className="text-slate-500 dark:text-slate-400 mt-1">Manage cafeteria staff, roles and permissions.</p>
+          <p className="text-slate-600 dark:text-slate-300 mt-1">Manage cafeteria staff, roles and permissions.</p>
         </div>
         <div className="flex items-center gap-3">
           {/* Role switcher for testing */}
@@ -193,7 +202,7 @@ const Employees = () => {
             <div className={`w-10 h-10 rounded-xl ${s.bg} flex items-center justify-center mb-3`}>
               <User className={`w-5 h-5 ${s.color}`} />
             </div>
-            <p className="text-xs text-slate-400 font-medium">{s.label}</p>
+            <p className="text-xs text-slate-500 dark:text-slate-300 font-medium">{s.label}</p>
             <p className={`text-2xl font-black ${s.color}`}>{s.value}</p>
           </motion.div>
         ))}
@@ -246,10 +255,10 @@ const Employees = () => {
               </div>
               {/* Info */}
               <div className="space-y-1.5 text-sm flex-1">
-                <div className="flex items-center gap-2 text-slate-400"><Briefcase className="w-3.5 h-3.5 shrink-0" /><span className="text-xs truncate">{emp.job_title}</span></div>
-                <div className="flex items-center gap-2 text-slate-400"><Phone className="w-3.5 h-3.5 shrink-0" /><span className="text-xs truncate">{emp.phone}</span></div>
-                <div className="flex items-center gap-2 text-slate-400"><Calendar className="w-3.5 h-3.5 shrink-0" /><span className="text-xs truncate">{emp.shift || 'No shift set'}</span></div>
-                <div className="flex items-center gap-2 text-slate-400"><Clock className="w-3.5 h-3.5 shrink-0" /><span className="text-xs truncate">{emp.hours || 'No hours set'}</span></div>
+                <div className="flex items-center gap-2 text-slate-500 dark:text-slate-300"><Briefcase className="w-3.5 h-3.5 shrink-0" /><span className="text-xs truncate">{emp.job_title}</span></div>
+                <div className="flex items-center gap-2 text-slate-500 dark:text-slate-300"><Phone className="w-3.5 h-3.5 shrink-0" /><span className="text-xs truncate">{emp.phone}</span></div>
+                <div className="flex items-center gap-2 text-slate-500 dark:text-slate-300"><Calendar className="w-3.5 h-3.5 shrink-0" /><span className="text-xs truncate">{emp.shift || 'No shift set'}</span></div>
+                <div className="flex items-center gap-2 text-slate-500 dark:text-slate-300"><Clock className="w-3.5 h-3.5 shrink-0" /><span className="text-xs truncate">{emp.hours || 'No hours set'}</span></div>
               </div>
               {/* Status */}
               <div className="flex items-center justify-between mt-4 pt-4 border-t border-slate-200/60 dark:border-slate-700/40">

@@ -440,7 +440,7 @@ const Home = () => {
                     </div>
                     <div>
                       <p className="font-bold text-sm">{t.name}</p>
-                      <p className="text-xs text-gray-400">{t.role}</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-300">{t.role}</p>
                     </div>
                   </div>
                 </TiltCard>
@@ -482,8 +482,8 @@ const Home = () => {
             <ChefHat className="w-5 h-5 text-primary" />
             <span className="font-black gradient-text-blue">The Grand Cafeteria</span>
           </div>
-          <p className="text-sm text-gray-400">© 2026 The Grand Cafeteria · All rights reserved</p>
-          <div className="flex space-x-6 text-sm text-gray-400">
+          <p className="text-sm text-slate-500 dark:text-slate-300">© 2026 The Grand Cafeteria · All rights reserved</p>
+          <div className="flex space-x-6 text-sm text-slate-500 dark:text-slate-300">
             <Link to="/about" className="hover:text-primary transition-colors">About</Link>
             <Link to="/contact-us" className="hover:text-primary transition-colors">Contact</Link>
             <Link to="/login" className="hover:text-primary transition-colors">Login</Link>

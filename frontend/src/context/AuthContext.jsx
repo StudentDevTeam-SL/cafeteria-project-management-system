@@ -2,13 +2,15 @@
  * AuthContext.jsx
  * ─────────────────────────────────────────────────────────────
  * Global authentication state.
- * • login()      — mock auth (replace with Django JWT when ready)
- * • logout()     — clears session
- * • switchRole() — toggle Admin ↔ Employee for testing role-based UI
+ * • login()       — authenticates via Django JWT
+ * • logout()      — clears session
+ * • updateUser()  — PATCHes profile fields and syncs local state
+ * • switchRole()  — toggle Admin ↔ Employee for testing role-based UI
  * ─────────────────────────────────────────────────────────────
  */
 
 import { createContext, useState, useEffect } from 'react';
+import api from '../api/axios';
 
 export const AuthContext = createContext();
 
@@ -64,6 +66,19 @@ export const AuthProvider = ({ children }) => {
   };
 
   /**
+   * updateUser — PATCH profile fields to the backend, then sync local state.
+   * @param {object} fields — partial user fields e.g. { first_name, last_name, email, phone_number }
+   */
+  const updateUser = async (fields) => {
+    if (!user?.id) throw new Error('Not authenticated');
+    const res = await api.patch(`auth/users/${user.id}/`, fields);
+    const updated = { ...user, ...res.data };
+    localStorage.setItem('user', JSON.stringify(updated));
+    setUser(updated);
+    return updated;
+  };
+
+  /**
    * switchRole — toggle between Admin and Employee view for UI testing.
    * This is a FRONTEND-ONLY helper; remove when the real backend is connected.
    */
@@ -78,7 +93,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, switchRole, isLoading }}>
+    <AuthContext.Provider value={{ user, login, logout, updateUser, switchRole, isLoading }}>
       {children}
     </AuthContext.Provider>
   );

@@ -8,7 +8,11 @@ class EmployeeSerializer(serializers.ModelSerializer):
     Serializer for the Employee model.
     Handles serialization of employee details and links to user accounts.
     """
-    # Exposes the linked user's PK as user_id (read + write)
+    # Exposes the linked user's PK as user_id (read + write).
+    # required=False + allow_null=True + default=None means:
+    #   - field can be omitted from the request entirely → no error
+    #   - field can be sent as null                      → clears the link
+    #   - field sent as a valid PK                       → links the user
     user_id = serializers.PrimaryKeyRelatedField(
         source='user',
         queryset=CustomUser.objects.all(),

@@ -483,7 +483,7 @@ const Reports = () => {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-4xl font-black gradient-text">Reports</h1>
-          <p className="text-slate-500 dark:text-slate-400 mt-1">Analyse and export cafeteria data.</p>
+          <p className="text-slate-600 dark:text-slate-300 mt-1">Analyse and export cafeteria data.</p>
         </div>
         <div className="flex items-center gap-1.5 p-1 glass-card rounded-2xl self-start">
           {TABS.map(t => (
@@ -493,7 +493,7 @@ const Reports = () => {
               className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all ${
                 activeTab === t.id
                   ? 'bg-primary text-white shadow-lg shadow-primary/30'
-                  : 'text-slate-500 dark:text-slate-400 hover:text-primary'
+                  : 'text-slate-600 dark:text-slate-300 hover:text-primary'
               }`}
             >
               <t.icon className="w-4 h-4" />

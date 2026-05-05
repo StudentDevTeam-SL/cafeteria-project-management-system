@@ -8,5 +8,6 @@
     },
     "python.autoComplete.extraPaths": [
         "./backend"
-    ]
+    ],
+    "css.lint.unknownAtRules": "ignore"
 }

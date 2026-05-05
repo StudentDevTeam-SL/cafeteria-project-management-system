@@ -90,7 +90,7 @@ const ItemCard = React.memo(({ item, onToggle, onEdit, onDelete, onApprove, onRe
           <h3 className="font-bold text-sm leading-tight pr-2 group-hover:text-primary transition-colors">{item.name}</h3>
           <span className="text-primary font-black text-lg whitespace-nowrap">${Number(item.price).toFixed(2)}</span>
         </div>
-        <p className="text-xs text-gray-400 dark:text-slate-500 line-clamp-2 mb-3">{item.description || item.desc}</p>
+        <p className="text-xs text-slate-500 dark:text-slate-300 line-clamp-2 mb-3">{item.description || item.desc}</p>
 
         {/* Admin controls & POS Add */}
         {!isPending && (
@@ -412,7 +412,7 @@ const Menu = () => {
       <motion.div initial={{opacity:0,y:-20}} animate={{opacity:1,y:0}} className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-4xl font-black gradient-text">Menu Management</h1>
-          <p className="text-slate-500 dark:text-slate-400 mt-1">
+          <p className="text-slate-600 dark:text-slate-300 mt-1">
             {items.filter(i=>i.status!=='pending').length} items · {items.filter(i=>i.is_active&&i.status!=='pending').length} available
           </p>
         </div>

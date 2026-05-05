@@ -166,9 +166,9 @@ const Login = () => {
 
               {/* Username */}
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">Username</label>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300 mb-2">Username</label>
                 <div className="relative group">
-                  <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-primary transition-colors"/>
+                  <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 dark:text-slate-300 group-focus-within:text-primary transition-colors"/>
                   <input type="text" autoComplete="username" required placeholder="Enter your username"
                     className="form-input pl-10 group-focus-within:shadow-lg group-focus-within:shadow-primary/10 transition-shadow"
                     value={username} onChange={e=>setUsername(e.target.value)}/>
@@ -177,14 +177,14 @@ const Login = () => {
 
               {/* Password */}
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">Password</label>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300 mb-2">Password</label>
                 <div className="relative group">
-                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-primary transition-colors"/>
+                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 dark:text-slate-300 group-focus-within:text-primary transition-colors"/>
                   <input type={showPw?'text':'password'} autoComplete="current-password" required placeholder="••••••••"
                     className="form-input pl-10 pr-10 group-focus-within:shadow-lg group-focus-within:shadow-primary/10 transition-shadow"
                     value={password} onChange={e=>setPassword(e.target.value)}/>
                   <button type="button" onClick={()=>setShowPw(v=>!v)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-primary transition-colors">
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-300 hover:text-primary transition-colors">
                     {showPw?<EyeOff className="w-4 h-4"/>:<Eye className="w-4 h-4"/>}
                   </button>
                 </div>
@@ -204,7 +204,7 @@ const Login = () => {
 
           </div>
 
-          <p className="text-center text-xs text-gray-400 mt-4">© 2026 Cafeteria Management · React + Django</p>
+          <p className="text-center text-xs text-slate-500 dark:text-slate-300 mt-4">© 2026 Cafeteria Management · React + Django</p>
         </motion.div>
       </div>
     </div>

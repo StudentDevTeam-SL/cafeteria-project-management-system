@@ -59,7 +59,7 @@ const StatCard = React.memo(({ title, value, icon: Icon, trend, trendValue, colo
         {value}
       </motion.span>
     </h3>
-    <p className="text-xs text-gray-400 mt-1">vs last week</p>
+    <p className="text-xs text-slate-500 dark:text-slate-300 mt-1">vs last week</p>
   </motion.div>
 ));
 
@@ -85,7 +85,7 @@ const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     return (
       <div className="glass dark:glass-dark rounded-xl px-4 py-3 shadow-xl">
-        <p className="text-xs font-bold mb-2 text-gray-400">{label}</p>
+        <p className="text-xs font-bold mb-2 text-slate-500 dark:text-slate-300">{label}</p>
         {payload.map((p, i) => (
           <p key={i} className="text-sm font-semibold" style={{ color: p.color }}>
             {p.name}: {p.name === 'sales' ? `$${p.value.toLocaleString()}` : p.value}
@@ -149,7 +149,7 @@ const Dashboard = () => {
         <div>
           <div className="flex items-center space-x-2 mb-1">
             <Coffee className="w-5 h-5 text-accent" />
-            <span className="text-sm text-gray-400 font-medium">
+            <span className="text-sm text-slate-500 dark:text-slate-300 font-medium">
               {time.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })} · {time.toLocaleTimeString()}
             </span>
           </div>
@@ -213,7 +213,7 @@ const Dashboard = () => {
           <div className="flex items-center justify-between mb-6">
             <div>
               <h2 className="text-lg font-bold">Revenue Overview</h2>
-              <p className="text-sm text-gray-400">Weekly performance</p>
+              <p className="text-sm text-slate-500 dark:text-slate-300">Weekly performance</p>
             </div>
             <div className="flex space-x-2">
               {['sales', 'orders'].map((c) => (
@@ -221,7 +221,7 @@ const Dashboard = () => {
                   key={c}
                   onClick={() => setActiveChart(c)}
                   className={`px-3 py-1.5 rounded-lg text-xs font-semibold capitalize transition-all ${
-                    activeChart === c ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-200'
+                    activeChart === c ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'text-slate-500 dark:text-slate-300 hover:text-gray-600 dark:hover:text-gray-200'
                   }`}
                 >
                   {c}
@@ -268,7 +268,7 @@ const Dashboard = () => {
           className="glass-card p-6"
         >
           <h2 className="text-lg font-bold mb-1">Sales by Category</h2>
-          <p className="text-sm text-gray-400 mb-4">Today's breakdown</p>
+          <p className="text-sm text-slate-500 dark:text-slate-300 mb-4">Today's breakdown</p>
           <div className="h-52">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -333,7 +333,7 @@ const Dashboard = () => {
                     <td className="text-gray-500 dark:text-slate-400 text-xs">{order.employee_name || 'System'}</td>
                     <td className="font-bold text-emerald-500">${Number(order.total_price).toFixed(2)}</td>
                     <td><StatusBadge status={order.status} /></td>
-                    <td className="text-gray-400 text-xs">{new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
+                    <td className="text-slate-500 dark:text-slate-300 text-xs">{new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
                   </motion.tr>
                 ))}
               </tbody>
@@ -375,7 +375,7 @@ const Dashboard = () => {
                         className="h-full bg-gradient-to-r from-primary to-accent rounded-full"
                       />
                     </div>
-                    <span className="text-xs text-gray-400">{item.sales}</span>
+                    <span className="text-xs text-slate-500 dark:text-slate-300">{item.sales}</span>
                   </div>
                 </div>
                 <div className={`flex items-center text-xs font-semibold ${item.trend === 'up' ? 'text-emerald-500' : 'text-red-400'}`}>
@@ -386,7 +386,7 @@ const Dashboard = () => {
           </div>
           <div className="mt-5 pt-4 border-t border-gray-100 dark:border-slate-700">
             <div className="flex justify-between text-sm">
-              <span className="text-gray-400">Total Revenue</span>
+              <span className="text-slate-500 dark:text-slate-300">Total Revenue</span>
               <span className="font-black text-primary">$4,883</span>
             </div>
           </div>
