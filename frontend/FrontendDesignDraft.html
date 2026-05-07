@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cafeteria Management System - Login</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .login-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 450px;
+            overflow: hidden;
+            animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            color: white;
+            text-align: center;
+            padding: 40px 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
+            animation: pulse 3s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .logo-icon {
+            font-size: 60px;
+            margin-bottom: 15px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.95;
+            position: relative;
+            z-index: 1;
+        }
+
+        .login-form {
+            padding: 40px 35px;
+        }
+
+        .role-selector {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .role-option {
+            flex: 1;
+            padding: 18px 10px;
+            border: 3px solid #e0e0e0;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            background: white;
+        }
+
+        .role-option:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+        }
+
+        .role-option.active {
+            border-color: #ff6b6b;
+            background: linear-gradient(135deg, #fff5f5 0%, #ffe8e8 100%);
+            box-shadow: 0 5px 20px rgba(255, 107, 107, 0.3);
+        }
+
+        .role-icon {
+            font-size: 36px;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .role-label {
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+            position: relative;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+            font-size: 14px;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 16px 16px 16px 48px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        .form-group input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 20px;
+            color: #999;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            font-size: 18px;
+            color: #999;
+            background: none;
+            border: none;
+            padding: 5px;
+            transition: color 0.3s;
+        }
+
+        .password-toggle:hover {
+            color: #667eea;
+        }
+
+        .options-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            font-size: 13px;
+        }
+
+        .remember-me {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+
+        .remember-me input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        .forgot-password {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s;
+        }
+
+        .forgot-password:hover {
+            color: #5568d3;
+            text-decoration: underline;
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 17px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
+        }
+
+        .login-btn:active {
+            transform: translateY(0);
+        }
+
+        .divider {
+            text-align: center;
+            margin: 25px 0;
+            position: relative;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            width: 40%;
+            height: 2px;
+            background: #e0e0e0;
+        }
+
+        .divider::before {
+            left: 0;
+        }
+
+        .divider::after {
+            right: 0;
+        }
+
+        .divider span {
+            background: white;
+            padding: 0 15px;
+            color: #999;
+            font-size: 13px;
+        }
+
+        .footer-info {
+            text-align: center;
+            color: #777;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .footer-info a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .error-message {
+            background: #fee;
+            color: #c33;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: none;
+            border-left: 4px solid #c33;
+        }
+
+        .success-message {
+            background: #efe;
+            color: #3c3;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: none;
+            border-left: 4px solid #3c3;
+        }
+
+        @media (max-width: 480px) {
+            .login-container {
+                max-width: 100%;
+            }
+
+            .header {
+                padding: 30px 20px;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .login-form {
+                padding: 30px 25px;
+            }
+
+            .role-selector {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .options-row {
+                flex-direction: column;
+                gap: 10px;
+                align-items: flex-start;
+            }
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="header">
+            <div class="logo-icon">🍽️</div>
+            <h1>Cafeteria Management</h1>
+            <p>Streamlined Food Service Operations</p>
+        </div>
+
+        <div class="login-form">
+            <div id="errorMessage" class="error-message"></div>
+            <div id="successMessage" class="success-message"></div>
+
+            <!-- Role Selection -->
+            <div class="role-selector">
+                <div class="role-option active" data-role="admin" onclick="selectRole('admin')">
+                    <span class="role-icon">👨‍💼</span>
+                    <span class="role-label">Admin</span>
+                </div>
+                <div class="role-option" data-role="employee" onclick="selectRole('employee')">
+                    <span class="role-icon">👨‍🍳</span>
+                    <span class="role-label">Employee</span>
+                </div>
+            </div>
+
+            <!-- Login Form -->
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label for="username">Username / Email</label>
+                    <div class="input-wrapper">
+                        <span class="input-icon">👤</span>
+                        <input 
+                            type="text" 
+                            id="username" 
+                            name="username" 
+                            placeholder="Enter your username"
+                            required
+                            autocomplete="username"
+                        >
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <div class="input-wrapper">
+                        <span class="input-icon">🔒</span>
+                        <input 
+                            type="password" 
+                            id="password" 
+                            name="password" 
+                            placeholder="Enter your password"
+                            required
+                            autocomplete="current-password"
+                        >
+                        <button type="button" class="password-toggle" onclick="togglePassword()">
+                            👁️
+                        </button>
+                    </div>
+                </div>
+
+                <div class="options-row">
+                    <label class="remember-me">
+                        <input type="checkbox" id="rememberMe" name="rememberMe">
+                        Remember me
+                    </label>
+                    <a href="#" class="forgot-password" onclick="handleForgotPassword(event)">Forgot Password?</a>
+                </div>
+
+                <button type="submit" class="login-btn" id="loginBtn">
+                    Sign In
+                </button>
+            </form>
+
+            <div class="divider">
+                <span>System Info</span>
+            </div>
+
+            <div class="footer-info">
+                <strong>Admin Access:</strong> Full system management<br>
+                <strong>Employee Access:</strong> Order processing & inventory<br><br>
+                Need help? Contact <a href="mailto:support@cafeteria.com">IT Support</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedRole = 'admin';
+
+        // Role Selection
+        function selectRole(role) {
+            selectedRole = role;
+            
+            // Update UI
+            document.querySelectorAll('.role-option').forEach(option => {
+                option.classList.remove('active');
+            });
+            document.querySelector(`[data-role="${role}"]`).classList.add('active');
+
+            // Clear messages
+            hideMessages();
+
+            // Optional: Update form hints based on role
+            const usernameInput = document.getElementById('username');
+            if (role === 'admin') {
+                usernameInput.placeholder = 'Enter admin username';
+            } else {
+                usernameInput.placeholder = 'Enter employee ID or email';
+            }
+        }
+
+        // Password Toggle
+        function togglePassword() {
+            const passwordInput = document.getElementById('password');
+            const toggleBtn = document.querySelector('.password-toggle');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleBtn.textContent = '🙈';
+            } else {
+                passwordInput.type = 'password';
+                toggleBtn.textContent = '👁️';
+            }
+        }
+
+        // Handle Login
+        function handleLogin(event) {
+            event.preventDefault();
+            
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const rememberMe = document.getElementById('rememberMe').checked;
+
+            // Validation
+            if (!username || !password) {
+                showError('Please fill in all fields.');
+                return;
+            }
+
+            if (password.length < 6) {
+                showError('Password must be at least 6 characters long.');
+                return;
+            }
+
+            // Show loading state
+            const loginBtn = document.getElementById('loginBtn');
+            const originalText = loginBtn.innerHTML;
+            loginBtn.innerHTML = '<span class="loading-spinner"></span>Signing in...';
+            loginBtn.disabled = true;
+
+            // Simulate API call (replace with actual authentication)
+            setTimeout(() => {
+                // Demo credentials check (replace with real auth)
+                let isAuthenticated = false;
+                
+                if (selectedRole === 'admin') {
+                    // Admin demo credentials
+                    if (username === 'admin' && password === 'admin123') {
+                        isAuthenticated = true;
+                    }
+                } else {
+                    // Employee demo credentials
+                    if (username === 'employee' && password === 'emp123') {
+                        isAuthenticated = true;
+                    }
+                }
+
+                if (isAuthenticated) {
+                    showSuccess(`Welcome back, ${username}! Redirecting to ${selectedRole} dashboard...`);
+                    
+                    // Store session info (in real app, use secure tokens)
+                    if (rememberMe) {
+                        localStorage.setItem('cafeteria_user', JSON.stringify({
+                            role: selectedRole,
+                            username: username,
+                            timestamp: new Date().toISOString()
+                        }));
+                    }
+
+                    // Redirect after delay (replace with actual routing)
+                    setTimeout(() => {
+                        alert(`Redirecting to ${selectedRole} dashboard...\n\nIn a real application, you would be redirected to:\n${selectedRole === 'admin' ? '/admin/dashboard' : '/employee/dashboard'}`);
+                        // window.location.href = selectedRole === 'admin' ? '/admin/dashboard' : '/employee/dashboard';
+                    }, 1500);
+
+                } else {
+                    showError('Invalid credentials. Please try again.\n\nDemo Credentials:\n• Admin: admin / admin123\n• Employee: employee / emp123');
+                    
+                    // Reset button
+                    loginBtn.innerHTML = originalText;
+                    loginBtn.disabled = false;
+                }
+            }, 1500);
+        }
+
+        // Forgot Password Handler
+        function handleForgotPassword(event) {
+            event.preventDefault();
+            alert('Password Reset\n\nA password reset link would be sent to your registered email address.\n\nContact IT Support: support@cafeteria.com');
+        }
+
+        // Message Helpers
+        function showError(message) {
+            hideMessages();
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.innerHTML = message.replace(/\n/g, '<br>');
+            errorDiv.style.display = 'block';
+        }
+
+        function showSuccess(message) {
+            hideMessages();
+            const successDiv = document.getElementById('successMessage');
+            successDiv.innerHTML = message.replace(/\n/g, '<br>');
+            successDiv.style.display = 'block';
+        }
+
+        function hideMessages() {
+            document.getElementById('errorMessage').style.display = 'none';
+            document.getElementById('successMessage').style.display = 'none';
+        }
+
+        // Check for saved session on page load
+        window.addEventListener('load', () => {
+            const savedUser = localStorage.getItem('cafeteria_user');
+            if (savedUser) {
+                const userData = JSON.parse(savedUser);
+                selectRole(userData.role);
+                document.getElementById('username').value = userData.username;
+                document.getElementById('rememberMe').checked = true;
+            }
+        });
+
+        // Add enter key support for role selection
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Tab') {
+                // Allow normal tab behavior
+            }
+        });
+    </script>
+</body>
+</html>
