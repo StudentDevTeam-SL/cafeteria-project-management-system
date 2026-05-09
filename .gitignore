@@ -1,0 +1,12 @@
+.venv/
+.idea/
+.vscode/
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/*.log
+
+# Backend
+backend/venv/
+
