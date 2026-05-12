@@ -7,10 +7,11 @@
 - docs: documentation
 
 ## Team Roles
-- Frontend: 2
-- Backend: 3
+- Frontend: 3
+- Backend: 2
 - Database: 1
-- Management & Testing: 2
+- Testing: 1
+- manager: 1
 
 ## what use
 
