@@ -51,3 +51,4 @@ All styling uses Tailwind utility classes, extended by a custom `index.css` file
 - **Glassmorphism**: Reusable `.glass`, `.glass-dark`, and `.glass-card` classes for premium UI overlays.
 - **Animations**: Custom `@keyframes` (float, shimmer, pulse) injected globally.
 - **Responsive Design**: Mobile-first approach using `md:`, `lg:`, `xl:` breakpoints.
+# test desing Abdirahmaan husein mohamed

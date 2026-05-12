@@ -14,7 +14,7 @@ To understand the inner workings and setup of the project, please review the fol
 - 📄 [frontend.md](./frontend.md) - Details the React architecture, state management, and UI design system.
 - 📄 [backend.md](./backend.md) - Outlines the Django REST Framework API architecture.
 - 📄 [database.md](./database/database.md) - Defines the database schema and models.
-- 📄 [test.md](./test.md) - Comprehensive testing guide for the integrated system.
+- 📄 [test.md](./test.md) - Comprehensive testing guide for the integrated system..
 
 ## Features
 - **Global Undo System**: 7-second animated popup timer to prevent accidental deletions across Menu, Orders, Inventory, and Employees.
