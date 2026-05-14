@@ -9,6 +9,7 @@
  * ─────────────────────────────────────────────────────────────
  */
 
+/* eslint-disable react-refresh/only-export-components */
 import { createContext, useState, useEffect } from 'react';
 import api from '../api/axios';
 
@@ -20,12 +21,21 @@ export const AuthProvider = ({ children }) => {
 
   // Restore session from localStorage on mount
   useEffect(() => {
+    let initialUser = null;
     const token      = localStorage.getItem('token');
     const storedUser = localStorage.getItem('user');
     if (token && storedUser) {
-      try { setUser(JSON.parse(storedUser)); }
-      catch { localStorage.removeItem('token'); localStorage.removeItem('user'); }
+      try { 
+        initialUser = JSON.parse(storedUser); 
+      }
+      catch (e) { 
+        console.error('Failed to parse user', e);
+        localStorage.removeItem('token'); 
+        localStorage.removeItem('user'); 
+      }
     }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setUser(initialUser);
     setIsLoading(false);
   }, []);
 
@@ -44,7 +54,7 @@ export const AuthProvider = ({ children }) => {
       setUser(userData);
       return userData;
     } catch (error) {
-      throw new Error(error.response?.data?.detail || 'Invalid credentials');
+      throw new Error(error.response?.data?.detail || 'Invalid credentials', { cause: error });
     }
   };
 

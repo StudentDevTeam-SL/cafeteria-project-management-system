@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { motion, useInView, useScroll, useTransform } from 'framer-motion';
 import {
   ChefHat, BarChart3, Package, Users, ShoppingBag, Star,
-  ArrowRight, CheckCircle, Zap, TrendingUp, DollarSign,
+  ArrowRight, Zap, DollarSign,
   Utensils, Coffee, Play, Volume2, VolumeX
 } from 'lucide-react';
 

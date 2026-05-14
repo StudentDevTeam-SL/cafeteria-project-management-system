@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useRef, useState } from 'react';
 
 const SoundContext = createContext();
@@ -43,7 +44,7 @@ export const SoundProvider = ({ children }) => {
       audio.play().catch(() => {
         // Autoplay policy blocked — silent fallback (expected in some browsers)
       });
-    } catch (_) {
+    } catch {
       // Ignore all audio errors to never break the UI
     }
   };

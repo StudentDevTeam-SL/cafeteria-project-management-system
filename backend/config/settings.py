@@ -83,12 +83,18 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 _DATABASE_URL = config('DATABASE_URL', default='')
 if _DATABASE_URL and _HAS_DJ_DB_URL:
+    # Production / Render: use the full connection URL
     DATABASES = {'default': dj_database_url.parse(_DATABASE_URL, conn_max_age=600)}
 else:
+    # Local development: use individual DB_* environment variables
     DATABASES = {
         'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR.parent / 'database' / 'db.sqlite3',
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME':     config('DB_NAME',     default='cafeteria_db'),
+            'USER':     config('DB_USER',     default='postgres'),
+            'PASSWORD': config('DB_PASSWORD', default='postgres'),
+            'HOST':     config('DB_HOST',     default='localhost'),
+            'PORT':     config('DB_PORT',     default='5432'),
         }
     }
 

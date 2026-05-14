@@ -1,12 +1,35 @@
-.venv/
+# IDE
 .idea/
 .vscode/
 
-# Frontend
-frontend/node_modules/
-frontend/dist/
-frontend/*.log
-
-# Backend
+# Python virtual environments
+.venv/
 backend/venv/
 
+# Frontend build artifacts
+frontend/node_modules/
+frontend/dist/
+frontend/lint_output.txt
+frontend/*.log
+
+# Backend logs and dev artifacts
+backend/*.log
+backend/*.err.log
+backend/*.out.log
+
+# Environment secrets
+backend/.env
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Django collected static
+backend/staticfiles/
+
+# Media uploads (user-generated)
+backend/media/
+
+# SQLite (legacy, no longer used)
+*.sqlite3

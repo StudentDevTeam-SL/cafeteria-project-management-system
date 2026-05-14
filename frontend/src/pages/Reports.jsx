@@ -1,17 +1,16 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  LineChart, Line
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts';
 import {
-  FileText, Download, Filter, ArrowUpDown, UtensilsCrossed,
-  ShoppingBag, Package, ChevronDown, Search, Printer
+  Download, ArrowUpDown, UtensilsCrossed,
+  ShoppingBag, Package, Search, Printer
 } from 'lucide-react';
 import api from '../api/axios';
 
 /* ─── helpers ─────────────────────────────────────────────────────────── */
 const fmt  = (n) => `$${Number(n || 0).toFixed(2)}`;
-const fmtN = (n) => Number(n || 0).toLocaleString();
+
 
 function exportCSV(rows, cols, filename) {
   const header = cols.map(c => c.label).join(',');

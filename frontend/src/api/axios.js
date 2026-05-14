@@ -2,16 +2,18 @@ import axios from 'axios';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000/api/',
-  // NOTE: Do NOT set a global Content-Type here.
-  // axios auto-detects JSON vs multipart/form-data based on the request body.
-  // A hardcoded 'application/json' would break FormData (image) uploads.
 });
 
 // ── Request interceptor: attach access token ──────────────────────────────
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+  if (token && token !== 'undefined') {
+    // Axios 1.x best practice: use .set() or check if it's an AxiosHeaders instance
+    if (config.headers.set) {
+      config.headers.set('Authorization', `Bearer ${token}`);
+    } else {
+      config.headers['Authorization'] = `Bearer ${token}`;
+    }
   }
   return config;
 });
@@ -37,22 +39,23 @@ api.interceptors.response.use(
     if (error.response?.status === 401 && !originalRequest._retry) {
       const refreshToken = localStorage.getItem('refresh');
 
-      // No refresh token → force logout
-      if (!refreshToken) {
-        localStorage.removeItem('token');
-        localStorage.removeItem('refresh');
-        localStorage.removeItem('user');
+      // No refresh token or explicitly logged out -> force redirect
+      if (!refreshToken || refreshToken === 'undefined') {
+        localStorage.clear(); // Clear all to be safe
         window.location.href = '/login';
         return Promise.reject(error);
       }
 
       if (isRefreshing) {
-        // Queue this request until the refresh completes
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         })
           .then(token => {
-            originalRequest.headers.Authorization = `Bearer ${token}`;
+            if (originalRequest.headers.set) {
+              originalRequest.headers.set('Authorization', `Bearer ${token}`);
+            } else {
+              originalRequest.headers['Authorization'] = `Bearer ${token}`;
+            }
             return api(originalRequest);
           })
           .catch(err => Promise.reject(err));
@@ -62,32 +65,45 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        const { data } = await axios.post(
-          (import.meta.env.VITE_API_URL || 'http://localhost:8000/api/') + 'auth/refresh/',
-          { refresh: refreshToken }
-        );
+        const refreshUrl = (import.meta.env.VITE_API_URL || 'http://localhost:8000/api/') + 'auth/refresh/';
+        const { data } = await axios.post(refreshUrl, { refresh: refreshToken });
+        
         const newAccess = data.access;
+        const newRefresh = data.refresh;
+
+        if (!newAccess) throw new Error('No access token returned');
+
         localStorage.setItem('token', newAccess);
-        api.defaults.headers.common.Authorization = `Bearer ${newAccess}`;
+        if (newRefresh) {
+          localStorage.setItem('refresh', newRefresh);
+        }
+        
+        // Update instance defaults for future requests
+        api.defaults.headers.common['Authorization'] = `Bearer ${newAccess}`;
+        
         processQueue(null, newAccess);
-        originalRequest.headers.Authorization = `Bearer ${newAccess}`;
+
+        // Update the current failed request
+        if (originalRequest.headers.set) {
+          originalRequest.headers.set('Authorization', `Bearer ${newAccess}`);
+        } else {
+          originalRequest.headers['Authorization'] = `Bearer ${newAccess}`;
+        }
+        
         return api(originalRequest);
       } catch (refreshError) {
         processQueue(refreshError, null);
-        localStorage.removeItem('token');
-        localStorage.removeItem('refresh');
-        localStorage.removeItem('user');
+        localStorage.clear();
         window.location.href = '/login';
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;
       }
     }
-    // If it fails with 401 and we ALREADY retried it, force logout immediately
+
+    // If it fails with 401 and we ALREADY retried it, force logout
     if (error.response?.status === 401 && originalRequest._retry) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('refresh');
-      localStorage.removeItem('user');
+      localStorage.clear();
       window.location.href = '/login';
       return Promise.reject(error);
     }

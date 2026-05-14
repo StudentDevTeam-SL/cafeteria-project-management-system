@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Settings as SettingsIcon, Bell, Lock, Moon, Palette, Save, Check, User, Shield, Database, Zap, Camera, Type, Sliders, Trash2, PlusCircle, Users as UsersIcon } from 'lucide-react';
+import { Bell, Lock, Moon, Palette, Save, Check, User, Shield, Database, Zap, Camera, Type, Trash2, PlusCircle, Users as UsersIcon } from 'lucide-react';
 import { useTheme } from '../hooks/useTheme';
 import { useAuth } from '../hooks/useAuth';
 import { useSoundContext } from '../context/SoundContext';
@@ -117,7 +117,7 @@ const Settings = () => {
 
   /* Apply font size to root */
   const applyFont = idx => {
-    document.documentElement.style.fontSize = FONT_SIZES[idx].px;
+    document.documentElement.style.setProperty('font-size', FONT_SIZES[idx].px);
     setFontSize(idx);
   };
 

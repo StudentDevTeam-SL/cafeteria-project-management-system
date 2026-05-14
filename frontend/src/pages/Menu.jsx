@@ -4,7 +4,7 @@ import { Search, Plus, X, Edit2, Trash2, ToggleLeft, ToggleRight, UtensilsCrosse
 import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../context/ToastContext';
 import ConfirmModal from '../components/ConfirmModal';
-import { FOOD_PHOTOS, CATEGORIES, CAT_EMOJI, INIT_MENU_ITEMS } from '../data/menuCatalog';
+import { FOOD_PHOTOS, CATEGORIES, CAT_EMOJI } from '../data/menuCatalog';
 import { useSoundContext } from '../context/SoundContext';
 import api from '../api/axios';
 
@@ -147,7 +147,7 @@ const ItemCard = React.memo(({ item, onToggle, onEdit, onDelete, onApprove, onRe
 });
 
 /* ── Item Modal ── */
-const ItemModal = ({ item, onClose, onSave, isAdmin }) => {
+const ItemModal = ({ item, onClose, onSave }) => {
   const fileRef = useRef(null);
   const [form, setForm] = useState(item || { name:'', price:'', category:'Main Course', description:'', desc:'', is_active:true, rating:4.5, image:'', photoUrl:'', customPhoto:'' });
   const [fileObj, setFileObj] = useState(null); // actual File for upload
@@ -300,11 +300,6 @@ const Menu = () => {
   const [editItem, setEditItem]   = useState(null);
   const [itemToDelete, setItemToDelete] = useState(null);
   
-  // Fetch from Django API
-  useEffect(() => {
-    fetchItems();
-  }, []);
-
   const fetchItems = async () => {
     try {
       const res = await api.get('menu/');
@@ -313,6 +308,12 @@ const Menu = () => {
       console.error('Failed to fetch menu:', err);
     }
   };
+  
+  // Fetch from Django API
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchItems();
+  }, []);
   
   // POS Cart State
   const [cart, setCart]                 = useState([]);

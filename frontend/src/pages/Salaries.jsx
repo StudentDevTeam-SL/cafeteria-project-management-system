@@ -140,11 +140,6 @@ const Salaries = () => {
   const [isModalOpen,  setIsModalOpen]  = useState(false);
   const [editRecord,   setEditRecord]   = useState(null);
 
-  useEffect(() => {
-    fetchSalaries();
-    fetchEmployees();
-  }, []);
-
   const fetchSalaries = async () => {
     try {
       const res = await api.get('salaries/');
@@ -158,6 +153,12 @@ const Salaries = () => {
       setEmployees(res.data.results || res.data);
     } catch (err) { console.error('Failed to fetch employees:', err); }
   };
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchSalaries();
+    fetchEmployees();
+  }, []);
 
   const totalPayroll    = salaries.reduce((s, r) => s + getNet(r), 0);
   const paidCount       = salaries.filter(r => r.status === 'paid').length;

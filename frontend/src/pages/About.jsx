@@ -2,8 +2,8 @@ import { useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, useInView } from 'framer-motion';
 import {
-  ChefHat, Target, Zap, Shield, Heart, ArrowRight,
-  Code2, Database, Layers, Globe, Star, CheckCircle, Users, Coffee
+  ChefHat, Target, Shield, Heart, ArrowRight,
+  Star, CheckCircle, Users, Coffee
 } from 'lucide-react';
 
 /* ── Timeline Item ── */

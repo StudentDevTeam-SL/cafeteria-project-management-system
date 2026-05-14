@@ -1,5 +1,4 @@
 services:
-  # ── Django Backend ───────────────────────────────────────────────────────
   - type: web
     name: cafeteria-backend
     runtime: python
@@ -28,28 +27,10 @@ services:
       - key: PGSSLMODE
         value: require
 
-  # ── React Frontend (Static Site) ─────────────────────────────────────────
-  - type: web
-    name: cafeteria-frontend
-    runtime: static
-    region: oregon
-    plan: starter
-    rootDir: frontend
-    buildCommand: npm install && npm run build
-    staticPublishPath: dist
-    headers:
-      - path: /*
-        name: Cache-Control
-        value: no-cache
-    routes:
-      - type: rewrite
-        source: /*
-        destination: /index.html
-    envVars:
-      - key: VITE_API_URL
-        value: "https://cafeteria-backend.onrender.com/api/"
+  # Frontend Static Site — deploy this separately in the Render Dashboard:
+  # New → Static Site → connect repo → rootDir=frontend → buildCommand="npm install && npm run build" → publishDir=dist
+  # Add env var: VITE_API_URL = https://cafeteria-backend.onrender.com
 
-# ── PostgreSQL Database ───────────────────────────────────────────────────
 databases:
   - name: cafeteria-db
     databaseName: cafeteria_prod

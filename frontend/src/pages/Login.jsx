@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { motion } from 'framer-motion';
 import { Lock, User, AlertCircle, ChefHat, Eye, EyeOff, ArrowRight, Zap, Volume2, VolumeX } from 'lucide-react';

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Plus, AlertTriangle, Package, Edit2, Trash2, X, TrendingDown, TrendingUp, ArrowUpDown } from 'lucide-react';
+import { Search, Plus, AlertTriangle, Package, Edit2, Trash2, X, TrendingUp, ArrowUpDown } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
 import ConfirmModal from '../components/ConfirmModal';
 import inventoryImg from '../assets/inventory.png';
@@ -96,10 +96,6 @@ const Inventory = () => {
   const [sortField, setSortField] = useState('item_name');
   const [itemToDelete, setItemToDelete] = useState(null);
 
-  useEffect(() => {
-    fetchInventory();
-  }, []);
-
   const fetchInventory = async () => {
     try {
       const res = await api.get('inventory/');
@@ -108,6 +104,11 @@ const Inventory = () => {
       console.error('Failed to fetch inventory:', err);
     }
   };
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchInventory();
+  }, []);
 
   const lowStock = items.filter(i => i.quantity <= i.min_stock);
 

@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { UserPlus, X, Shield, Mail, User, Lock, Briefcase, Search, Edit2, Trash2, Phone, CreditCard, ShoppingCart, Plus, Minus, Check, Clock, Calendar, ToggleLeft, ToggleRight } from 'lucide-react';
+import { UserPlus, X, Shield, User, Briefcase, Search, Edit2, Trash2, Phone, Clock, Calendar, ToggleLeft, ToggleRight } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../context/ToastContext';
 import ConfirmModal from '../components/ConfirmModal';
-import PaymentModal from '../components/PaymentModal';
+
 import api from '../api/axios';
 
 // MOCK_EMPLOYEES removed, fetching from API
@@ -91,7 +91,7 @@ const EmployeeModal = React.memo(({ emp, onClose, onSave }) => {
 const Employees = () => {
   const { user, switchRole } = useAuth();
   const { showToast } = useToast();
-  const isAdmin = user?.role === 'Admin';
+
   const [employees, setEmployees] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [editEmp, setEditEmp]     = useState(null);
@@ -99,10 +99,6 @@ const Employees = () => {
   const [statusFilter, setFilter] = useState('all');
   const [empToDelete, setEmpToDelete] = useState(null);
 
-
-  useEffect(() => {
-    fetchEmployees();
-  }, []);
 
   const fetchEmployees = async () => {
     try {
@@ -112,6 +108,11 @@ const Employees = () => {
       console.error('Failed to fetch employees:', err);
     }
   };
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchEmployees();
+  }, []);
 
   const filtered = employees.filter(e => {
     const matchStatus = statusFilter === 'all' || e.status === statusFilter;

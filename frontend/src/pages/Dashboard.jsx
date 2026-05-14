@@ -3,12 +3,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth';
 import {
   DollarSign, ShoppingBag, AlertTriangle, TrendingUp, TrendingDown,
-  Users, Package, Coffee, ArrowUpRight, ArrowDownRight, Clock,
-  MoreHorizontal, CheckCircle, XCircle, Loader, Star, Zap
+  Users, Coffee, ArrowUpRight, ArrowDownRight, Clock,
+  CheckCircle, XCircle, Loader, Star
 } from 'lucide-react';
 import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid,
-  Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend
+  Tooltip, ResponsiveContainer, PieChart, Pie, Cell
 } from 'recharts';
 import dashboardImg from '../assets/dashboard_analytics.png';
 import api from '../api/axios';
@@ -106,12 +106,6 @@ const Dashboard = () => {
   const [orders, setOrders] = useState([]);
   const [weeklyData, setWeeklyData] = useState([]);
 
-  useEffect(() => {
-    const t = setInterval(() => setTime(new Date()), 1000);
-    fetchDashboardData();
-    return () => clearInterval(t);
-  }, []);
-
   const fetchDashboardData = useCallback(async () => {
     try {
       const [sRes, oRes] = await Promise.all([
@@ -134,6 +128,13 @@ const Dashboard = () => {
       console.error('Failed to fetch dashboard data:', err);
     }
   }, []);
+
+  useEffect(() => {
+    const t = setInterval(() => setTime(new Date()), 1000);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchDashboardData();
+    return () => clearInterval(t);
+  }, [fetchDashboardData]);
 
   const greetingHour = time.getHours();
   const greeting = greetingHour < 12 ? 'Good Morning' : greetingHour < 17 ? 'Good Afternoon' : 'Good Evening';

@@ -3,7 +3,7 @@
  * ─────────────────────────────────────────────────────────────
  * Reusable payment modal supporting:
  *   • Cash
- *   • Zaad (Somali mobile money — phone number)
+ *   • Zaad (Somaliland mobile money — phone number)
  *   • PayPal (email-based)
  *   • Mastercard / Visa (card number, expiry, CVV)
  *
@@ -15,7 +15,7 @@
  */
 
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
   X, CheckCircle, Loader2, CreditCard, Smartphone,
   DollarSign, Wallet, Lock, ChevronRight, Shield, User as UserIcon

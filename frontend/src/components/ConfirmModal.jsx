@@ -1,4 +1,4 @@
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { AlertTriangle, X } from 'lucide-react';
 
 const ConfirmModal = ({ isOpen, title, message, onConfirm, onCancel }) => {

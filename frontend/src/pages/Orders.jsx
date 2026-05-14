@@ -140,7 +140,7 @@ const NewOrderModal = ({ onClose, onPlaced, menuItems }) => {
 };
 
 /* ── Order Detail Modal ── */
-const OrderModal = ({ order, onClose, onStatusChange, isAdmin }) => {
+const OrderModal = ({ order, onClose, onStatusChange }) => {
   const cfg = STATUS_CFG[order.status];
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
@@ -267,11 +267,6 @@ const Orders = () => {
   const [menuItems, setMenuItems] = useState([]);
   
 
-  useEffect(() => {
-    fetchOrders();
-    fetchMenuItems();
-  }, []);
-
   const fetchOrders = async () => {
     try {
       const res = await api.get('orders/');
@@ -285,6 +280,12 @@ const Orders = () => {
       setMenuItems(res.data.results || res.data);
     } catch (err) { console.error('Failed to fetch menu items:', err); }
   };
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchOrders();
+    fetchMenuItems();
+  }, []);
 
   const filtered = orders.filter(o=>{
     const ms = statusFilter==='all'||o.status===statusFilter;
