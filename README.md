@@ -1,64 +1,98 @@
-# Cafeteria Management
+# Cafeteria Management System
 
-Welcome to **Cafeteria Management**, a premium open-source cafeteria management system designed to streamline orders, manage inventory, and oversee employees through a beautiful, modern interface.
+Welcome to **Grand Cafeteria**, a production-ready, full-stack cafeteria management system built for streamlining orders, managing inventory, and overseeing employees through a premium, modern interface.
 
 ## Project Overview
 
-Cafeteria Management is a full-stack web application. It features a rich, animated React frontend with advanced UI paradigms like glassmorphism, responsive dark mode, and an integrated audio-feedback Point-of-Sale (POS) system. It is designed to be backed by a powerful Django REST Framework API.
-
-### Current State
-Currently, the **Frontend and Backend are Fully Integrated** (100% complete). The system uses a Django REST Framework API with JWT authentication and a SQLite database (ready for PostgreSQL) to handle all data persistence for Menu, Orders, Inventory, Employees, Salaries, and User Management.
+A full-stack web application with a rich animated React frontend (glassmorphism, dark mode, Framer Motion) backed by a Django REST Framework API with JWT authentication and PostgreSQL database support.
 
 ## Documentation
-To understand the inner workings and setup of the project, please review the following documentation files:
-- 📄 [frontend.md](./frontend.md) - Details the React architecture, state management, and UI design system.
-- 📄 [backend.md](./backend.md) - Outlines the Django REST Framework API architecture.
-- 📄 [database.md](./database/database.md) - Defines the database schema and models.
-- 📄 [test.md](./test.md) - Comprehensive testing guide for the integrated system.
+
+- 📄 [frontend.md](./frontend/frontend.md) — React architecture, state management, and UI design system.
+- 📄 [backend.md](./backend/backend.md) — Django REST Framework API architecture.
+- 📄 [test.md](./test.md) — Comprehensive testing guide (automated + manual).
+- 📄 [render.md](./render.md) — Step-by-step Render.com deployment guide.
+- 📄 [SECURITY.md](./SECURITY.md) — Security policy and vulnerability reporting.
 
 ## Features
-- **Global Undo System**: 7-second animated popup timer to prevent accidental deletions across Menu, Orders, Inventory, and Employees.
-- **User Management & RBAC**: Real backend JWT token authentication. Admins can securely create usernames and passwords for new staff directly from the Settings page. Employees are restricted from accessing sensitive routes like salaries and system logs.
-- **Dynamic Catalog UI**: Menu items feature responsive glassmorphism cards with 3D tilt effects. Waiters can instantly toggle availability to temporarily hide out-of-stock items.
-- **Advanced Ordering**: Multi-step Payment Modal supporting Cash, Zaad, PayPal, and Mastercard (integrated with API).
-- **Dynamic Menu Management**: Upload photos from local files or internet URLs.
-- **Real-Time Dashboard**: Live clock, stat cards with animated counters, dual charts (area/bar), and recent orders table.
-- **Live Inventory**: Visual low-stock alerts and tracking.
-- **Payroll & Staffing**: Admin-only modules for managing shifts, tracking salaries, and quickly toggling active/inactive status via fast filters.
-- **Theme System**: Intelligent light/dark mode system tailored for visibility in different environments.
-- **Premium Animations**: Smooth page transitions, ripple button effects, hover-lift cards, breathing glow indicators, staggered reveal animations, and spring-based sidebar/nav transitions powered by Framer Motion + CSS keyframes.
 
-## How to Run the System
+- **JWT Authentication & RBAC**: Secure token-based auth. Admins manage users; employees are restricted from salary/admin routes.
+- **Menu Management**: Glassmorphism cards with availability toggles, photo upload (file or URL), category filtering.
+- **Advanced Ordering**: Multi-step Payment Modal supporting Cash, Zaad, PayPal, and Mastercard.
+- **Live Inventory**: Visual low-stock alerts with threshold tracking.
+- **Payroll Module**: Admin-only salary records with net pay auto-calculation and payment status tracking.
+- **Real-Time Dashboard**: Live clock, animated stat cards, dual charts (area/bar), recent orders table.
+- **Global Undo System**: 7-second animated undo popup for accidental deletions.
+- **Theme System**: Light/dark mode with preference persistence.
+- **Premium Animations**: Page transitions, ripple effects, hover-lift cards powered by Framer Motion.
 
-### 1. Backend Setup (Django)
-1. Navigate to the `backend/` directory.
-2. Create and activate a virtual environment:
-   ```bash
-   python -m venv venv
-   .\venv\Scripts\activate
-   ```
-3. Install dependencies: `pip install django djangorestframework djangorestframework-simplejwt django-cors-headers`
-4. Run migrations: `python manage.py migrate`
-5. **(Optional)** Seed the database with mock data: Run `.\reset_and_test.bat` (Windows) to instantly recreate the database with realistic sample items, employees, and orders.
-6. Start the server: `python manage.py runserver`
+## Tech Stack
 
-### 2. Frontend Setup (React)
-1. Navigate to the `frontend/` directory.
-2. Install dependencies: `npm install`
-3. Start the development server: `npm run dev`
+| Layer | Technology |
+| --- | --- |
+| Frontend | React 19, Vite, TailwindCSS, Framer Motion |
+| Backend | Django 5, Django REST Framework, SimpleJWT |
+| Database | PostgreSQL (production) / SQLite (local dev) |
+| Deployment | Render.com (Blueprint + Static Site) |
+| Static Files | WhiteNoise |
+| Auth | JWT (access 8h / refresh 30d) |
 
-### 3. Login Credentials
-- **Admin**: `admin` / `admin`
-- **Employee Demo**: `employee` / `1234`
-*(Note: These default users are automatically created when the backend server starts. Additional employees can be created through the Employee Management module in the Admin panel.)*
+## Local Setup
 
-### to run
-- cd backend
-- (Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned) ; (& "c:\Users\pc\Desktop\New folder (2)\backend\venv\Scripts\Activate.ps1")
-- python manage.py runserver
- <h2>this backend run</h2>
+### 1. Backend (Django)
 
-<h1>to run frontend</h1>
-- cd frontend
-- npm run dev
+```powershell
+cd backend
 
+# Activate virtual environment
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned
+.\venv\Scripts\Activate.ps1
+
+# Install dependencies
+python -m pip install -r requirements.txt
+
+# Run migrations
+python manage.py migrate
+
+# Seed demo data (creates admin/staff users + sample data)
+python seed_data.py
+
+# Start server
+python manage.py runserver
+```
+
+### 2. Frontend (React)
+
+```powershell
+cd frontend
+npm install
+npm run dev
+```
+
+### 3. Login Credentials (after seeding)
+
+| Role | Username | Password |
+| --- | --- | --- |
+| Admin | `admin` | `admin1234` |
+| Staff | `staff` | `staff1234` |
+
+## Running Tests
+
+```powershell
+cd backend
+python manage.py test tests --verbosity=2
+```
+
+See [test.md](./test.md) for the full test coverage breakdown.
+
+## Deployment
+
+This project is configured for one-click deployment to Render via `render.yaml` (Infrastructure as Code).
+
+See [render.md](./render.md) for the full step-by-step deployment guide.
+
+**Quick deploy:**
+
+1. Push to GitHub.
+2. Render Dashboard → **New → Blueprint** → connect repo → **Apply**.
+3. Separately: **New → Static Site** for the React frontend.
