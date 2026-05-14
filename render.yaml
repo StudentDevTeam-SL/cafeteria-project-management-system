@@ -32,8 +32,6 @@ services:
   - type: web
     name: cafeteria-frontend
     runtime: static
-    region: oregon
-    plan: starter
     rootDir: frontend
     buildCommand: npm install && npm run build
     staticPublishPath: dist

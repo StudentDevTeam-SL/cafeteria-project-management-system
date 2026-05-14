@@ -6,7 +6,7 @@ A full-stack cafeteria management web application built with **Django REST Frame
 
 ## 🗂️ Project Structure
 
-```
+```text
 catateria-project-management-system/
 ├── backend/          # Django REST API
 ├── frontend/         # React + Vite SPA
@@ -19,22 +19,23 @@ catateria-project-management-system/
 
 ## ✨ Features
 
-| Module | Description |
-|--------|-------------|
-| 🔐 Auth | JWT login/refresh, role-based access (admin / employee) |
-| 📊 Dashboard | Revenue, orders, inventory KPIs |
-| 🍕 Menu | Full CRUD for menu categories and items |
-| 📦 Inventory | Stock management with low-stock alerts |
-| 👥 Employees | Employee profiles and management |
-| 💰 Salaries | Salary records and payroll tracking |
-| 🛒 Orders | Order creation, status tracking |
-| 📈 Analytics | Revenue and order reports with charts |
+| Module         | Description                                               |
+| -------------- | --------------------------------------------------------- |
+| 🔐 Auth        | JWT login/refresh, role-based access (admin / employee)   |
+| 📊 Dashboard   | Revenue, orders, inventory KPIs                           |
+| 🍕 Menu        | Full CRUD for menu categories and items                   |
+| 📦 Inventory   | Stock management with low-stock alerts                    |
+| 👥 Employees   | Employee profiles and management                          |
+| 💰 Salaries    | Salary records and payroll tracking                       |
+| 🛒 Orders      | Order creation, status tracking                           |
+| 📈 Analytics   | Revenue and order reports with charts                     |
 
 ---
 
 ## 🚀 Quick Start (Local)
 
 ### Prerequisites
+
 - Python 3.10+
 - Node.js 18+
 - PostgreSQL 14+ (running locally)
@@ -79,16 +80,17 @@ Backend API at: `http://localhost:8000`
 
 ## 🔑 Default Login
 
-| Role | Username | Password |
-|------|----------|----------|
-| Admin | `admin` | `admin` |
-| Employee | `employee` | `1234` |
+| Role     | Username   | Password |
+| -------- | ---------- | -------- |
+| Admin    | `admin`    | `admin`  |
+| Employee | `employee` | `1234`   |
 
 ---
 
 ## 🌐 Deployment (Render)
 
 This project includes a `render.yaml` blueprint that auto-creates:
+
 - PostgreSQL database (`cafeteria-db`)
 - Django backend web service (`cafeteria-backend`)
 - React frontend static site (`cafeteria-frontend`)
