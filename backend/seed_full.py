@@ -200,46 +200,31 @@ for emp in employees:
         )
 print(f"  {SalaryRecord.objects.count()} salary records ready")
 
-# ── ORDERS (25) ───────────────────────────────────────────────────────────────
-print("\nOrders (25)...")
+# ── ORDERS (150) ───────────────────────────────────────────────────────────────
+print("\nOrders (150)...")
 if not Order.objects.exists():
-    mi = menu_items
-    orders_raw = [
-        {'emp':'Ahmed Hassan',   'method':'cash',       'status':'completed',  'items':[('Classic Beef Burger',1),('Double Espresso',2)]},
-        {'emp':'Sahra Ali',      'method':'zaad',       'status':'completed',  'items':[('Caesar Salad',1),('Iced Caramel Latte',1)]},
-        {'emp':'Mohamed Farah',  'method':'mastercard', 'status':'completed',  'items':[('Pasta Carbonara',1),('Double Espresso',1),('Chocolate Muffin',2)]},
-        {'emp':'Hodan Duale',    'method':'paypal',     'status':'completed',  'items':[('Grilled Chicken Sandwich',2),('Iced Caramel Latte',1)]},
-        {'emp':'Khalid Warsame', 'method':'cash',       'status':'completed',  'items':[('Fried Rice Bowl',1),('Double Espresso',1)]},
-        {'emp':'Ahmed Hassan',   'method':'cash',       'status':'processing', 'items':[('Classic Beef Burger',2),('Caesar Salad',1)]},
-        {'emp':'Sahra Ali',      'method':'zaad',       'status':'pending',    'items':[('Iced Caramel Latte',2),('Chocolate Muffin',1)]},
-        {'emp':'Mohamed Farah',  'method':'cash',       'status':'completed',  'items':[('Margherita Pizza Slice',3),('Double Espresso',1)]},
-        {'emp':'Hodan Duale',    'method':'mastercard', 'status':'completed',  'items':[('Pasta Carbonara',1),('Chocolate Lava Cake',1)]},
-        {'emp':'Khalid Warsame', 'method':'paypal',     'status':'cancelled',  'items':[('Grilled Chicken Sandwich',1),('Caesar Salad',1)]},
-        {'emp':'Ahmed Hassan',   'method':'cash',       'status':'completed',  'items':[('Classic Beef Burger',1),('Iced Caramel Latte',1),('Chocolate Lava Cake',1)]},
-        {'emp':'Sahra Ali',      'method':'zaad',       'status':'completed',  'items':[('Fried Rice Bowl',2),('Double Espresso',2)]},
-        {'emp':'Hassan Abdi',    'method':'cash',       'status':'completed',  'items':[('Lamb Kebab Plate',1),('Mint Lemonade',2)]},
-        {'emp':'Faadumo Omar',   'method':'mastercard', 'status':'completed',  'items':[('Fish & Chips',1),('Hot Chocolate',1)]},
-        {'emp':'Nasteho Muuse',  'method':'zaad',       'status':'completed',  'items':[('Tiramisu',2),('Double Espresso',2)]},
-        {'emp':'Abdi Jama',      'method':'cash',       'status':'completed',  'items':[('Veggie Wrap',1),('Mango Smoothie',1)]},
-        {'emp':'Hassan Abdi',    'method':'paypal',     'status':'completed',  'items':[('Tuna Nicoise Salad',1),('Mint Lemonade',1)]},
-        {'emp':'Faadumo Omar',   'method':'cash',       'status':'processing', 'items':[('Chicken Wings (6pc)',2),('Hot Chocolate',1)]},
-        {'emp':'Mohamed Farah',  'method':'mastercard', 'status':'completed',  'items':[('Garlic Bread',2),('Greek Salad',1),('Double Espresso',1)]},
-        {'emp':'Khalid Warsame', 'method':'cash',       'status':'completed',  'items':[('Eggs Benedict',1),('Iced Caramel Latte',1)]},
-        {'emp':'Ahmed Hassan',   'method':'zaad',       'status':'completed',  'items':[('Classic Beef Burger',3),('Chocolate Muffin',2)]},
-        {'emp':'Sahra Ali',      'method':'paypal',     'status':'pending',    'items':[('Acai Berry Bowl',1),('Hot Chocolate',2)]},
-        {'emp':'Nasteho Muuse',  'method':'cash',       'status':'completed',  'items':[('Tiramisu',1),('Chocolate Lava Cake',1),('Double Espresso',1)]},
-        {'emp':'Hodan Duale',    'method':'mastercard', 'status':'cancelled',  'items':[('Fish & Chips',1),('Greek Salad',1)]},
-        {'emp':'Hassan Abdi',    'method':'cash',       'status':'completed',  'items':[('Lamb Kebab Plate',2),('Mint Lemonade',2),('Tiramisu',1)]},
-    ]
-    for od in orders_raw:
-        items_objs = [(mi[name], qty) for name, qty in od['items'] if name in mi]
-        if not items_objs:
-            continue
+    import random
+    mi = list(menu_items.values())
+    emp_names = [e.full_name for e in employees]
+    methods = ['cash', 'zaad', 'mastercard', 'paypal']
+    statuses = ['completed', 'completed', 'completed', 'completed', 'pending', 'processing', 'cancelled']
+    
+    for _ in range(150):
+        # Pick random employee and method
+        emp_name = random.choice(emp_names)
+        method = random.choice(methods)
+        status = random.choice(statuses)
+        
+        # Pick 1 to 4 random menu items
+        num_items = random.randint(1, 4)
+        chosen_items = random.sample(mi, num_items)
+        items_objs = [(item, random.randint(1, 3)) for item in chosen_items]
+        
         total = sum(Decimal(str(item.price)) * qty for item, qty in items_objs)
         order = Order.objects.create(
-            employee_name=od['emp'],
-            payment_method=od['method'],
-            status=od['status'],
+            employee_name=emp_name,
+            payment_method=method,
+            status=status,
             total_price=total,
         )
         for item, qty in items_objs:
