@@ -1,98 +1,105 @@
-# Cafeteria Management System
+# 🍽️ Cafeteria Project Management System
 
-Welcome to **Grand Cafeteria**, a production-ready, full-stack cafeteria management system built for streamlining orders, managing inventory, and overseeing employees through a premium, modern interface.
+A full-stack cafeteria management web application built with **Django REST Framework** (backend) and **React + Vite** (frontend), backed by **PostgreSQL**.
 
-## Project Overview
+---
 
-A full-stack web application with a rich animated React frontend (glassmorphism, dark mode, Framer Motion) backed by a Django REST Framework API with JWT authentication and PostgreSQL database support.
+## 🗂️ Project Structure
 
-## Documentation
+```
+catateria-project-management-system/
+├── backend/          # Django REST API
+├── frontend/         # React + Vite SPA
+├── render.yaml       # Render.com deployment blueprint
+├── reorganize.bat    # One-click folder restructure script
+└── .gitignore
+```
 
-- 📄 [frontend.md](./frontend/frontend.md) — React architecture, state management, and UI design system.
-- 📄 [backend.md](./backend/backend.md) — Django REST Framework API architecture.
-- 📄 [test.md](./test.md) — Comprehensive testing guide (automated + manual).
-- 📄 [render.md](./render.md) — Step-by-step Render.com deployment guide.
-- 📄 [SECURITY.md](./SECURITY.md) — Security policy and vulnerability reporting.
+---
 
-## Features
+## ✨ Features
 
-- **JWT Authentication & RBAC**: Secure token-based auth. Admins manage users; employees are restricted from salary/admin routes.
-- **Menu Management**: Glassmorphism cards with availability toggles, photo upload (file or URL), category filtering.
-- **Advanced Ordering**: Multi-step Payment Modal supporting Cash, Zaad, PayPal, and Mastercard.
-- **Live Inventory**: Visual low-stock alerts with threshold tracking.
-- **Payroll Module**: Admin-only salary records with net pay auto-calculation and payment status tracking.
-- **Real-Time Dashboard**: Live clock, animated stat cards, dual charts (area/bar), recent orders table.
-- **Global Undo System**: 7-second animated undo popup for accidental deletions.
-- **Theme System**: Light/dark mode with preference persistence.
-- **Premium Animations**: Page transitions, ripple effects, hover-lift cards powered by Framer Motion.
+| Module | Description |
+|--------|-------------|
+| 🔐 Auth | JWT login/refresh, role-based access (admin / employee) |
+| 📊 Dashboard | Revenue, orders, inventory KPIs |
+| 🍕 Menu | Full CRUD for menu categories and items |
+| 📦 Inventory | Stock management with low-stock alerts |
+| 👥 Employees | Employee profiles and management |
+| 💰 Salaries | Salary records and payroll tracking |
+| 🛒 Orders | Order creation, status tracking |
+| 📈 Analytics | Revenue and order reports with charts |
 
-## Tech Stack
+---
 
-| Layer | Technology |
-| --- | --- |
-| Frontend | React 19, Vite, TailwindCSS, Framer Motion |
-| Backend | Django 5, Django REST Framework, SimpleJWT |
-| Database | PostgreSQL (production) / SQLite (local dev) |
-| Deployment | Render.com (Blueprint + Static Site) |
-| Static Files | WhiteNoise |
-| Auth | JWT (access 8h / refresh 30d) |
+## 🚀 Quick Start (Local)
 
-## Local Setup
+### Prerequisites
+- Python 3.10+
+- Node.js 18+
+- PostgreSQL 14+ (running locally)
 
-### 1. Backend (Django)
+### 1. Backend Setup
 
-```powershell
+```bash
 cd backend
 
-# Activate virtual environment
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned
-.\venv\Scripts\Activate.ps1
+# Create & activate virtual environment
+python -m venv venv
+venv\Scripts\activate          # Windows
+# source venv/bin/activate     # Linux/macOS
 
 # Install dependencies
-python -m pip install -r requirements.txt
+pip install -r requirements.txt
 
-# Run migrations
-python manage.py migrate
+# Configure environment
+copy .env.example .env
+# Edit .env with your PostgreSQL credentials
 
-# Seed demo data (creates admin/staff users + sample data)
-python seed_data.py
+# Auto-setup database (creates DB, runs migrations, seeds data)
+python setup_db.py
+python test_and_seed.py
 
 # Start server
 python manage.py runserver
 ```
 
-### 2. Frontend (React)
+### 2. Frontend Setup
 
-```powershell
+```bash
 cd frontend
 npm install
 npm run dev
 ```
 
-### 3. Login Credentials (after seeding)
+Frontend runs at: `http://localhost:5173`  
+Backend API at: `http://localhost:8000`
+
+---
+
+## 🔑 Default Login
 
 | Role | Username | Password |
-| --- | --- | --- |
-| Admin | `admin` | `admin1234` |
-| Staff | `staff` | `staff1234` |
+|------|----------|----------|
+| Admin | `admin` | `admin` |
+| Employee | `employee` | `1234` |
 
-## Running Tests
+---
 
-```powershell
-cd backend
-python manage.py test tests --verbosity=2
-```
+## 🌐 Deployment (Render)
 
-See [test.md](./test.md) for the full test coverage breakdown.
+This project includes a `render.yaml` blueprint that auto-creates:
+- PostgreSQL database (`cafeteria-db`)
+- Django backend web service (`cafeteria-backend`)
+- React frontend static site (`cafeteria-frontend`)
 
-## Deployment
+See [`backend/docs/render.md`](backend/docs/render.md) for full deployment instructions.
 
-This project is configured for one-click deployment to Render via `render.yaml` (Infrastructure as Code).
+---
 
-See [render.md](./render.md) for the full step-by-step deployment guide.
+## 🧰 Tech Stack
 
-**Quick deploy:**
-
-1. Push to GitHub.
-2. Render Dashboard → **New → Blueprint** → connect repo → **Apply**.
-3. Separately: **New → Static Site** for the React frontend.
+**Backend:** Django 5 · DRF · SimpleJWT · psycopg2 · gunicorn · WhiteNoise  
+**Frontend:** React 19 · Vite · TailwindCSS · Recharts · Framer Motion · Axios  
+**Database:** PostgreSQL 18  
+**Deployment:** Render.com

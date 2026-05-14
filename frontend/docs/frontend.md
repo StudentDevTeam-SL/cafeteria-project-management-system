@@ -7,11 +7,11 @@ Cafeteria Management is a modern, high-performance single-page application built
 - **Styling**: Tailwind CSS (with native dark/light mode support)
 - **Animations**: Framer Motion (for fluid, hardware-accelerated UI transitions)
 - **Icons**: Lucide React
-- **Routing**: React Router DOM (v6)
+- **Routing**: React Router DOM (v7)
 
 ## State Management
 Global state is managed using React Context API to ensure a lightweight and predictable state flow without heavy external libraries.
-- `AuthContext`: Manages user login, session, and Role-Based Access Control.
+- `AuthContext`: Manages user login, session, JWT refresh cycles, and Role-Based Access Control.
 - `ThemeContext`: Handles Light/Dark mode toggling and OS preference detection.
 - `SoundContext`: Provides an auditory feedback system for Point-of-Sale interactions.
 - `ToastContext`: Provides a global, animated popup notification system with built-in 7-second "Undo" functionality for critical destructive actions.
@@ -43,7 +43,7 @@ The app utilizes a dual-layout system based on authentication state:
    - *Restricted to Admin users.*
 6. **Dashboard (`Dashboard.jsx`)**:
    - Live clock and stat cards.
-   - Dual analytics charts (Area and Bar).
+   - Dual analytics charts (Area and Bar) using Recharts.
    - Recent orders table.
 
 ## Design System & CSS Philosophy
@@ -51,3 +51,10 @@ All styling uses Tailwind utility classes, extended by a custom `index.css` file
 - **Glassmorphism**: Reusable `.glass`, `.glass-dark`, and `.glass-card` classes for premium UI overlays.
 - **Animations**: Custom `@keyframes` (float, shimmer, pulse) injected globally.
 - **Responsive Design**: Mobile-first approach using `md:`, `lg:`, `xl:` breakpoints.
+
+## Deployment (Render)
+The frontend is deployed as a Static Site via Render.
+- **Build Command**: `npm install && npm run build`
+- **Publish Directory**: `dist`
+- **Environment Variables**: Requires `VITE_API_URL` to point to the Django backend (e.g., `https://cafeteria-backend.onrender.com/api/`).
+- **SPA Rules**: All unresolved routes rewrite to `index.html`.

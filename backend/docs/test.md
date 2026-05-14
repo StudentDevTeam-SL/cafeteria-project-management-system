@@ -27,20 +27,22 @@ OK
 
 ### Seed Demo Data
 
-Before manual testing, populate the database with realistic demo data:
+We have an automated script that tests the database connection, ensures migrations are applied, and seeds the database with realistic demo data. Run this from the `backend` directory:
 
 ```powershell
-python seed_data.py
+python test_and_seed.py
 ```
 
-This creates:
+This tests your PostgreSQL setup and creates:
 
 - **Admin user**: `admin` / `admin1234`
-- **Staff user**: `staff` / `staff1234`
-- 14 menu items across 5 categories
-- 10 inventory items (including low-stock alerts)
-- 4 employees with salary records
-- 3 sample orders
+- **Staff user**: `employee` / `1234`
+- 25 menu items across 5 categories
+- 20 inventory items (including low-stock alerts)
+- 10 employees with salary records
+- 150 sample orders
+
+*(If you need to completely wipe the database and re-seed, you can run `python seed_full.py --force`)*
 
 ---
 
@@ -183,15 +185,15 @@ Expected response:
 
 | Scenario | Steps | Expected |
 |---|---|---|
-| Admin login | Username: `admin`, Password: `admin1234` | Redirected to `/dashboard`, full sidebar visible |
-| Staff login | Username: `staff`, Password: `staff1234` | Dashboard loads, Salaries/Employees links hidden |
+| Admin login | Username: `admin`, Password: `admin` | Redirected to `/dashboard`, full sidebar visible |
+| Staff login | Username: `employee`, Password: `1234` | Dashboard loads, Salaries/Employees links hidden |
 | Wrong credentials | Any bad username/password | Red error: "Invalid credentials. Please try again." |
 
 ### 2. Menu Page (`/menu`)
 
 | Scenario | Steps | Expected |
 |---|---|---|
-| View items | Navigate to `/menu` | 14 items in grid with category badges |
+| View items | Navigate to `/menu` | 25 items in grid with category badges |
 | Filter by category | Click "Salads" tab | Only salad items visible |
 | Search | Type "burger" in search | Only "Classic Beef Burger" shows |
 | Toggle availability | Click toggle on any card | Card shows "Unavailable" overlay |

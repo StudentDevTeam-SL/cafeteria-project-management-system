@@ -1,15 +1,18 @@
-# Cafeteria Management System - Run Guide
+# 🏃‍♂️ Cafeteria Management System - Run Guide
 
-This document provides instructions on how to set up, run, and use the Cafeteria Management System project.
+This document provides instructions on how to set up, run, and use the Cafeteria Management System project locally.
 
-## Prerequisites
+## 🛠️ Prerequisites
 
 Before you begin, ensure you have the following installed on your machine:
-- **Node.js** (v16 or higher)
+- **Node.js** (v18 or higher)
 - **Python** (v3.10 or higher)
+- **PostgreSQL** (v14 or higher)
 - **Git**
 
-## Backend Setup
+## 🔙 Backend Setup (Django + PostgreSQL)
+
+We have fully automated the backend setup process on Windows.
 
 1. **Navigate to the backend directory:**
    ```bash
@@ -21,7 +24,7 @@ Before you begin, ensure you have the following installed on your machine:
    # Windows
    python -m venv venv
    .\venv\Scripts\activate
-
+   
    # macOS/Linux
    python3 -m venv venv
    source venv/bin/activate
@@ -32,19 +35,29 @@ Before you begin, ensure you have the following installed on your machine:
    pip install -r requirements.txt
    ```
 
-4. **Apply database migrations:**
+4. **Environment Variables:**
+   Copy `.env.example` to `.env`. The auto-setup script will populate the password for you.
+
+5. **Auto-Setup PostgreSQL Database (Windows only):**
+   This script will auto-elevate to admin, create the `cafeteria_db` database, reset the `postgres` user password, update your `.env` file, and run Django migrations.
    ```bash
-   python manage.py makemigrations
-   python manage.py migrate
+   python setup_db.py
+   ```
+   *(If prompted by Windows UAC, click "Yes")*
+
+6. **Test Connection & Seed Data:**
+   This verifies the connection and populates the database with test data (menus, inventory, employees, orders).
+   ```bash
+   python test_and_seed.py
    ```
 
-5. **Start the backend server:**
+7. **Start the backend server:**
    ```bash
    python manage.py runserver
    ```
-   The backend API will be available at `http://127.0.0.1:8000/`.
+   The backend API will be available at `http://localhost:8000/`.
 
-## Frontend Setup
+## 🎨 Frontend Setup (React + Vite)
 
 1. **Open a new terminal window and navigate to the frontend directory:**
    ```bash
@@ -60,16 +73,19 @@ Before you begin, ensure you have the following installed on your machine:
    ```bash
    npm run dev
    ```
-   The frontend application will open in your default browser at `http://localhost:5173/` or `http://localhost:3000/`.
+   The frontend application will open at `http://localhost:5173/`.
 
-## Usage Flow
+## 🧑‍💻 Usage Flow
 
-1. **Login:** Access the frontend application and navigate to the login page.
-2. **Credentials:** You must log in using your registered credentials. Auto-login has been disabled for security. If you don't have an account, the backend will need to create one (e.g., via `python manage.py createsuperuser`).
-3. **Admin Dashboard:** Admins can manage menu items, approve new menu item requests, manage employees, and view analytics.
-4. **Employee POS:** Employees can view the menu, add items to the cart, and checkout orders.
+1. **Login:** Access the frontend application at `http://localhost:5173/login`.
+2. **Credentials:** 
+   - **Admin:** Username: `admin` | Password: `admin`
+   - **Employee:** Username: `employee` | Password: `1234`
+3. **Admin Dashboard:** Admins can manage menu items, approve new menu item requests, manage employees, payroll, and view analytics.
+4. **Employee POS:** Employees can view the menu, add items to the cart, process checkouts, and view inventory.
 
-## Troubleshooting
+## ⚠️ Troubleshooting
 
-- **CORS Issues:** Ensure the backend `CORS_ALLOWED_ORIGINS` setting in `settings.py` matches your frontend URL.
-- **Database Errors:** If you encounter database issues, ensure migrations are fully applied, or try deleting the SQLite database file and re-running migrations for a clean slate (use `reset_and_test.bat` if available).
+- **PostgreSQL Connection Errors:** Ensure the PostgreSQL service is running (`services.msc` -> `postgresql-x64`). Run `python setup_db.py` to auto-fix credentials.
+- **CORS Issues:** Ensure the backend `CORS_ALLOWED_ORIGINS` setting in `.env` matches your frontend URL.
+- **No Data:** If the app is empty, run `python seed_full.py --force` in the backend directory to wipe and re-seed the database.
