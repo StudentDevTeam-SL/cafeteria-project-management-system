@@ -1,7 +1,20 @@
 from django.contrib import admin
 from django.urls import path, include
+from django.http import JsonResponse
+from django.db import connection
+from django.db.utils import OperationalError
+import signal
+
+def health_check(request):
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT 1")
+        return JsonResponse({"status": "ok", "db": "connected"})
+    except OperationalError:
+        return JsonResponse({"status": "error", "db": "unreachable"}, status=503)
 
 urlpatterns = [
+    path('health/', health_check),
     path('admin/', admin.site.urls),
     path('api/auth/', include('accounts.urls')),
     path('api/employees/', include('employees.urls')),

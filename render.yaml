@@ -1,0 +1,38 @@
+services:
+  - type: web
+    name: cafeteria-backend
+    runtime: python
+    region: oregon
+    plan: starter
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate
+    startCommand: gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --worker-class gthread --threads 4 --timeout 120
+    healthCheckPath: /health/
+    autoDeploy: true
+    envVars:
+      - key: DEBUG
+        value: "False"
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ALLOWED_HOSTS
+        value: "cafeteria-backend.onrender.com"
+      - key: CORS_ALLOWED_ORIGINS
+        value: "https://cafeteria-frontend.onrender.com"
+      - key: CSRF_TRUSTED_ORIGINS
+        value: "https://cafeteria-frontend.onrender.com,https://cafeteria-backend.onrender.com"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: cafeteria-db
+          property: connectionString
+      - key: PGSSLMODE
+        value: require
+
+  # Frontend Static Site — deploy this separately in the Render Dashboard:
+  # New → Static Site → connect repo → rootDir=frontend → buildCommand="npm install && npm run build" → publishDir=dist
+  # Add env var: VITE_API_URL = https://cafeteria-backend.onrender.com
+
+databases:
+  - name: cafeteria-db
+    databaseName: cafeteria_prod
+    plan: starter
+    region: oregon
