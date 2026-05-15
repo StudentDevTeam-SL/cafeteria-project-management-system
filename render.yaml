@@ -27,6 +27,8 @@ services:
           property: connectionString
       - key: PGSSLMODE
         value: require
+      - key: PYTHON_VERSION
+        value: "3.12.3"
 
   # ── React Frontend (Static Site) ─────────────────────────────────────────
   - type: web
