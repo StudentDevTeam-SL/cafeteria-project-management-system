@@ -3,9 +3,12 @@ from rest_framework.permissions import AllowAny
 from rest_framework.decorators import action
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework.response import Response
-from .models import Category, MenuItem
-from .serializers import CategorySerializer, MenuItemSerializer
-from accounts.permissions import IsAdminRoleOrReadOnly
+from .models import Category, MenuItem, Recipe, ModifierGroup, ModifierOption
+from .serializers import (
+    CategorySerializer, MenuItemSerializer, RecipeSerializer,
+    ModifierGroupSerializer, ModifierOptionSerializer
+)
+from accounts.permissions import IsManagerOrAdminOrReadOnly
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
@@ -15,7 +18,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
     """
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = [IsAdminRoleOrReadOnly]
+    permission_classes = [IsManagerOrAdminOrReadOnly]
 
 
 class MenuItemViewSet(viewsets.ModelViewSet):
@@ -26,7 +29,7 @@ class MenuItemViewSet(viewsets.ModelViewSet):
     """
     queryset           = MenuItem.objects.select_related('category').order_by('id')
     serializer_class   = MenuItemSerializer
-    permission_classes = [IsAdminRoleOrReadOnly]
+    permission_classes = [IsManagerOrAdminOrReadOnly]
     # Accept file uploads (multipart) as well as JSON
     parser_classes     = [MultiPartParser, FormParser, JSONParser]
 
@@ -53,4 +56,32 @@ class ContactMessageViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
     queryset = ContactMessage.objects.all()
     serializer_class = ContactMessageSerializer
     permission_classes = [AllowAny]
+
+
+class RecipeViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet for managing recipes.
+    """
+    queryset = Recipe.objects.all()
+    serializer_class = RecipeSerializer
+    permission_classes = [IsManagerOrAdminOrReadOnly]
+
+
+class ModifierGroupViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet for managing modifier groups.
+    """
+    queryset = ModifierGroup.objects.all()
+    serializer_class = ModifierGroupSerializer
+    permission_classes = [IsManagerOrAdminOrReadOnly]
+
+
+class ModifierOptionViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet for managing modifier options.
+    """
+    queryset = ModifierOption.objects.all()
+    serializer_class = ModifierOptionSerializer
+    permission_classes = [IsManagerOrAdminOrReadOnly]
+
 

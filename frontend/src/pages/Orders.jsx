@@ -148,7 +148,10 @@ const OrderModal = ({ order, onClose, onStatusChange }) => {
         className="bg-light-card dark:bg-dark-card rounded-2xl shadow-2xl w-full max-w-lg border border-slate-200/60 dark:border-slate-700/50 overflow-hidden">
         <div className={`h-1 ${order.status==='completed'?'bg-emerald-500':order.status==='processing'?'bg-blue-500':order.status==='cancelled'?'bg-red-500':'bg-amber-500'}`}/>
         <div className="p-6 border-b border-slate-200/60 dark:border-slate-700/40 flex items-center justify-between">
-          <div><h2 className="text-xl font-black">{order.order_number || order.id}</h2><p className="text-sm text-slate-400">{new Date(order.created_at).toLocaleString()}</p></div>
+          <div>
+            <h2 className="text-xl font-black">Order #{order.id}</h2>
+            <p className="text-sm text-slate-400">{new Date(order.created_at).toLocaleString()}</p>
+          </div>
           <button onClick={onClose} className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800"><X className="w-5 h-5 text-slate-400"/></button>
         </div>
         <div className="p-6 space-y-4">
@@ -162,12 +165,30 @@ const OrderModal = ({ order, onClose, onStatusChange }) => {
             </div>
             <span className={`badge ${cfg.cls} gap-1.5`}><cfg.icon className="w-3.5 h-3.5"/> {cfg.label}</span>
           </div>
+
+          <div className="grid grid-cols-2 gap-4 text-xs font-bold text-slate-400 uppercase tracking-wider bg-slate-50 dark:bg-slate-800/40 p-3 rounded-xl">
+            <div>Order Type: <span className="text-slate-800 dark:text-white capitalize">{order.order_type || 'takeaway'}</span></div>
+            {order.table_details && (
+              <div>Table: <span className="text-slate-800 dark:text-white">Table {order.table_details.table_number}</span></div>
+            )}
+          </div>
+
           <div className="glass-card p-4 space-y-2">
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">Order Items</h3>
             {order.items.map((item,i)=>(
-              <div key={i} className="flex items-center justify-between text-sm">
-                <div className="flex items-center gap-2"><span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center font-bold">{item.quantity || item.qty}</span><span>{item.menu_item_name || item.item_name || item.name}</span></div>
-                <span className="font-semibold">${((item.quantity || item.qty) * (item.unit_price || item.price)).toFixed(2)}</span>
+              <div key={i} className="flex items-start justify-between text-sm py-1.5 border-b border-slate-100 dark:border-slate-850 last:border-0">
+                <div className="flex items-start gap-2">
+                  <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center font-bold flex-shrink-0 mt-0.5">{item.quantity || item.qty}</span>
+                  <div>
+                    <span className="font-semibold">{item.menu_item_name || item.item_name || item.name}</span>
+                    {item.selected_modifiers?.length > 0 && (
+                      <p className="text-[10px] text-slate-400">
+                        + {item.selected_modifiers.map(m => m.name).join(', ')}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <span className="font-semibold">${((item.quantity || item.qty) * (item.price || item.unit_price || item.price)).toFixed(2)}</span>
               </div>
             ))}
             <div className="pt-3 border-t border-slate-200 dark:border-slate-700 flex justify-between font-black">

@@ -49,6 +49,21 @@ class AccountsConfig(AppConfig):
                 if created_emp:
                     employee_user.set_password('1234')
                     employee_user.save()
+
+                manager_user, created_mgr = CustomUser.objects.get_or_create(
+                    username='manager',
+                    defaults={
+                        'email': 'manager@cafeteria.com',
+                        'full_name': 'Operations Manager',
+                        'role': 'Manager',
+                        'phone_number': '063222222',
+                        'is_superuser': False,
+                        'is_staff': True,
+                    }
+                )
+                if created_mgr:
+                    manager_user.set_password('manager')
+                    manager_user.save()
             except Exception:
                 # Silently ignore failures during test/migrate workflows
                 pass

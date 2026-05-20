@@ -36,17 +36,17 @@ const NavItem = React.memo(({ to, icon: Icon, label, onClick, enableHover }) => 
     <Link
       to={to}
       onClick={onClick}
-      className={`flex items-center space-x-3 px-4 py-3 rounded-xl transition-colors duration-200 group relative ${
+      className={`flex items-center space-x-3 px-4 py-3 rounded-xl transition-colors duration-200 group relative focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/45 ${
         isActive
-          ? 'bg-primary/15 text-primary'
-          : 'text-gray-500 dark:text-slate-400 hover:bg-primary/8 hover:text-primary dark:hover:text-primary'
+          ? 'bg-primary/15 text-primary font-semibold'
+          : 'text-slate-500 dark:text-slate-400 hover:bg-primary/8 hover:text-primary dark:hover:text-primary'
       }`}
     >
       {isActive && (
         <motion.div
           layoutId="activeNav"
           initial={false}
-          className="absolute left-0 top-0 h-full w-1 bg-primary rounded-r-full"
+          className="absolute left-1.5 top-3 bottom-3 w-1 bg-primary rounded-full"
           transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
         />
       )}
@@ -84,9 +84,9 @@ const SidebarContent = ({ onClose, user, logout, theme, toggleTheme, lowPerforma
       <p className="text-xs font-bold uppercase tracking-widest text-gray-400 dark:text-slate-500 px-4 pb-2">Main</p>
       {NAV_ITEMS.map(item => <NavItem key={item.to} {...item} onClick={onClose} enableHover={animationConfig.enableHover} />)}
 
-      {user?.role === 'Admin' && ADMIN_ITEMS.length > 0 && (
+      {(user?.role === 'Admin' || user?.role === 'Manager') && ADMIN_ITEMS.length > 0 && (
         <>
-          <p className="text-xs font-bold uppercase tracking-widest text-gray-400 dark:text-slate-500 px-4 pt-4 pb-2">Admin Only</p>
+          <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 px-4 pt-4 pb-2">Management</p>
           {ADMIN_ITEMS.map(item => <NavItem key={item.to} {...item} onClick={onClose} enableHover={animationConfig.enableHover} />)}
         </>
       )}

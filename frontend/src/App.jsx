@@ -43,8 +43,8 @@ function App() {
                   <Route path="/settings" element={<Settings />} />
                   <Route path="/reports" element={<Reports />} />
 
-                  {/* Only Admin can access these */}
-                  <Route element={<ProtectedRoute allowedRoles={['Admin']} />}>
+                  {/* Admin and Manager can access these */}
+                  <Route element={<ProtectedRoute allowedRoles={['Admin', 'Manager']} />}>
                     <Route path="/employees" element={<Employees />} />
                     <Route path="/salaries" element={<Salaries />} />
                   </Route>

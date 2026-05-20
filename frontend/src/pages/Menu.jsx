@@ -225,42 +225,188 @@ const ItemModal = ({ item, onClose, onSave }) => {
 
 import PaymentModal from '../components/PaymentModal';
 
+/* ── Modifier Selection Modal ── */
+const ModifierSelectModal = ({ item, onClose, onConfirm }) => {
+  const [selections, setSelections] = useState({});
+
+  const handleSelect = (group, option) => {
+    const groupSelections = selections[group.id] || [];
+    if (group.max_selections === 1) {
+      setSelections(prev => ({
+        ...prev,
+        [group.id]: [option]
+      }));
+    } else {
+      const exists = groupSelections.find(o => o.id === option.id);
+      let updated;
+      if (exists) {
+        updated = groupSelections.filter(o => o.id !== option.id);
+      } else {
+        if (groupSelections.length >= group.max_selections) {
+          updated = [...groupSelections.slice(1), option];
+        } else {
+          updated = [...groupSelections, option];
+        }
+      }
+      setSelections(prev => ({
+        ...prev,
+        [group.id]: updated
+      }));
+    }
+  };
+
+  const handleConfirm = () => {
+    const allOptions = Object.values(selections).flat();
+    onConfirm(item, allOptions);
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm">
+      <motion.div initial={{opacity:0,scale:.95}} animate={{opacity:1,scale:1}} exit={{opacity:0,scale:.95}}
+        className="bg-light-card dark:bg-dark-card rounded-2xl shadow-2xl p-6 w-full max-w-md border border-slate-200/60 dark:border-slate-700/50">
+        <h3 className="text-xl font-black mb-1">{item.name}</h3>
+        <p className="text-xs text-slate-500 mb-4">Customize your selection</p>
+        
+        <div className="space-y-4 max-h-60 overflow-y-auto pr-1">
+          {item.modifiers?.map(group => (
+            <div key={group.id} className="space-y-2">
+              <p className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                {group.name} {group.min_selections > 0 ? '(Required)' : '(Optional)'}
+              </p>
+              <div className="space-y-1.5">
+                {group.options?.map(opt => {
+                  const isSelected = (selections[group.id] || []).some(o => o.id === opt.id);
+                  return (
+                    <button key={opt.id} onClick={() => handleSelect(group, opt)}
+                      className={`w-full flex items-center justify-between p-3 rounded-xl border text-sm font-semibold transition-all ${
+                        isSelected ? 'bg-primary/10 border-primary text-primary' : 'bg-transparent border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800'
+                      }`}>
+                      <span>{opt.name}</span>
+                      <span className="text-xs text-primary font-bold">
+                        {Number(opt.price_adjustment) > 0 ? `+$${Number(opt.price_adjustment).toFixed(2)}` : 'Free'}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="flex gap-3 mt-6">
+          <button onClick={onClose} className="flex-1 py-3 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-800">Cancel</button>
+          <button onClick={handleConfirm} className="flex-1 btn-primary py-3 text-sm">Add to Cart</button>
+        </div>
+      </motion.div>
+    </div>
+  );
+};
+
+
 /* ── Cart / Checkout Modal ── */
 const CheckoutModal = ({ cart, setCart, onClose }) => {
   const { playSound } = useSoundContext();
+  const { user } = useAuth();
+  const { showToast } = useToast();
   const [step, setStep] = useState(1);
   const [comment, setComment] = useState('');
+  const [orderType, setOrderType] = useState('takeaway');
+  const [selectedTable, setSelectedTable] = useState('');
+  const [tables, setTables] = useState([]);
   const total = React.useMemo(() => cart.reduce((s,c)=>s+c.price*c.qty, 0), [cart]);
 
-  if (step === 2) return (
-    <PaymentModal amount={total} onClose={()=>setStep(1)} onSuccess={()=>{
+  useEffect(() => {
+    const fetchTables = async () => {
+      try {
+        const res = await api.get('orders/tables/');
+        setTables(res.data.results || res.data);
+      } catch (err) {
+        console.error('Failed to fetch tables:', err);
+      }
+    };
+    fetchTables();
+  }, []);
+
+  const handleSuccess = async (method) => {
+    try {
+      const payload = {
+        employee_name: user?.full_name || 'POS Cashier',
+        payment_method: method.toLowerCase(),
+        notes: comment,
+        table: orderType === 'dine_in' && selectedTable ? selectedTable : null,
+        order_type: orderType,
+        payment_status: 'paid',
+        items: cart.map(c => ({
+          menu_item_id: c.id,
+          quantity: c.qty,
+          unit_price: c.price,
+          selected_modifiers: c.selected_modifiers?.map(m => m.id) || []
+        }))
+      };
+      await api.post('orders/', payload);
       setCart([]);
       onClose();
-      alert(`Order Placed Successfully! ${comment ? `\nNotes: ${comment}` : ''}`);
-    }} />
+      showToast('Order Placed Successfully!', { type: 'success', duration: 3000 });
+    } catch (err) {
+      console.error('Failed to place order:', err);
+      alert('Failed to place order.');
+    }
+  };
+
+  if (step === 2) return (
+    <PaymentModal amount={total} onClose={()=>setStep(1)} onSuccess={handleSuccess} />
   );
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
       <motion.div initial={{opacity:0,scale:.9,y:20}} animate={{opacity:1,scale:1,y:0}} exit={{opacity:0,scale:.9}}
-        className="bg-light-card dark:bg-dark-card rounded-2xl shadow-2xl p-6 w-full max-w-md border border-slate-200/60 dark:border-slate-700/50 relative">
+        className="bg-light-card dark:bg-dark-card rounded-2xl shadow-2xl p-6 w-full max-w-md border border-slate-200/60 dark:border-slate-700/50 relative overflow-y-auto max-h-[90vh]">
         <button onClick={onClose} className="absolute top-4 right-4 p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400"><X className="w-5 h-5" /></button>
         <h2 className="text-xl font-black gradient-text mb-4">Current Order</h2>
         
-        <div className="space-y-3 mb-4 max-h-52 overflow-y-auto pr-2">
+        <div className="space-y-3 mb-4 max-h-40 overflow-y-auto pr-2">
           {cart.map(c => (
-            <div key={c.id} className="flex items-center justify-between glass-card p-3">
+            <div key={c.uniqueCartId} className="flex items-center justify-between glass-card p-3">
               <div>
                 <p className="text-sm font-bold">{c.name}</p>
                 <p className="text-xs text-primary">${Number(c.price).toFixed(2)}</p>
+                {c.selected_modifiers?.length > 0 && (
+                  <p className="text-[10px] text-slate-400">
+                    + {c.selected_modifiers.map(m => m.name).join(', ')}
+                  </p>
+                )}
               </div>
               <div className="flex items-center gap-2">
-                <button onClick={()=>{playSound(); setCart(p=>{const ex=p.find(i=>i.id===c.id); if(ex.qty<=1)return p.filter(i=>i.id!==c.id); return p.map(i=>i.id===c.id?{...i,qty:i.qty-1}:i)})}} className="w-7 h-7 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center hover:bg-red-500/20"><Minus className="w-3.5 h-3.5" /></button>
+                <button onClick={()=>{playSound(); setCart(p=>{const ex=p.find(i=>i.uniqueCartId===c.uniqueCartId); if(ex.qty<=1)return p.filter(i=>i.uniqueCartId!==c.uniqueCartId); return p.map(i=>i.uniqueCartId===c.uniqueCartId?{...i,qty:i.qty-1}:i)})}} className="w-7 h-7 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center hover:bg-red-500/20"><Minus className="w-3.5 h-3.5" /></button>
                 <span className="w-4 text-center font-bold text-sm">{c.qty}</span>
-                <button onClick={()=>{playSound(); setCart(p=>p.map(i=>i.id===c.id?{...i,qty:i.qty+1}:i))}} className="w-7 h-7 rounded-full bg-primary/10 text-primary flex items-center justify-center hover:bg-primary/20"><Plus className="w-3.5 h-3.5" /></button>
+                <button onClick={()=>{playSound(); setCart(p=>p.map(i=>i.uniqueCartId===c.uniqueCartId?{...i,qty:i.qty+1}:i))}} className="w-7 h-7 rounded-full bg-primary/10 text-primary flex items-center justify-center hover:bg-primary/20"><Plus className="w-3.5 h-3.5" /></button>
               </div>
             </div>
           ))}
+        </div>
+
+        {/* Order Type & Table Selection */}
+        <div className="grid grid-cols-2 gap-3 mb-4">
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Order Type</label>
+            <select className="form-input" value={orderType} onChange={e=>setOrderType(e.target.value)}>
+              <option value="takeaway">Takeaway</option>
+              <option value="dine_in">Dine-in</option>
+              <option value="delivery">Delivery</option>
+            </select>
+          </div>
+          {orderType === 'dine_in' && (
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Table</label>
+              <select className="form-input" value={selectedTable} onChange={e=>setSelectedTable(e.target.value)}>
+                <option value="">Select Table</option>
+                {tables.map(t => (
+                  <option key={t.id} value={t.id}>Table {t.table_number}</option>
+                ))}
+              </select>
+            </div>
+          )}
         </div>
 
         {/* Order Comments */}
@@ -318,21 +464,52 @@ const Menu = () => {
   // POS Cart State
   const [cart, setCart]                 = useState([]);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [configItem, setConfigItem]     = useState(null);
 
-  const addToCart = useCallback(item => {
+  const addToCart = useCallback((item, selectedModifiers = []) => {
     playSound();
+    const modPriceAdjustment = selectedModifiers.reduce((acc, opt) => acc + Number(opt.price_adjustment || 0), 0);
+    const itemPrice = Number(item.price) + modPriceAdjustment;
+
     setCart(p => {
-      const ex = p.find(c => c.id === item.id);
-      return ex ? p.map(c => c.id === item.id ? {...c, qty: c.qty+1} : c) : [...p, {...item, qty:1}];
+      const ex = p.find(c => c.id === item.id && 
+        JSON.stringify(c.selected_modifiers?.map(m => m.id).sort()) === 
+        JSON.stringify(selectedModifiers.map(m => m.id).sort())
+      );
+      if (ex) {
+        return p.map(c => c.uniqueCartId === ex.uniqueCartId ? {...c, qty: c.qty + 1} : c);
+      }
+      const uniqueId = `${item.id}-${Date.now()}-${Math.random()}`;
+      return [...p, {
+        id: item.id,
+        name: item.name,
+        price: itemPrice,
+        basePrice: item.price,
+        qty: 1,
+        selected_modifiers: selectedModifiers,
+        uniqueCartId: uniqueId
+      }];
     });
   }, [playSound]);
+
+  const handleAddCartClick = useCallback(item => {
+    if (item.modifiers && item.modifiers.length > 0) {
+      setConfigItem(item);
+    } else {
+      addToCart(item);
+    }
+  }, [addToCart]);
 
   const decCart = useCallback(id => {
     playSound();
     setCart(p => {
-      const ex = p.find(c => c.id === id);
-      if (!ex || ex.qty <= 1) return p.filter(c => c.id !== id);
-      return p.map(c => c.id === id ? {...c, qty: c.qty-1} : c);
+      const matches = p.filter(c => c.id === id);
+      if (matches.length === 0) return p;
+      const target = matches[matches.length - 1];
+      if (target.qty <= 1) {
+        return p.filter(c => c.uniqueCartId !== target.uniqueCartId);
+      }
+      return p.map(c => c.uniqueCartId === target.uniqueCartId ? {...c, qty: c.qty - 1} : c);
     });
   }, [playSound]);
 
@@ -472,7 +649,7 @@ const Menu = () => {
           {active.map(item=>(
             <ItemCard key={item.id} item={item} onToggle={toggle} isAdmin={isAdmin}
               onEdit={handleEdit} onDelete={handleDelete} onApprove={approve} onReject={reject} 
-              onAddCart={addToCart} onDecCart={decCart} cartQty={cart.find(c=>c.id===item.id)?.qty || 0} />
+              onAddCart={handleAddCartClick} onDecCart={decCart} cartQty={cart.filter(c=>c.id===item.id).reduce((s,c)=>s+c.qty, 0)} />
           ))}
         </AnimatePresence>
       </motion.div>
@@ -487,6 +664,7 @@ const Menu = () => {
       <AnimatePresence>
         {modalOpen && <ItemModal item={editItem} onClose={()=>{setModalOpen(false);setEditItem(null);}} onSave={save} />}
         {checkoutOpen && <CheckoutModal cart={cart} setCart={setCart} onClose={()=>setCheckoutOpen(false)} />}
+        {configItem && <ModifierSelectModal item={configItem} onClose={()=>setConfigItem(null)} onConfirm={addToCart} />}
       </AnimatePresence>
 
       <ConfirmModal

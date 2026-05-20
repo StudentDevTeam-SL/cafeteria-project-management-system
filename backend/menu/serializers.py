@@ -1,5 +1,39 @@
 from rest_framework import serializers
-from .models import Category, MenuItem, ContactMessage
+from .models import (
+    Category, MenuItem, ContactMessage, Recipe, RecipeIngredient,
+    ModifierGroup, ModifierOption, MenuItemModifier
+)
+
+
+class RecipeIngredientSerializer(serializers.ModelSerializer):
+    item_name = serializers.CharField(source='inventory_item.item_name', read_only=True)
+    unit = serializers.CharField(source='inventory_item.unit', read_only=True)
+
+    class Meta:
+        model = RecipeIngredient
+        fields = ['id', 'inventory_item', 'item_name', 'unit', 'quantity']
+
+
+class RecipeSerializer(serializers.ModelSerializer):
+    ingredients = RecipeIngredientSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Recipe
+        fields = ['id', 'menu_item', 'ingredients', 'created_at']
+
+
+class ModifierOptionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ModifierOption
+        fields = ['id', 'name', 'price_adjustment']
+
+
+class ModifierGroupSerializer(serializers.ModelSerializer):
+    options = ModifierOptionSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = ModifierGroup
+        fields = ['id', 'name', 'min_selections', 'max_selections', 'options']
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -25,14 +59,29 @@ class MenuItemSerializer(serializers.ModelSerializer):
     # image_url: write-only field lets the frontend pass a URL string
     # (used as a fallback when no file is uploaded)
     image_url = serializers.CharField(write_only=True, required=False, allow_blank=True)
+    
+    modifiers = serializers.SerializerMethodField()
+    recipe_details = serializers.SerializerMethodField()
 
     class Meta:
         model  = MenuItem
         fields = [
             'id', 'category', 'category_name', 'name', 'description',
             'price', 'image', 'image_url', 'status', 'is_active', 'created_at',
+            'modifiers', 'recipe_details',
         ]
         read_only_fields = ['created_at']
+
+    def get_modifiers(self, obj):
+        menu_item_modifiers = MenuItemModifier.objects.filter(menu_item=obj).select_related('modifier_group')
+        groups = [mim.modifier_group for mim in menu_item_modifiers]
+        return ModifierGroupSerializer(groups, many=True).data
+
+    def get_recipe_details(self, obj):
+        try:
+            return RecipeSerializer(obj.recipe).data
+        except Recipe.DoesNotExist:
+            return None
 
     def get_category(self, obj):
         """Return category name string (not FK int) for frontend filter compatibility."""

@@ -23,6 +23,17 @@ class IsManagerOrAdmin(BasePermission):
     """
     def has_permission(self, request, view):
         return bool(request.user and request.user.is_authenticated and getattr(request.user, 'role', '') in ['Admin', 'Manager'])
+
+class IsManagerOrAdminOrReadOnly(BasePermission):
+    """
+    Allows read access to any authenticated user,
+    but write/delete access only to users with the 'Admin' or 'Manager' role.
+    """
+    def has_permission(self, request, view):
+        if request.method in SAFE_METHODS:
+            return bool(request.user and request.user.is_authenticated)
+        return bool(request.user and request.user.is_authenticated and getattr(request.user, 'role', '') in ['Admin', 'Manager'])
+
 class IsAdminOrDeleteDenied(BasePermission):
     """
     Allows full access to Admins, but prevents deletion for others.

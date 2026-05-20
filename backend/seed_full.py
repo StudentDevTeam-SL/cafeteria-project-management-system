@@ -44,7 +44,7 @@ if FORCE:
     Category.objects.all().delete()
     InventoryItem.objects.all().delete()
     Employee.objects.all().delete()
-    CustomUser.objects.filter(username__in=['admin', 'employee']).delete()
+    CustomUser.objects.filter(username__in=['admin', 'employee', 'manager']).delete()
 
 print("Seeding database with big data...\n")
 
@@ -58,9 +58,17 @@ admin_user, c = CustomUser.objects.get_or_create(
 if c: admin_user.set_password('admin'); admin_user.save(); print("  Created: admin / admin")
 else: print("  Exists:  admin")
 
+mgr_user, c = CustomUser.objects.get_or_create(
+    username='manager',
+    defaults={'email':'manager@cafeteria.com','role':'Manager','is_staff':True,
+              'is_superuser':False, 'first_name':'Operations','last_name':'Manager'}
+)
+if c: mgr_user.set_password('manager'); mgr_user.save(); print("  Created: manager / manager")
+else: print("  Exists:  manager")
+
 emp_user, c = CustomUser.objects.get_or_create(
     username='employee',
-    defaults={'email':'employee@cafeteria.com','role':'Staff',
+    defaults={'email':'employee@cafeteria.com','role':'Employee',
               'first_name':'Staff','last_name':'Member'}
 )
 if c: emp_user.set_password('1234'); emp_user.save(); print("  Created: employee / 1234")
@@ -156,7 +164,7 @@ print(f"  {InventoryItem.objects.count()} inventory items ready")
 print("\nEmployees (10)...")
 emp_data = [
     {'full_name':'Ahmed Hassan',   'job_title':'Head Chef',        'salary':1800,'shift':'Morning',  'hours':'06:00 - 14:00','status':'active',  'phone':'+252 63 100 0001'},
-    {'full_name':'Sahra Ali',      'job_title':'Senior Barista',   'salary':1100,'shift':'Morning',  'hours':'07:00 - 15:00','status':'active',  'phone':'+252 63 100 0002'},
+    {'full_name':'Sahra Ali',      'job_title':'Operations Manager', 'salary':1500,'shift':'Morning',  'hours':'07:00 - 15:00','status':'active',  'phone':'+252 63 100 0002','user':mgr_user},
     {'full_name':'Mohamed Farah',  'job_title':'Waiter',           'salary': 750,'shift':'Evening',  'hours':'14:00 - 22:00','status':'active',  'phone':'+252 63 100 0003'},
     {'full_name':'Hodan Duale',    'job_title':'Cashier',          'salary': 850,'shift':'Full Time','hours':'08:00 - 17:00','status':'active',  'phone':'+252 63 100 0004','user':emp_user},
     {'full_name':'Khalid Warsame', 'job_title':'Line Cook',        'salary': 800,'shift':'Morning',  'hours':'06:00 - 14:00','status':'active',  'phone':'+252 63 100 0005'},

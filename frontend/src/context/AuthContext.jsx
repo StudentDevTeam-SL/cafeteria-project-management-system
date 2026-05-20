@@ -58,6 +58,25 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  /**
+   * googleSocialLogin — authenticates a verified google account ID token (credential) via Django REST API
+   */
+  const googleSocialLogin = async (credential) => {
+    try {
+      const res = await import('../api/axios').then(module => module.default.post('auth/google-social-login/', { credential }));
+      const { access, refresh, user: userData } = res.data;
+      
+      localStorage.setItem('token', access);
+      localStorage.setItem('refresh', refresh);
+      localStorage.setItem('user', JSON.stringify(userData));
+      
+      setUser(userData);
+      return userData;
+    } catch (error) {
+      throw new Error(error.response?.data?.error || 'Failed to complete Google Sign-in', { cause: error });
+    }
+  };
+
   /** logout — clear user and session storage, optionally call backend to blacklist token */
   const logout = async () => {
     try {
@@ -95,7 +114,10 @@ export const AuthProvider = ({ children }) => {
   const switchRole = () => {
     setUser(prev => {
       if (!prev) return prev;
-      const newRole = prev.role === 'Admin' ? 'Employee' : 'Admin';
+      let newRole = 'Employee';
+      if (prev.role === 'Employee' || prev.role === 'Staff') newRole = 'Manager';
+      else if (prev.role === 'Manager') newRole = 'Admin';
+      else newRole = 'Employee';
       const updated = { ...prev, role: newRole };
       localStorage.setItem('user', JSON.stringify(updated));
       return updated;
@@ -103,7 +125,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, updateUser, switchRole, isLoading }}>
+    <AuthContext.Provider value={{ user, login, logout, googleSocialLogin, updateUser, switchRole, isLoading }}>
       {children}
     </AuthContext.Provider>
   );

@@ -8,23 +8,23 @@ export default {
   theme: {
     extend: {
       colors: {
-        // ── Dark mode: deep navy/charcoal ──
+        // ── Dark mode: deep navy/slate luxury ──
         dark: {
-          DEFAULT: '#0d1117',    // GitHub-inspired deep dark
-          lighter: '#161b22',    // Slightly lighter panels
-          card: '#1c2333',       // Card backgrounds in dark mode
+          DEFAULT: '#090d16',    // Deep premium slate-950
+          lighter: '#0f172a',    // Slate-900 panels
+          card: '#1e293b',       // Slate-800 card backgrounds
         },
-        // ── Light mode: warm slate (not pure white) ──
+        // ── Light mode: warm slate ──
         light: {
-          DEFAULT: '#f0f2f5',    // Warm gray — professional, not blinding
-          darker: '#e4e7ec',     // Slightly darker areas
-          card: '#ffffff',       // Pure white only for card surfaces
+          DEFAULT: '#f8fafc',    // Clean slate-50
+          darker: '#f1f5f9',     // Slate-100 areas
+          card: '#ffffff',       // Pure white cards
         },
         // ── Brand colors ──
-        primary:  '#3b82f6',     // Electric Blue
-        accent:   '#06d6a0',     // Teal/Mint accent
-        warning:  '#f59e0b',     // Amber
-        danger:   '#ef4444',     // Red
+        primary:  '#4f46e5',     // Indigo-600 (Corporate Premium Indigo)
+        accent:   '#06b6d4',     // Cyan-500 (Teal/Cyan highlight)
+        warning:  '#f59e0b',     // Amber-500
+        danger:   '#ef4444',     // Red-500
       },
       // ── Custom keyframe animations ──
       animation: {
@@ -61,10 +61,10 @@ export default {
       },
       // ── Box shadows ──
       boxShadow: {
-        'glow-sm':  '0 0 15px rgba(59,130,246,0.3)',
-        'glow':     '0 0 30px rgba(59,130,246,0.4)',
-        'glow-lg':  '0 0 60px rgba(59,130,246,0.5)',
-        'glow-accent': '0 0 30px rgba(6,214,160,0.4)',
+        'glow-sm':  '0 0 15px rgba(79,70,229,0.3)',
+        'glow':     '0 0 30px rgba(79,70,229,0.4)',
+        'glow-lg':  '0 0 60px rgba(79,70,229,0.5)',
+        'glow-accent': '0 0 30px rgba(6,182,212,0.4)',
         'card':     '0 8px 32px -8px rgba(0,0,0,0.12)',
         'card-hover': '0 20px 60px -12px rgba(0,0,0,0.2)',
         'inner-glow': 'inset 0 1px 0 rgba(255,255,255,0.1)',

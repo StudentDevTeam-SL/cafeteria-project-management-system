@@ -3,7 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from .models import Employee
 from .serializers import EmployeeSerializer
-from accounts.permissions import IsAdminRoleOrReadOnly
+from accounts.permissions import IsManagerOrAdminOrReadOnly
 
 class EmployeeViewSet(viewsets.ModelViewSet):
     """
@@ -12,7 +12,7 @@ class EmployeeViewSet(viewsets.ModelViewSet):
     """
     queryset = Employee.objects.select_related('user').order_by('id')
     serializer_class = EmployeeSerializer
-    permission_classes = [IsAdminRoleOrReadOnly]
+    permission_classes = [IsManagerOrAdminOrReadOnly]
 
     @action(detail=True, methods=['patch'])
     def toggle(self, request, pk=None):
