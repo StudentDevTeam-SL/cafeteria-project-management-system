@@ -10,7 +10,7 @@ class EmployeeViewSet(viewsets.ModelViewSet):
     ViewSet for viewing and editing employee instances.
     Provides a custom action to toggle an employee's active status.
     """
-    queryset = Employee.objects.all()
+    queryset = Employee.objects.select_related('user').order_by('id')
     serializer_class = EmployeeSerializer
     permission_classes = [IsAdminRoleOrReadOnly]
 

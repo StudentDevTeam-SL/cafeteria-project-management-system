@@ -24,7 +24,7 @@ class MenuItemViewSet(viewsets.ModelViewSet):
     Supports multipart/form-data for image uploads (ImageField).
     Provides a custom action to toggle an item's active status.
     """
-    queryset           = MenuItem.objects.all()
+    queryset           = MenuItem.objects.select_related('category').order_by('id')
     serializer_class   = MenuItemSerializer
     permission_classes = [IsAdminRoleOrReadOnly]
     # Accept file uploads (multipart) as well as JSON

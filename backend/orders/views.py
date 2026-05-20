@@ -10,7 +10,7 @@ class OrderViewSet(viewsets.ModelViewSet):
     ViewSet for viewing and editing order instances.
     Provides a custom action to update an order's status.
     """
-    queryset = Order.objects.all()
+    queryset = Order.objects.select_related('user').prefetch_related('items__menu_item').order_by('-id')
     serializer_class = OrderSerializer
     permission_classes = [IsAdminOrDeleteDenied]
 

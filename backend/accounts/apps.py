@@ -6,11 +6,20 @@ class AccountsConfig(AppConfig):
     name = 'accounts'
 
     def ready(self):
-        try:
-            from .models import CustomUser
-            from django.db import connection
-            # Only run if the table exists to avoid errors during initial migration
-            if 'accounts_customuser' in connection.introspection.table_names():
+        """Create default users after migrations complete.
+
+        Using the `post_migrate` signal avoids accessing the database during
+        application import which triggers a runtime warning and can fail
+        during initial migrations.
+        """
+        from django.db.models.signals import post_migrate
+        from django.dispatch import receiver
+        from django.contrib.auth import get_user_model
+
+        @receiver(post_migrate)
+        def create_default_users(sender, **kwargs):
+            CustomUser = get_user_model()
+            try:
                 admin_user, created = CustomUser.objects.get_or_create(
                     username='admin',
                     defaults={
@@ -22,11 +31,9 @@ class AccountsConfig(AppConfig):
                         'is_staff': True,
                     }
                 )
-                admin_user.set_password('admin')
-                admin_user.is_superuser = True
-                admin_user.is_staff = True
-                admin_user.role = 'Admin'
-                admin_user.save()
+                if created:
+                    admin_user.set_password('admin')
+                    admin_user.save()
 
                 employee_user, created_emp = CustomUser.objects.get_or_create(
                     username='employee',
@@ -39,11 +46,10 @@ class AccountsConfig(AppConfig):
                         'is_staff': False,
                     }
                 )
-                employee_user.set_password('1234')
-                employee_user.is_superuser = False
-                employee_user.is_staff = False
-                employee_user.role = 'Employee'
-                employee_user.save()
-        except Exception as e:
-            pass
+                if created_emp:
+                    employee_user.set_password('1234')
+                    employee_user.save()
+            except Exception:
+                # Silently ignore failures during test/migrate workflows
+                pass
 

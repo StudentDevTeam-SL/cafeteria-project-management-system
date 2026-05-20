@@ -18,6 +18,11 @@ backend/*.err.log
 backend/*.out.log
 
 # Environment secrets
+# Local environment files (do NOT commit secrets)
+backend/.env
+.env
+.env.local
+.env.*.local
 
 
 # Python cache
