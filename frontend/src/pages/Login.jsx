@@ -1,8 +1,8 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { useTheme } from '../hooks/useTheme';
 import { useSoundContext } from '../context/SoundContext';
+import api from '../api/axios';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Lock, User, AlertCircle, ChefHat, Eye, EyeOff, 
@@ -10,7 +10,6 @@ import {
   X, Mail, KeyRound, ShieldCheck,
   Coffee, Users, DollarSign
 } from 'lucide-react';
-import cafeteriaLuxury from '../assets/cafeteria_luxury.png';
 
 /**
  * Login Component
@@ -21,7 +20,7 @@ import cafeteriaLuxury from '../assets/cafeteria_luxury.png';
  * - Glassmorphic, luxury card layout on the right.
  * - Single Sign-On (SSO) simulation.
  * - Working "Forgot Password?" interactive modal workflow.
- * - Beautiful background layering: 1080p Live Chef Dining Video + Luxury Design Render photo.
+ * - Beautiful background layering: 1080p live chef dining video.
  */
 const GoogleIcon = () => (
   <svg viewBox="0 0 24 24" className="w-5 h-5">
@@ -46,7 +45,6 @@ const FacebookIcon = () => (
 
 const Login = () => {
   const { login, googleSocialLogin, isLoading } = useAuth();
-  const { theme } = useTheme();
   const { playSound } = useSoundContext();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -74,6 +72,7 @@ const Login = () => {
   const [googleError, setGoogleError] = useState('');
   const [googleProfileName, setGoogleProfileName] = useState('');
   const [googleProfileRole, setGoogleProfileRole] = useState('');
+  const googleStepLabels = ['Gmail', 'Database', 'Welcome'];
 
   const [tilt, setTilt]         = useState({ x:0, y:0 });
   const cardRef = useRef(null);
@@ -178,7 +177,10 @@ const Login = () => {
 
   // Google flow email verification handler
   const verifyGoogleEmail = async (email) => {
-    setGoogleSelectedEmail(email);
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!normalizedEmail) return;
+
+    setGoogleSelectedEmail(normalizedEmail);
     setGoogleStep(2);
     setGoogleError('');
     
@@ -187,10 +189,13 @@ const Login = () => {
       await new Promise(resolve => setTimeout(resolve, 800));
       
       // 2. Query the backend checker
-      const response = await import('../api/axios').then(module => module.default.post('auth/check-email/', { email }));
+      const response = await api.post('auth/check-email/', { email: normalizedEmail });
       
       if (response.data.found) {
-        const { username, full_name, role } = response.data;
+        const { full_name, role, email: verifiedEmail } = response.data;
+        const loginEmail = verifiedEmail || normalizedEmail;
+
+        setGoogleSelectedEmail(loginEmail);
         setGoogleProfileName(full_name);
         setGoogleProfileRole(role);
         setGoogleStep(3);
@@ -201,7 +206,7 @@ const Login = () => {
         // 3. Keep animation visible for 2.3 seconds, then log in and redirect
         setTimeout(async () => {
           try {
-            await googleSocialLogin(username);
+            await googleSocialLogin(`mock-google-token-${loginEmail}`);
             setShowGoogleModal(false);
           } catch (loginErr) {
             setGoogleError(loginErr.message || 'Authentication failed. Please try again.');
@@ -209,7 +214,7 @@ const Login = () => {
           }
         }, 2300);
       } else {
-        setGoogleError('This Google Account is not registered in the system database. Please use a registered corporate email.');
+        setGoogleError('This Gmail account is not registered in the system database. Please use a registered staff Gmail.');
         setGoogleStep(1);
       }
     } catch (err) {
@@ -306,12 +311,6 @@ const Login = () => {
         
         {/* Background Media Container */}
         <div className="absolute inset-0 w-full h-full z-0 pointer-events-none">
-          {/* Fallback Luxury Photo */}
-          <img 
-            src={cafeteriaLuxury} 
-            className="absolute inset-0 w-full h-full object-cover opacity-60" 
-            alt="Cafeteria Render" 
-          />
           {/* 1080p Live Chef Dining Video */}
           <video 
             autoPlay 
@@ -405,13 +404,13 @@ const Login = () => {
       </div>
 
       {/* ── RIGHT SIDE: Glassmorphic Login Form ── */}
-      <div className="w-full lg:w-1/2 flex flex-col justify-center items-center pt-24 pb-16 px-6 md:px-12 bg-[#f8fafc] dark:bg-gradient-to-br dark:from-[#0c1324] dark:via-[#070b13] dark:to-[#04060a] relative overflow-hidden transition-colors duration-300">
+      <div className="login-light-panel w-full lg:w-1/2 flex flex-col justify-center items-center pt-24 pb-16 px-6 md:px-12 relative overflow-hidden transition-colors duration-300">
         
         {/* Dynamic Background Effects */}
-        <div className="absolute inset-0 bg-[radial-gradient(#e2e8f0_1px,transparent_1px)] dark:bg-[radial-gradient(#6366f1_1px,transparent_1px)] [background-size:24px_24px] opacity-60 dark:opacity-[0.04] pointer-events-none"/>
-        <div className="absolute w-[450px] h-[450px] rounded-full bg-primary/5 dark:bg-primary/20 blur-[130px] top-[-10%] right-[-5%] pointer-events-none"/>
-        <div className="absolute w-[300px] h-[300px] rounded-full bg-accent/5 dark:bg-accent/25 blur-[100px] bottom-[-5%] left-[-5%] pointer-events-none"/>
-        <div className="absolute w-[250px] h-[250px] rounded-full bg-amber-500/5 dark:bg-amber-500/10 blur-[80px] top-[40%] left-[20%] pointer-events-none"/>
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(99,102,241,0.055)_1px,transparent_1px),linear-gradient(90deg,rgba(6,182,212,0.055)_1px,transparent_1px)] dark:bg-[radial-gradient(#6366f1_1px,transparent_1px)] [background-size:32px_32px] opacity-55 dark:opacity-[0.04] pointer-events-none"/>
+        <div className="hidden dark:block absolute w-[450px] h-[450px] rounded-full bg-primary/20 blur-[130px] top-[-10%] right-[-5%] pointer-events-none"/>
+        <div className="hidden dark:block absolute w-[300px] h-[300px] rounded-full bg-accent/25 blur-[100px] bottom-[-5%] left-[-5%] pointer-events-none"/>
+        <div className="hidden dark:block absolute w-[250px] h-[250px] rounded-full bg-amber-500/10 blur-[80px] top-[40%] left-[20%] pointer-events-none"/>
 
         {/* Mobile Header (Hidden on desktop) */}
         <div className="lg:hidden flex flex-col items-center mb-8">
@@ -425,7 +424,7 @@ const Login = () => {
         </div>
 
         {/* Secure Gate Badge */}
-        <div className="hidden sm:flex items-center space-x-2.5 px-4 py-1.5 rounded-full bg-white dark:bg-white/[0.05] border border-slate-200/85 dark:border-white/[0.1] text-[10px] text-slate-600 dark:text-slate-300 font-semibold mb-6 shadow-sm z-10 transition-colors duration-300">
+        <div className="hidden sm:flex items-center space-x-2.5 px-4 py-1.5 rounded-full glass dark:bg-white/[0.05] dark:border-white/[0.1] text-[10px] text-slate-600 dark:text-slate-300 font-semibold mb-6 z-10 transition-colors duration-300">
           <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
           <span>Secure Enterprise Connection Active</span>
           <span className="text-slate-300 dark:text-slate-600">|</span>
@@ -447,7 +446,7 @@ const Login = () => {
               transform: `perspective(1000px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`,
               transition: 'transform 0.15s ease-out',
             }}
-            className="w-full bg-white dark:bg-white/[0.06] border border-slate-200/80 dark:border-white/[0.15] rounded-3xl p-8 md:p-10 shadow-xl dark:shadow-2xl backdrop-blur-xl relative transition-all duration-300"
+            className="w-full glass-card dark:bg-white/[0.06] dark:border-white/[0.15] rounded-3xl p-8 md:p-10 dark:shadow-2xl relative transition-all duration-300"
           >
             {/* Top card glowing blur corner */}
             <div className="absolute top-0 right-0 w-24 h-24 bg-primary/10 dark:bg-primary/20 rounded-full blur-2xl pointer-events-none" />
@@ -491,7 +490,7 @@ const Login = () => {
                     autoComplete="username" 
                     required 
                     placeholder="username@gmail.com"
-                    className="w-full h-11 pl-10 pr-10 rounded-2xl bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder-slate-400 border border-slate-200 dark:border-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/50 text-sm transition-all shadow-sm"
+                    className="form-input h-11 pl-10 pr-10 rounded-2xl dark:bg-slate-900 focus:ring-primary/50"
                     value={username} 
                     onChange={e => setUsername(e.target.value)}
                   />
@@ -508,7 +507,7 @@ const Login = () => {
                     autoComplete="current-password" 
                     required 
                     placeholder="Password"
-                    className="w-full h-11 pl-10 pr-10 rounded-2xl bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder-slate-400 border border-slate-200 dark:border-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/50 text-sm transition-all shadow-sm"
+                    className="form-input h-11 pl-10 pr-10 rounded-2xl dark:bg-slate-900 focus:ring-primary/50"
                     value={password} 
                     onChange={e => setPassword(e.target.value)}
                   />
@@ -561,7 +560,7 @@ const Login = () => {
                   type="button"
                   onClick={() => handleSocialLogin('google')}
                   disabled={ssoLoading}
-                  className="flex-1 h-11 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-2xl flex items-center justify-center border border-slate-200 dark:border-slate-800 shadow-sm transition-all cursor-pointer"
+                  className="flex-1 h-11 glass-card dark:bg-slate-900 dark:hover:bg-slate-800 rounded-2xl flex items-center justify-center transition-all cursor-pointer"
                 >
                   <GoogleIcon />
                 </button>
@@ -569,7 +568,7 @@ const Login = () => {
                   type="button"
                   onClick={() => handleSocialLogin('linkedin')}
                   disabled={ssoLoading}
-                  className="flex-1 h-11 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-2xl flex items-center justify-center border border-slate-200 dark:border-slate-800 shadow-sm transition-all cursor-pointer"
+                  className="flex-1 h-11 glass-card dark:bg-slate-900 dark:hover:bg-slate-800 rounded-2xl flex items-center justify-center transition-all cursor-pointer"
                 >
                   <LinkedinIcon />
                 </button>
@@ -577,7 +576,7 @@ const Login = () => {
                   type="button"
                   onClick={() => handleSocialLogin('facebook')}
                   disabled={ssoLoading}
-                  className="flex-1 h-11 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-2xl flex items-center justify-center border border-slate-200 dark:border-slate-800 shadow-sm transition-all cursor-pointer"
+                  className="flex-1 h-11 glass-card dark:bg-slate-900 dark:hover:bg-slate-800 rounded-2xl flex items-center justify-center transition-all cursor-pointer"
                 >
                   <FacebookIcon />
                 </button>
@@ -628,7 +627,7 @@ const Login = () => {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 15 }}
               transition={{ duration: 0.2 }}
-              className="w-full max-w-md bg-white dark:bg-[#0f172a]/95 border border-slate-200 dark:border-slate-800 rounded-3xl p-8 shadow-2xl backdrop-blur-xl relative z-10"
+              className="w-full max-w-md glass-card dark:bg-[#0f172a]/95 dark:border-slate-800 rounded-3xl p-8 shadow-2xl relative z-10"
             >
               {/* Close Button */}
               <button 
@@ -672,7 +671,7 @@ const Login = () => {
                   </div>
 
                   {/* Suggestion list */}
-                  <div className="p-3.5 bg-slate-50 dark:bg-slate-900/40 rounded-2xl border border-slate-200/60 dark:border-slate-800/80">
+                  <div className="p-3.5 glass-card dark:bg-slate-900/40 rounded-2xl dark:border-slate-800/80">
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-2">Select a Demo Account to Reset</span>
                     <div className="flex flex-col space-y-1.5">
                       {[
@@ -858,7 +857,7 @@ const Login = () => {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 15 }}
               transition={{ duration: 0.2 }}
-              className="w-full max-w-md bg-white dark:bg-[#0f172a]/95 border border-slate-200 dark:border-slate-800 rounded-3xl p-8 shadow-2xl backdrop-blur-xl relative z-10"
+              className="w-full max-w-md glass-card dark:bg-[#0f172a]/95 dark:border-slate-800 rounded-3xl p-8 shadow-2xl relative z-10"
             >
               {/* Close Button */}
               {googleStep !== 2 && googleStep !== 3 && (
@@ -870,6 +869,22 @@ const Login = () => {
                   <X className="w-5 h-5" />
                 </button>
               )}
+
+              <div className="mb-6 grid grid-cols-3 gap-2 text-center">
+                {googleStepLabels.map((label, index) => {
+                  const stepNumber = index + 1;
+                  const isActive = googleStep >= stepNumber;
+
+                  return (
+                    <div key={label} className="space-y-1">
+                      <div className={`h-1.5 rounded-full transition-colors ${isActive ? 'bg-primary' : 'bg-slate-200 dark:bg-slate-800'}`} />
+                      <span className={`text-[10px] font-black uppercase tracking-wider ${isActive ? 'text-primary' : 'text-slate-400'}`}>
+                        {label}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
 
               {/* Step 1: Account Selection / Enter Email */}
               {googleStep === 1 && (
@@ -900,7 +915,7 @@ const Login = () => {
                           key={index}
                           type="button"
                           onClick={() => handleSelectGoogleEmail(acc.email)}
-                          className="w-full flex items-center justify-between p-3.5 rounded-2xl bg-slate-50 hover:bg-slate-100 dark:bg-slate-900/50 dark:hover:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 transition-all text-left cursor-pointer group"
+                          className="w-full flex items-center justify-between p-3.5 rounded-2xl glass-card dark:bg-slate-900/50 dark:hover:bg-slate-900 dark:border-slate-800/80 transition-all text-left cursor-pointer group"
                         >
                           <div className="flex items-center space-x-3">
                             <div className={`w-9 h-9 rounded-full ${acc.color} text-white flex items-center justify-center font-bold text-xs shadow-sm`}>
@@ -937,7 +952,7 @@ const Login = () => {
                           type="email"
                           required
                           placeholder="yourname@gmail.com"
-                          className="w-full h-11 pl-4 pr-4 rounded-2xl bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder-slate-400 border border-slate-200 dark:border-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/50 text-sm transition-all shadow-sm"
+                          className="form-input h-11 rounded-2xl dark:bg-slate-900 focus:ring-primary/50"
                           value={googleCustomEmail}
                           onChange={e => setGoogleCustomEmail(e.target.value)}
                         />
@@ -976,7 +991,7 @@ const Login = () => {
 
                   <div>
                     <h3 className="text-lg font-extrabold text-slate-900 dark:text-white font-heading">Verifying Account</h3>
-                    <p className="text-xs text-slate-500 mt-1 font-medium">Checking email against enterprise directory database...</p>
+                    <p className="text-xs text-slate-500 mt-1 font-medium">Checking Gmail against enterprise directory database...</p>
                   </div>
 
                   <div className="max-w-xs mx-auto text-[11px] text-slate-400 font-mono bg-slate-50 dark:bg-slate-900/50 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800/80">
@@ -1013,11 +1028,11 @@ const Login = () => {
                       <span>Security Clearance Verified</span>
                     </motion.div>
 
-                    <h3 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white font-heading">
-                      Welcome back!
+                    <h3 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white font-heading break-words">
+                      Welcome, {googleProfileName}!
                     </h3>
-                    <p className="text-lg font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent mt-1">
-                      {googleProfileName}
+                    <p className="text-xs text-slate-500 mt-2 font-semibold break-all">
+                      {googleSelectedEmail}
                     </p>
                     <p className="text-xs text-slate-500 mt-2 font-semibold flex items-center justify-center space-x-1.5">
                       <span>Role:</span>

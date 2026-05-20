@@ -165,7 +165,7 @@ const ItemModal = ({ item, onClose, onSave }) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
       <motion.div initial={{opacity:0,scale:.9,y:20}} animate={{opacity:1,scale:1,y:0}} exit={{opacity:0,scale:.9}}
-        className="bg-light-card dark:bg-dark-card rounded-2xl shadow-2xl p-6 w-full max-w-lg border border-slate-200/60 dark:border-slate-700/50 relative overflow-y-auto max-h-[90vh]">
+        className="glass-card dark:bg-dark-card rounded-2xl shadow-2xl p-6 w-full max-w-lg dark:border-slate-700/50 relative overflow-y-auto max-h-[90vh]">
         <button onClick={onClose} className="absolute top-4 right-4 p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400"><X className="w-5 h-5" /></button>
         <h2 className="text-2xl font-black gradient-text mb-4">
           {item ? 'Edit Item' : 'Add Menu Item'}
@@ -264,7 +264,7 @@ const ModifierSelectModal = ({ item, onClose, onConfirm }) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm">
       <motion.div initial={{opacity:0,scale:.95}} animate={{opacity:1,scale:1}} exit={{opacity:0,scale:.95}}
-        className="bg-light-card dark:bg-dark-card rounded-2xl shadow-2xl p-6 w-full max-w-md border border-slate-200/60 dark:border-slate-700/50">
+        className="glass-card dark:bg-dark-card rounded-2xl shadow-2xl p-6 w-full max-w-md dark:border-slate-700/50">
         <h3 className="text-xl font-black mb-1">{item.name}</h3>
         <p className="text-xs text-slate-500 mb-4">Customize your selection</p>
         
@@ -361,7 +361,7 @@ const CheckoutModal = ({ cart, setCart, onClose }) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
       <motion.div initial={{opacity:0,scale:.9,y:20}} animate={{opacity:1,scale:1,y:0}} exit={{opacity:0,scale:.9}}
-        className="bg-light-card dark:bg-dark-card rounded-2xl shadow-2xl p-6 w-full max-w-md border border-slate-200/60 dark:border-slate-700/50 relative overflow-y-auto max-h-[90vh]">
+        className="glass-card dark:bg-dark-card rounded-2xl shadow-2xl p-6 w-full max-w-md dark:border-slate-700/50 relative overflow-y-auto max-h-[90vh]">
         <button onClick={onClose} className="absolute top-4 right-4 p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400"><X className="w-5 h-5" /></button>
         <h2 className="text-xl font-black gradient-text mb-4">Current Order</h2>
         

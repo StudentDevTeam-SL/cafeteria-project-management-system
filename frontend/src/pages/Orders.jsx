@@ -89,7 +89,7 @@ const NewOrderModal = ({ onClose, onPlaced, menuItems }) => {
   return (
     <div className="fixed inset-0 z-40 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
       <motion.div initial={{opacity:0,scale:.9,y:20}} animate={{opacity:1,scale:1,y:0}} exit={{opacity:0,scale:.9}}
-        className="bg-light-card dark:bg-dark-card rounded-2xl shadow-2xl w-full max-w-xl border border-slate-200/60 dark:border-slate-700/50 max-h-[90vh] overflow-y-auto">
+        className="glass-card dark:bg-dark-card rounded-2xl shadow-2xl w-full max-w-xl dark:border-slate-700/50 max-h-[90vh] overflow-y-auto">
         <div className="h-1 bg-gradient-to-r from-primary via-violet-500 to-accent"/>
         <div className="p-5">
           <div className="flex items-center justify-between mb-4">
@@ -145,7 +145,7 @@ const OrderModal = ({ order, onClose, onStatusChange }) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
       <motion.div initial={{opacity:0,scale:.9,y:20}} animate={{opacity:1,scale:1,y:0}} exit={{opacity:0,scale:.9}}
-        className="bg-light-card dark:bg-dark-card rounded-2xl shadow-2xl w-full max-w-lg border border-slate-200/60 dark:border-slate-700/50 overflow-hidden">
+        className="glass-card dark:bg-dark-card rounded-2xl shadow-2xl w-full max-w-lg dark:border-slate-700/50 overflow-hidden">
         <div className={`h-1 ${order.status==='completed'?'bg-emerald-500':order.status==='processing'?'bg-blue-500':order.status==='cancelled'?'bg-red-500':'bg-amber-500'}`}/>
         <div className="p-6 border-b border-slate-200/60 dark:border-slate-700/40 flex items-center justify-between">
           <div>

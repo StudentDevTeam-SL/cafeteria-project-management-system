@@ -5,6 +5,7 @@ import { SoundProvider } from './context/SoundContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { PublicRoute } from './components/PublicRoute';
 import { ToastProvider } from './context/ToastContext';
+import { ScrollToTop } from './components/ScrollToTop';
 import { AdminLayout } from './components/Layout/AdminLayout';
 import { PublicLayout } from './components/Layout/PublicLayout';
 
@@ -20,7 +21,8 @@ function App() {
         <ToastProvider>
           <AuthProvider>
             <Router>
-            <Routes>
+              <ScrollToTop />
+              <Routes>
               {/* Public Routes restricted to unauthenticated users */}
               <Route element={<PublicRoute />}>
                 <Route element={<PublicLayout />}>
@@ -53,8 +55,8 @@ function App() {
 
               {/* Fallback */}
               <Route path="*" element={<Navigate to="/home" replace />} />
-            </Routes>
-          </Router>
+              </Routes>
+            </Router>
           </AuthProvider>
         </ToastProvider>
       </SoundProvider>

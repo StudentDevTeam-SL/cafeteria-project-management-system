@@ -87,6 +87,42 @@
            transition-all duration-150;
   }
 
+  /* ── Premium Glassmorphism Button ── */
+  .btn-glass {
+    @apply backdrop-blur-md border transition-all duration-300 font-bold rounded-2xl;
+    background: rgba(255, 255, 255, 0.45);
+    border-color: rgba(255, 255, 255, 0.6);
+    color: #0f172a; /* slate-900 */
+    box-shadow: 
+      0 10px 30px -10px rgba(15, 23, 42, 0.04),
+      inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  }
+
+  .btn-glass:hover {
+    background: rgba(255, 255, 255, 0.65);
+    border-color: rgba(255, 255, 255, 0.8);
+    box-shadow: 
+      0 12px 35px -8px rgba(15, 23, 42, 0.08),
+      inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  }
+
+  .dark .btn-glass {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.15);
+    color: #f8fafc; /* slate-50 */
+    box-shadow: 
+      0 10px 30px -10px rgba(0, 0, 0, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
+
+  .dark .btn-glass:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.25);
+    box-shadow: 
+      0 12px 35px -8px rgba(0, 0, 0, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  }
+
   /* ── Danger button ── */
   .btn-danger {
     @apply px-5 py-2.5

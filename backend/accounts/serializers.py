@@ -6,9 +6,11 @@ class UserSerializer(serializers.ModelSerializer):
     """
     Serializer for the CustomUser model for reading basic user information.
     """
+    full_name = serializers.ReadOnlyField()
+
     class Meta:
         model = CustomUser
-        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'role', 'phone_number']
+        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'full_name', 'role', 'phone_number']
         read_only_fields = ['id', 'username', 'role']
 
 class UserCreateSerializer(serializers.ModelSerializer):

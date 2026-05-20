@@ -130,7 +130,7 @@ const PaymentModal = ({ amount = 0, onClose, onSuccess }) => {
         animate={{ opacity: 1, scale: 1,   y: 0  }}
         exit={{   opacity: 0, scale: 0.9, y: 20  }}
         transition={{ type: 'spring', damping: 22, stiffness: 200 }}
-        className="relative w-full max-w-md bg-light-card dark:bg-dark-card rounded-3xl shadow-2xl border border-slate-200/60 dark:border-slate-700/50 overflow-hidden"
+        className="relative w-full max-w-md glass-card dark:bg-dark-card rounded-3xl shadow-2xl dark:border-slate-700/50 overflow-hidden"
       >
         {/* ── Decorative top bar ── */}
         <div className="h-1.5 bg-gradient-to-r from-primary via-violet-500 to-accent" />

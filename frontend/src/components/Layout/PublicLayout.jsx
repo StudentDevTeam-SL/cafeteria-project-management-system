@@ -91,7 +91,7 @@ export const PublicLayout = () => {
   }), [animationConfig]);
 
   return (
-    <div className="min-h-screen bg-light dark:bg-dark text-slate-800 dark:text-slate-100 font-sans transition-colors duration-300 flex flex-col">
+    <div className="min-h-screen bg-transparent dark:bg-dark text-slate-800 dark:text-slate-100 font-sans transition-colors duration-300 flex flex-col">
 
       {/* ════ Floating Navbar ════ */}
       <motion.nav
@@ -101,9 +101,9 @@ export const PublicLayout = () => {
         className="fixed top-0 left-0 right-0 z-50 h-20"
         style={{ willChange: 'transform, opacity' }}
       >
-        <div className={`mx-4 mt-3 px-6 h-14 rounded-2xl shadow-xl flex items-center justify-between border border-gray-200/50 dark:border-slate-700/50 ${
+        <div className={`mx-4 mt-3 px-6 h-14 rounded-2xl shadow-xl flex items-center justify-between border border-white/70 dark:border-slate-700/50 ${
           lowPerformance 
-            ? 'bg-light/95 dark:bg-dark/95' 
+            ? 'bg-white/80 dark:bg-dark/95 backdrop-blur-xl dark:backdrop-blur-none' 
             : 'glass dark:glass-dark'
         }`}>
           {/* Logo */}
@@ -176,8 +176,8 @@ export const PublicLayout = () => {
               initial="initial"
               animate="animate"
               exit="exit"
-              className={`mx-4 mt-1 rounded-2xl shadow-xl p-4 space-y-1 border border-gray-200/50 dark:border-slate-700/50 ${
-                lowPerformance ? 'bg-light/98 dark:bg-dark/98' : 'glass dark:glass-dark'
+              className={`mx-4 mt-1 rounded-2xl shadow-xl p-4 space-y-1 border border-white/70 dark:border-slate-700/50 ${
+                lowPerformance ? 'bg-white/85 dark:bg-dark/98 backdrop-blur-xl dark:backdrop-blur-none' : 'glass dark:glass-dark'
               }`}
               style={{ willChange: 'transform, opacity' }}
             >
@@ -205,7 +205,7 @@ export const PublicLayout = () => {
       </motion.nav>
 
       {/* ════ Page Content ════ */}
-      <main className="pt-20 flex-1">
+      <main data-route-scroll-container className="pt-20 flex-1">
         <Outlet />
       </main>
 

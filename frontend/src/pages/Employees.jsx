@@ -41,7 +41,7 @@ const EmployeeModal = React.memo(({ emp, onClose, onSave }) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
       <motion.div initial={{opacity:0,scale:.9,y:20}} animate={{opacity:1,scale:1,y:0}} exit={{opacity:0,scale:.9}}
-        className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-lg border border-gray-100 dark:border-slate-700 relative max-h-[90vh] overflow-y-auto">
+        className="glass-card dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-lg dark:border-slate-700 relative max-h-[90vh] overflow-y-auto">
         <div className="h-1 bg-gradient-to-r from-primary to-accent" />
         <button onClick={onClose} className="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-400"><X className="w-5 h-5" /></button>
         <div className="p-6">

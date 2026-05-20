@@ -14,10 +14,10 @@ export default {
           lighter: '#0f172a',    // Slate-900 panels
           card: '#1e293b',       // Slate-800 card backgrounds
         },
-        // ── Light mode: warm slate ──
+        // ── Light mode: airy Apple-inspired glass canvas ──
         light: {
-          DEFAULT: '#f8fafc',    // Clean slate-50
-          darker: '#f1f5f9',     // Slate-100 areas
+          DEFAULT: '#eef4fb',    // Soft blue-white canvas
+          darker: '#e7eef8',     // Subtle frosted bands
           card: '#ffffff',       // Pure white cards
         },
         // ── Brand colors ──

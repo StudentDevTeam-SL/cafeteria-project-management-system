@@ -349,7 +349,7 @@ const Home = () => {
       </section>
 
       {/* ════ PHOTO SHOWCASE w/ Unsplash ════ */}
-      <section className="py-28 px-6 bg-gray-50/70 dark:bg-slate-900/40">
+      <section className="py-28 px-6 glass-section">
         <div className="max-w-6xl mx-auto">
           <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16">
             <h2 className="text-5xl font-black mb-4">Built for <span className="gradient-text">Real Cafeterias</span></h2>

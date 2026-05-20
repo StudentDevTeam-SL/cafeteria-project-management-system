@@ -8,6 +8,7 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from .serializers import CustomTokenObtainPairSerializer, UserSerializer, UserCreateSerializer
 from .models import CustomUser
+from .google_auth import google_user_payload, resolve_google_user
 from rest_framework import viewsets
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -69,18 +70,10 @@ class CheckEmailView(APIView):
         if not email:
             return Response({'found': False, 'error': 'email is required'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Direct database query by email (No hardcoded maps or auto-creation)
-        user = CustomUser.objects.filter(email=email).first()
+        user, requested_email = resolve_google_user(email)
 
         if user:
-            full_name = f"{user.first_name} {user.last_name}".strip() or user.username.title()
-            return Response({
-                'found': True,
-                'username': user.username,
-                'full_name': full_name,
-                'role': getattr(user, 'role', 'Staff'),
-                'email': email,
-            })
+            return Response(google_user_payload(user, requested_email))
 
         return Response({'found': False})
 
@@ -121,25 +114,27 @@ class GoogleSocialLoginView(APIView):
         if not email:
             return Response({'error': 'Could not extract email from Google token'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Verify the user exists in the database
-        try:
-            user = CustomUser.objects.get(email=email)
-        except CustomUser.DoesNotExist:
+        user, requested_email = resolve_google_user(email)
+        if not user:
             return Response(
                 {'error': f"The Google account '{email}' is not registered in the system database. Please contact your system administrator."},
                 status=status.HTTP_403_FORBIDDEN
             )
 
         refresh = RefreshToken.for_user(user)
-        full_name = f"{user.first_name} {user.last_name}".strip() or user.username.title()
+        payload = google_user_payload(user, requested_email)
 
         return Response({
             'access':  str(refresh.access_token),
             'refresh': str(refresh),
             'user': {
+                'id':        user.id,
                 'username':  user.username,
-                'full_name': full_name,
-                'role':      getattr(user, 'role', 'Staff'),
+                'email':     user.email,
+                'first_name': user.first_name,
+                'last_name':  user.last_name,
+                'full_name': payload['full_name'],
+                'role':      payload['role'],
+                'phone_number': user.phone_number,
             }
         })
-

@@ -36,7 +36,7 @@ const InventoryModal = ({ item, onClose, onSave }) => {
         initial={{ opacity: 0, scale: 0.9, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.9 }}
-        className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl p-8 w-full max-w-md border border-gray-100 dark:border-slate-700"
+        className="glass-card dark:bg-slate-900 rounded-2xl shadow-2xl p-8 w-full max-w-md dark:border-slate-700"
       >
         <button onClick={onClose} className="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-300 transition-colors">
           <X className="w-5 h-5" />

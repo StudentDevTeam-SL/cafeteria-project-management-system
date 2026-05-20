@@ -10,7 +10,7 @@ const ConfirmModal = ({ isOpen, title, message, onConfirm, onCancel }) => {
         initial={{ opacity: 0, scale: 0.9, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.9, y: 20 }}
-        className="w-full max-w-sm bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-gray-100 dark:border-slate-700 relative overflow-hidden"
+        className="w-full max-w-sm glass-card dark:bg-slate-900 rounded-2xl shadow-2xl dark:border-slate-700 relative overflow-hidden"
       >
         <div className="h-1 bg-gradient-to-r from-red-500 to-rose-500" />
         <button onClick={onCancel} className="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-400 transition-colors">

@@ -114,7 +114,7 @@ export const AuthProvider = ({ children }) => {
   const switchRole = () => {
     setUser(prev => {
       if (!prev) return prev;
-      let newRole = 'Employee';
+      let newRole;
       if (prev.role === 'Employee' || prev.role === 'Staff') newRole = 'Manager';
       else if (prev.role === 'Manager') newRole = 'Admin';
       else newRole = 'Employee';

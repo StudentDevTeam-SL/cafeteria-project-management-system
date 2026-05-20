@@ -165,7 +165,7 @@ const About = () => {
       </section>
 
       {/* ════ TEAM — Unsplash Photos ════ */}
-      <section className="py-28 px-6 bg-gray-50/70 dark:bg-slate-900/40">
+      <section className="py-28 px-6 glass-section">
         <div className="max-w-6xl mx-auto">
           <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16">
             <span className="badge badge-green mb-4 px-5 py-2 text-sm">Our Team</span>
@@ -248,7 +248,7 @@ const About = () => {
       </section>
 
       {/* ════ TECH STACK ════ */}
-      <section className="py-28 px-6 bg-gray-50/70 dark:bg-slate-900/40">
+      <section className="py-28 px-6 glass-section">
         <div className="max-w-6xl mx-auto">
           <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} className="text-center mb-16">
             <h2 className="text-5xl font-black mb-4">The Secret <span className="gradient-text">Ingredients</span></h2>
@@ -294,7 +294,7 @@ const About = () => {
                 </Link>
               </motion.div>
               <motion.div whileHover={{ scale: 1.05, y: -3 }} whileTap={{ scale: 0.97 }}>
-                <Link to="/contact-us" className="inline-flex items-center space-x-2 px-12 py-5 btn-ghost text-lg rounded-2xl">
+                <Link to="/contact-us" className="inline-flex items-center space-x-2 px-12 py-5 btn-glass text-lg rounded-2xl">
                   <span>Talk to Us</span>
                 </Link>
               </motion.div>

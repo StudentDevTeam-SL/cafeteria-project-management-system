@@ -58,7 +58,7 @@ const NavItem = React.memo(({ to, icon: Icon, label, onClick, enableHover }) => 
 });
 
 const SidebarContent = ({ onClose, user, logout, theme, toggleTheme, lowPerformance, togglePerformance, animationConfig }) => (
-  <div className="flex flex-col h-full bg-light dark:bg-dark border-r border-gray-200/50 dark:border-slate-700/50">
+  <div className="flex flex-col h-full bg-white/50 dark:bg-dark border-r border-white/70 dark:border-slate-700/50 backdrop-blur-2xl dark:backdrop-blur-none shadow-[12px_0_42px_rgba(15,23,42,0.08)] dark:shadow-none">
     {/* Logo */}
     <div className="p-6 flex items-center justify-between border-b border-gray-200/50 dark:border-slate-700/50">
       <Link to="/dashboard" className="flex items-center space-x-3" onClick={onClose}>
@@ -96,7 +96,7 @@ const SidebarContent = ({ onClose, user, logout, theme, toggleTheme, lowPerforma
     <div className="p-4 border-t border-gray-200/50 dark:border-slate-700/50 space-y-3">
       <button
         onClick={togglePerformance}
-        className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-bold transition-all"
+        className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-white/60 dark:bg-slate-800 text-xs font-bold transition-all border border-white/70 dark:border-transparent shadow-sm dark:shadow-none"
       >
         <div className="flex items-center space-x-2">
           {lowPerformance ? <ZapOff className="w-3.5 h-3.5 text-amber-500" /> : <Zap className="w-3.5 h-3.5 text-primary" />}
@@ -158,13 +158,13 @@ export const AdminLayout = () => {
   }), [animationConfig]);
 
   return (
-    <div className="flex h-[100dvh] bg-light dark:bg-dark transition-colors duration-300 overflow-hidden">
+    <div className="flex h-[100dvh] bg-transparent dark:bg-dark transition-colors duration-300 overflow-hidden">
       {/* Desktop Sidebar */}
       <motion.aside
         initial="closed"
         animate="open"
         variants={sidebarVariants}
-        className="hidden lg:flex w-64 flex-col bg-light dark:bg-dark border-r border-gray-200/50 dark:border-slate-700/50 flex-shrink-0"
+        className="hidden lg:flex w-64 flex-col bg-transparent dark:bg-dark border-r border-white/70 dark:border-slate-700/50 flex-shrink-0"
         style={{ willChange: 'transform, opacity' }}
       >
         <SidebarContent user={user} logout={logout} theme={theme} toggleTheme={toggleTheme} lowPerformance={lowPerformance} togglePerformance={togglePerformance} animationConfig={animationConfig} />
@@ -187,7 +187,7 @@ export const AdminLayout = () => {
               animate="open"
               exit="closed"
               variants={sidebarVariants}
-              className="fixed left-0 top-0 h-full z-50 w-64 flex flex-col bg-light dark:bg-dark shadow-2xl lg:hidden"
+              className="fixed left-0 top-0 h-full z-50 w-64 flex flex-col bg-white/70 dark:bg-dark shadow-2xl lg:hidden backdrop-blur-2xl dark:backdrop-blur-none"
               style={{ willChange: 'transform, opacity' }}
             >
               <SidebarContent onClose={() => setSidebarOpen(false)} user={user} logout={logout} theme={theme} toggleTheme={toggleTheme} lowPerformance={lowPerformance} togglePerformance={togglePerformance} animationConfig={animationConfig} />
@@ -199,7 +199,7 @@ export const AdminLayout = () => {
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Mobile Top Bar */}
-        <div className="lg:hidden flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-slate-700 bg-light dark:bg-dark">
+        <div className="lg:hidden flex items-center justify-between px-4 py-3 border-b border-white/70 dark:border-slate-700 bg-white/70 dark:bg-dark backdrop-blur-2xl dark:backdrop-blur-none">
           <button onClick={() => setSidebarOpen(true)} className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors">
             <Menu className="w-5 h-5 text-gray-500" />
           </button>
@@ -213,7 +213,7 @@ export const AdminLayout = () => {
         </div>
 
         {/* Page Content with smooth transition */}
-        <main className="flex-1 overflow-y-auto p-6 lg:p-8">
+        <main data-route-scroll-container className="flex-1 overflow-y-auto p-6 lg:p-8">
           <motion.div
             key={location.pathname}
             initial={{ opacity: 0, y: 10 }}

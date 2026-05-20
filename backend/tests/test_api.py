@@ -13,6 +13,7 @@ Run with:
 import datetime
 from decimal import Decimal
 from django.contrib.auth import get_user_model
+from django.test import override_settings
 from rest_framework import status
 from rest_framework.test import APITestCase
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -73,6 +74,16 @@ class AuthAPITests(AuthMixin, APITestCase):
 
     def setUp(self):
         self.user = self.make_user('loginuser', role='Employee')
+        self.google_user, _ = User.objects.get_or_create(
+            username='admin',
+            defaults={'role': 'Admin'},
+        )
+        self.google_user.email = 'admin@cafeteria.com'
+        self.google_user.first_name = 'System'
+        self.google_user.last_name = 'Admin'
+        self.google_user.role = 'Admin'
+        self.google_user.set_password('admin')
+        self.google_user.save()
 
     def test_login_returns_tokens(self):
         resp = self.client.post('/api/auth/login/', {
@@ -105,6 +116,42 @@ class AuthAPITests(AuthMixin, APITestCase):
         }, format='json')
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertIn('access', resp.data)
+
+    def test_check_email_finds_registered_gmail_alias(self):
+        resp = self.client.post('/api/auth/check-email/', {
+            'email': 'Admin@Gmail.com ',
+        }, format='json')
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertTrue(resp.data['found'])
+        self.assertEqual(resp.data['username'], 'admin')
+        self.assertEqual(resp.data['email'], 'admin@gmail.com')
+        self.assertEqual(resp.data['database_email'], 'admin@cafeteria.com')
+
+    def test_check_email_rejects_unknown_gmail(self):
+        resp = self.client.post('/api/auth/check-email/', {
+            'email': 'not-registered@gmail.com',
+        }, format='json')
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertFalse(resp.data['found'])
+
+    @override_settings(DEBUG=True)
+    def test_google_social_login_mock_gmail_alias_returns_tokens(self):
+        resp = self.client.post('/api/auth/google-social-login/', {
+            'credential': 'mock-google-token-admin@gmail.com',
+        }, format='json')
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertIn('access', resp.data)
+        self.assertIn('refresh', resp.data)
+        self.assertEqual(resp.data['user']['username'], 'admin')
+        self.assertEqual(resp.data['user']['role'], 'Admin')
+        self.assertEqual(resp.data['user']['full_name'], 'System Admin')
+
+    @override_settings(DEBUG=True)
+    def test_google_social_login_unknown_gmail_returns_403(self):
+        resp = self.client.post('/api/auth/google-social-login/', {
+            'credential': 'mock-google-token-not-registered@gmail.com',
+        }, format='json')
+        self.assertEqual(resp.status_code, status.HTTP_403_FORBIDDEN)
 
 
 # ─────────────────────────────────────────────────────────────

@@ -24,7 +24,8 @@ class AccountsConfig(AppConfig):
                     username='admin',
                     defaults={
                         'email': 'admin@cafeteria.com',
-                        'full_name': 'System Admin',
+                        'first_name': 'System',
+                        'last_name': 'Admin',
                         'role': 'Admin',
                         'phone_number': '063000000',
                         'is_superuser': True,
@@ -39,7 +40,8 @@ class AccountsConfig(AppConfig):
                     username='employee',
                     defaults={
                         'email': 'employee@cafeteria.com',
-                        'full_name': 'Demo Employee',
+                        'first_name': 'Demo',
+                        'last_name': 'Employee',
                         'role': 'Employee',
                         'phone_number': '063111111',
                         'is_superuser': False,
@@ -54,7 +56,8 @@ class AccountsConfig(AppConfig):
                     username='manager',
                     defaults={
                         'email': 'manager@cafeteria.com',
-                        'full_name': 'Operations Manager',
+                        'first_name': 'Operations',
+                        'last_name': 'Manager',
                         'role': 'Manager',
                         'phone_number': '063222222',
                         'is_superuser': False,
@@ -67,4 +70,3 @@ class AccountsConfig(AppConfig):
             except Exception:
                 # Silently ignore failures during test/migrate workflows
                 pass
-
