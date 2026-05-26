@@ -6,6 +6,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.exceptions import PermissionDenied
 from .serializers import CustomTokenObtainPairSerializer, UserSerializer, UserCreateSerializer
 from .models import CustomUser
 from .google_auth import google_user_payload, resolve_google_user
@@ -27,10 +28,20 @@ class UserViewSet(viewsets.ModelViewSet):
         return UserSerializer
 
     def get_queryset(self):
-        # Optional: restrict non-admins from seeing others
+        queryset = CustomUser.objects.all().order_by('id')
         if getattr(self.request.user, 'role', '') == 'Admin':
-            return CustomUser.objects.all()
-        return CustomUser.objects.filter(id=self.request.user.id)
+            return queryset
+        return queryset.filter(id=self.request.user.id)
+
+    def create(self, request, *args, **kwargs):
+        if getattr(request.user, 'role', '') != 'Admin':
+            raise PermissionDenied('Only admins can create system users.')
+        return super().create(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        if getattr(request.user, 'role', '') != 'Admin':
+            raise PermissionDenied('Only admins can delete system users.')
+        return super().destroy(request, *args, **kwargs)
 
 
 class CustomTokenObtainPairView(TokenObtainPairView):

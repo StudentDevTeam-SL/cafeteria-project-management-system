@@ -1,0 +1,10 @@
+version: 3
+
+tunnels:
+  backend:
+    addr: localhost:8000
+    proto: http
+
+  frontend:
+    addr: localhost:5173
+    proto: http

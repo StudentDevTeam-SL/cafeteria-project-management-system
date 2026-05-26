@@ -10,6 +10,7 @@ import { DatePresetSelect, FilterSelect, ResetFiltersButton } from '../component
 import { usePagination } from '../hooks/usePagination';
 import staffTeamImg from '../assets/staff_team.png';
 import { matchesDatePreset, normalizeText, numberInRange, uniqueOptions } from '../utils/filterUtils';
+import { useToast } from '../context/ToastContext';
 import api from '../api/axios';
 
 // Helper: compute net from plain numbers
@@ -50,17 +51,34 @@ const SalaryModal = ({ record, employees, onClose, onSave }) => {
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
   const net = Number(form.base_salary || 0) + Number(form.bonus || 0) - Number(form.deduction || 0);
 
+  const parseMoney = (value, fallback = 0) => {
+    if (value === '' || value === null || value === undefined) return fallback;
+    const parsed = Number(value);
+    return Number.isFinite(parsed) && parsed >= 0 ? parsed : null;
+  };
+
   const handleSave = () => {
     if (!form.employee) {
       setFormError('Please select an employee before saving this salary record.');
       return;
     }
+    const baseSalary = parseMoney(form.base_salary, null);
+    const bonus = parseMoney(form.bonus);
+    const deduction = parseMoney(form.deduction);
+    if (baseSalary === null || bonus === null || deduction === null) {
+      setFormError('Salary, bonus, and deduction must be valid positive numbers.');
+      return;
+    }
+    if (!form.payment_date) {
+      setFormError('Please choose a payment date before saving this salary record.');
+      return;
+    }
     setFormError('');
     onSave({
       employee:     Number(form.employee),
-      base_salary:  Number(form.base_salary),
-      bonus:        Number(form.bonus),
-      deduction:    Number(form.deduction),
+      base_salary:  baseSalary,
+      bonus,
+      deduction,
       payment_date: form.payment_date,
       status:       form.status,
     });
@@ -150,6 +168,7 @@ const SalaryModal = ({ record, employees, onClose, onSave }) => {
 
 /* ── Main ── */
 const Salaries = () => {
+  const { showToast } = useToast();
   const [salaries,     setSalaries]     = useState([]);
   const [employees,    setEmployees]    = useState([]);   // for dropdown
   const [search,       setSearch]       = useState('');
@@ -215,7 +234,10 @@ const Salaries = () => {
       }
       setIsModalOpen(false);
       setEditRecord(null);
-    } catch (err) { console.error('Failed to save salary record:', err); }
+    } catch (err) {
+      console.error('Failed to save salary record:', err.response?.data || err.message);
+      showToast(`Error: ${JSON.stringify(err.response?.data || err.message)}`, { type: 'error', duration: 5000 });
+    }
   };
 
   const handleDelete = async (id) => {

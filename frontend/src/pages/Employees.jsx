@@ -154,12 +154,14 @@ const Employees = () => {
         delete payload.user_id;
       } else {
         const parsed = parseInt(payload.user_id, 10);
-        if (isNaN(parsed)) {
+        if (isNaN(parsed) || parsed <= 0) {
           delete payload.user_id;
         } else {
           payload.user_id = parsed;
         }
       }
+      if (payload.salary === '********') delete payload.salary;
+      if (payload.phone === '********') delete payload.phone;
 
       if (editEmp) {
         const res = await api.patch(`employees/${editEmp.id}/`, payload);

@@ -25,7 +25,7 @@ class RecipeSerializer(serializers.ModelSerializer):
 class ModifierOptionSerializer(serializers.ModelSerializer):
     class Meta:
         model = ModifierOption
-        fields = ['id', 'name', 'price_adjustment']
+        fields = ['id', 'modifier_group', 'name', 'price_adjustment']
 
 
 class ModifierGroupSerializer(serializers.ModelSerializer):

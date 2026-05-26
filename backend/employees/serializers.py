@@ -3,6 +3,15 @@ from .models import Employee
 from accounts.models import CustomUser
 
 
+class OptionalUserPrimaryKeyRelatedField(serializers.PrimaryKeyRelatedField):
+    """Treat a blank optional user id from the UI as no linked user."""
+
+    def to_internal_value(self, data):
+        if data in ('', '0', 0):
+            return None
+        return super().to_internal_value(data)
+
+
 class EmployeeSerializer(serializers.ModelSerializer):
     """
     Serializer for the Employee model.
@@ -13,7 +22,7 @@ class EmployeeSerializer(serializers.ModelSerializer):
     #   - field can be omitted from the request entirely → no error
     #   - field can be sent as null                      → clears the link
     #   - field sent as a valid PK                       → links the user
-    user_id = serializers.PrimaryKeyRelatedField(
+    user_id = OptionalUserPrimaryKeyRelatedField(
         source='user',
         queryset=CustomUser.objects.all(),
         required=False,
@@ -44,10 +53,10 @@ class EmployeeSerializer(serializers.ModelSerializer):
         
         # If user is not an Admin and not viewing their own profile, mask sensitive fields
         if request and hasattr(request.user, 'role'):
-            is_admin = request.user.role == 'Admin'
-            is_self  = instance.user == request.user
+            can_manage = request.user.role in ['Admin', 'Manager']
+            is_self = instance.user == request.user
             
-            if not is_admin and not is_self:
+            if not can_manage and not is_self:
                 data['salary'] = "********"
                 data['phone']  = "********"
         
