@@ -1,14 +1,16 @@
-import { useState, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useSoundContext } from '../context/SoundContext';
 import api from '../api/axios';
+import Alert from '../components/Alert';
+import AnimatedBackground from '../components/AnimatedBackground';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Lock, User, AlertCircle, ChefHat, Eye, EyeOff, 
+  Lock, User, ChefHat, Eye, EyeOff, 
   ArrowRight, Building2, Sparkles, Server,
   X, Mail, KeyRound, ShieldCheck,
-  Coffee, Users, DollarSign
+  Coffee, Users, DollarSign, CalendarDays, Clock
 } from 'lucide-react';
 
 /**
@@ -75,7 +77,25 @@ const Login = () => {
   const googleStepLabels = ['Gmail', 'Database', 'Welcome'];
 
   const [tilt, setTilt]         = useState({ x:0, y:0 });
+  const [now, setNow] = useState(() => new Date());
   const cardRef = useRef(null);
+
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const currentTime = now.toLocaleTimeString([], {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  });
+  const currentDate = now.toLocaleDateString([], {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  });
 
   // Mouse tilt effect for 3D glassmorphic card
   const onMove = (e) => {
@@ -304,7 +324,7 @@ const Login = () => {
   );
 
   return (
-    <div className="flex min-h-[calc(100vh-5rem)] w-full overflow-hidden bg-[#070b13] text-slate-900 dark:text-slate-100 font-sans">
+    <div className="flex min-h-[calc(100vh-5rem)] w-full overflow-hidden bg-light dark:bg-[#070b13] text-slate-900 dark:text-slate-100 font-sans transition-colors duration-300">
       
       {/* ── LEFT SIDE: Enterprise Branding & Statistics ── */}
       <div className="hidden lg:flex w-1/2 relative flex-col justify-between pt-24 pb-16 px-16 overflow-hidden bg-[#070b13] border-r border-slate-800/40">
@@ -405,12 +425,7 @@ const Login = () => {
 
       {/* ── RIGHT SIDE: Glassmorphic Login Form ── */}
       <div className="login-light-panel w-full lg:w-1/2 flex flex-col justify-center items-center pt-24 pb-16 px-6 md:px-12 relative overflow-hidden transition-colors duration-300">
-        
-        {/* Dynamic Background Effects */}
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(99,102,241,0.055)_1px,transparent_1px),linear-gradient(90deg,rgba(6,182,212,0.055)_1px,transparent_1px)] dark:bg-[radial-gradient(#6366f1_1px,transparent_1px)] [background-size:32px_32px] opacity-55 dark:opacity-[0.04] pointer-events-none"/>
-        <div className="hidden dark:block absolute w-[450px] h-[450px] rounded-full bg-primary/20 blur-[130px] top-[-10%] right-[-5%] pointer-events-none"/>
-        <div className="hidden dark:block absolute w-[300px] h-[300px] rounded-full bg-accent/25 blur-[100px] bottom-[-5%] left-[-5%] pointer-events-none"/>
-        <div className="hidden dark:block absolute w-[250px] h-[250px] rounded-full bg-amber-500/10 blur-[80px] top-[40%] left-[20%] pointer-events-none"/>
+        <AnimatedBackground />
 
         {/* Mobile Header (Hidden on desktop) */}
         <div className="lg:hidden flex flex-col items-center mb-8">
@@ -422,6 +437,24 @@ const Login = () => {
           </div>
           <span className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-widest font-bold font-sans">Enterprise OS</span>
         </div>
+
+        {/* Live Time + Date */}
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35 }}
+          className="z-10 mb-4 flex w-full max-w-md flex-col gap-2 rounded-2xl border border-white/70 bg-white/70 px-4 py-3 text-slate-700 shadow-sm backdrop-blur-xl dark:border-white/10 dark:bg-white/[0.06] dark:text-slate-200 sm:flex-row sm:items-center sm:justify-between"
+          aria-live="polite"
+        >
+          <div className="flex items-center gap-2">
+            <Clock className="h-4 w-4 text-primary" />
+            <span className="font-mono text-lg font-black tracking-tight">{currentTime}</span>
+          </div>
+          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">
+            <CalendarDays className="h-4 w-4 text-accent" />
+            <span>{currentDate}</span>
+          </div>
+        </motion.div>
 
         {/* Secure Gate Badge */}
         <div className="hidden sm:flex items-center space-x-2.5 px-4 py-1.5 rounded-full glass dark:bg-white/[0.05] dark:border-white/[0.1] text-[10px] text-slate-600 dark:text-slate-300 font-semibold mb-6 z-10 transition-colors duration-300">
@@ -472,10 +505,10 @@ const Login = () => {
                     initial={{ opacity: 0, height: 0 }} 
                     animate={{ opacity: 1, height: 'auto' }}
                     exit={{ opacity: 0, height: 0 }}
-                    className="flex items-start space-x-2 bg-red-500/10 border border-red-500/30 text-red-600 dark:text-red-400 p-3.5 rounded-2xl animate-pulse"
                   >
-                    <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                    <span className="text-xs font-semibold leading-relaxed">{error}</span>
+                    <Alert variant="error" className="animate-pulse">
+                      {error}
+                    </Alert>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -587,7 +620,7 @@ const Login = () => {
                 <span>Don't have an account yet? </span>
                 <button
                   type="button"
-                  onClick={() => alert("New staff and manager accounts are provisioned by your system administrator.")}
+                  onClick={() => setError('New staff and manager accounts are provisioned by your system administrator.')}
                   className="text-accent font-bold hover:underline cursor-pointer bg-transparent border-none"
                 >
                   Register for free
@@ -652,10 +685,7 @@ const Login = () => {
                   </div>
 
                   {forgotError && (
-                    <div className="flex items-start space-x-2 bg-red-500/10 border border-red-500/30 text-red-600 dark:text-red-400 p-3 rounded-2xl text-xs font-semibold leading-relaxed">
-                      <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                      <span>{forgotError}</span>
-                    </div>
+                    <Alert variant="error">{forgotError}</Alert>
                   )}
 
                   <div>
@@ -715,20 +745,13 @@ const Login = () => {
                   </div>
 
                   {forgotError && (
-                    <div className="flex items-start space-x-2 bg-red-500/10 border border-red-500/30 text-red-600 dark:text-red-400 p-3 rounded-2xl text-xs font-semibold leading-relaxed">
-                      <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                      <span>{forgotError}</span>
-                    </div>
+                    <Alert variant="error">{forgotError}</Alert>
                   )}
 
                   {/* Simulated pin helper banner */}
-                  <div className="p-3.5 bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 rounded-2xl">
-                    <p className="text-xs font-bold flex items-center space-x-1.5">
-                      <Sparkles className="w-4 h-4" />
-                      <span>Demo Notice: Verification Pin</span>
-                    </p>
+                  <Alert variant="warning" title="Demo Notice: Verification Pin">
                     <p className="text-xs mt-1">For demo purposes, your verification pin is: <strong className="text-sm select-all tracking-wider text-amber-700 dark:text-amber-300 font-mono font-black">{generatedPin}</strong></p>
-                  </div>
+                  </Alert>
 
                   <div>
                     <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">6-Digit Pin</label>
@@ -767,10 +790,7 @@ const Login = () => {
                   </div>
 
                   {forgotError && (
-                    <div className="flex items-start space-x-2 bg-red-500/10 border border-red-500/30 text-red-600 dark:text-red-400 p-3 rounded-2xl text-xs font-semibold leading-relaxed">
-                      <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                      <span>{forgotError}</span>
-                    </div>
+                    <Alert variant="error">{forgotError}</Alert>
                   )}
 
                   <div>
@@ -897,10 +917,7 @@ const Login = () => {
                   </div>
 
                   {googleError && (
-                    <div className="flex items-start space-x-2 bg-red-500/10 border border-red-500/30 text-red-600 dark:text-red-400 p-3 rounded-2xl text-xs font-semibold leading-relaxed">
-                      <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                      <span>{googleError}</span>
-                    </div>
+                    <Alert variant="error">{googleError}</Alert>
                   )}
 
                   {!googleShowCustomInput ? (

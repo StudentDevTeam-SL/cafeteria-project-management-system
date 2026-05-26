@@ -45,6 +45,53 @@ class ContactMessage(models.Model):
         return f"{self.subject} - {self.name}"
 
 
+class NewsletterSubscription(models.Model):
+    """
+    Model representing a public footer newsletter subscription.
+    """
+    email = models.EmailField(unique=True)
+    source = models.CharField(max_length=80, default='footer')
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    def save(self, *args, **kwargs):
+        self.email = self.email.strip().lower()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.email
+
+
+class JobApplication(models.Model):
+    """
+    Model representing a public job application with an uploaded CV.
+    """
+    STATUS_CHOICES = (
+        ('new', 'New'),
+        ('reviewing', 'Reviewing'),
+        ('contacted', 'Contacted'),
+        ('closed', 'Closed'),
+    )
+
+    first_name = models.CharField(max_length=100)
+    last_name = models.CharField(max_length=100)
+    email = models.EmailField()
+    phone = models.CharField(max_length=40)
+    position = models.CharField(max_length=120)
+    experience_level = models.CharField(max_length=80)
+    availability = models.CharField(max_length=120, blank=True)
+    start_date = models.DateField(blank=True, null=True)
+    expected_salary = models.CharField(max_length=80, blank=True)
+    portfolio_url = models.URLField(blank=True)
+    cover_letter = models.TextField()
+    cv = models.FileField(upload_to='job_applications/cvs/')
+    agreed_to_policy = models.BooleanField(default=False)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='new', db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    def __str__(self):
+        return f"{self.first_name} {self.last_name} - {self.position}"
+
+
 class Recipe(models.Model):
     """
     Model linking MenuItem to its recipe.
@@ -104,4 +151,3 @@ class MenuItemModifier(models.Model):
 
     def __str__(self):
         return f"{self.modifier_group.name} for {self.menu_item.name}"
-

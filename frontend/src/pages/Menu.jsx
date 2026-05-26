@@ -3,9 +3,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Plus, X, Edit2, Trash2, ToggleLeft, ToggleRight, UtensilsCrossed, Star, Image as ImageIcon, Check, Clock, ShoppingCart, CreditCard, Minus, MessageSquare } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../context/ToastContext';
+import Alert from '../components/Alert';
 import ConfirmModal from '../components/ConfirmModal';
+import PaginationFooter from '../components/PaginationFooter';
+import { DatePresetSelect, FilterSelect, ResetFiltersButton } from '../components/FilterControls';
+import { usePagination } from '../hooks/usePagination';
 import { FOOD_PHOTOS, CATEGORIES, CAT_EMOJI } from '../data/menuCatalog';
 import { useSoundContext } from '../context/SoundContext';
+import { matchesDatePreset, normalizeText, numberInRange } from '../utils/filterUtils';
 import api from '../api/axios';
 
 /* ── Item Card — role-aware ── */
@@ -68,9 +73,24 @@ const ItemCard = React.memo(({ item, onToggle, onEdit, onDelete, onApprove, onRe
         <div className="absolute top-3 left-3 flex items-center gap-1 bg-black/60 backdrop-blur-sm rounded-full px-2.5 py-1">
           <Star className="w-3 h-3 text-amber-400 fill-amber-400" /><span className="text-white text-xs font-bold">{item.rating}</span>
         </div>
-        {/* Toggle */}
-        <button onClick={()=>onToggle(item.id)} className="absolute top-3 right-3 z-20">
-          {item.is_active ? <ToggleRight className="w-8 h-8 text-accent drop-shadow-lg" /> : <ToggleLeft className="w-8 h-8 text-gray-400" />}
+        {/* Availability */}
+        <button
+          onClick={()=>onToggle(item.id)}
+          type="button"
+          title={item.is_active ? 'Mark unavailable' : 'Mark available'}
+          aria-label={item.is_active ? 'Mark unavailable' : 'Mark available'}
+          className={`absolute top-3 right-3 z-20 inline-flex min-h-9 items-center gap-2 rounded-full border px-2.5 py-1.5 text-xs font-black shadow-xl backdrop-blur-xl ring-1 transition-all hover:-translate-y-0.5 ${
+            item.is_active
+              ? 'border-white/20 bg-slate-950/75 text-white shadow-black/35 ring-white/10 hover:bg-slate-950/85'
+              : 'border-white/15 bg-slate-950/65 text-slate-300 shadow-black/30 ring-white/5 hover:bg-slate-900/80'
+          }`}
+        >
+          <span className={`flex h-5 w-5 items-center justify-center rounded-full ${
+            item.is_active ? 'bg-emerald-400 text-slate-950 shadow-sm shadow-emerald-300/30' : 'bg-slate-700 text-slate-300'
+          }`}>
+            {item.is_active ? <Check className="w-3.5 h-3.5" /> : <X className="w-3.5 h-3.5" />}
+          </span>
+          <span className="pr-0.5">{item.is_active ? 'Available' : 'Hidden'}</span>
         </button>
         {!item.is_active && !isPending && (
           <div className="absolute inset-0 bg-gray-900/60 flex items-center justify-center">
@@ -94,35 +114,47 @@ const ItemCard = React.memo(({ item, onToggle, onEdit, onDelete, onApprove, onRe
 
         {/* Admin controls & POS Add */}
         {!isPending && (
-          <div className="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-slate-700/50 min-h-[52px]">
+          <div className="flex items-center gap-3 pt-3 border-t border-gray-100 dark:border-slate-700/50 min-h-[64px]">
             {cartQty > 0 ? (
-              <div className="flex items-center gap-3 bg-primary/10 rounded-xl px-2 py-1.5">
+              <div className="flex min-h-11 items-center gap-3 rounded-xl border border-primary/20 bg-primary/10 px-2.5 py-2 shadow-inner shadow-primary/5">
                 <motion.button whileHover={{scale:1.1}} whileTap={{scale:.9}} onClick={()=>onDecCart(item.id)}
-                  className="w-6 h-6 rounded-full bg-white dark:bg-slate-800 text-primary flex items-center justify-center shadow-sm">
-                  <Minus className="w-3.5 h-3.5" />
+                  title="Remove one"
+                  aria-label="Remove one from cart"
+                  className="w-8 h-8 rounded-lg bg-white dark:bg-slate-900 text-primary flex items-center justify-center shadow-sm hover:bg-primary hover:text-white transition-colors">
+                  <Minus className="w-4 h-4" />
                 </motion.button>
                 <AnimatePresence mode="popLayout">
-                  <motion.span key={cartQty} initial={{y:-10,opacity:0}} animate={{y:0,opacity:1}} exit={{y:10,opacity:0}} className="text-primary font-black w-3 text-center text-sm">
+                  <motion.span key={cartQty} initial={{y:-10,opacity:0}} animate={{y:0,opacity:1}} exit={{y:10,opacity:0}} className="text-primary font-black min-w-5 text-center text-base">
                     {cartQty}
                   </motion.span>
                 </AnimatePresence>
                 <motion.button whileHover={{scale:1.1}} whileTap={{scale:.9}} onClick={()=>onAddCart(item)}
-                  className="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center shadow-sm">
-                  <Plus className="w-3.5 h-3.5" />
+                  title="Add one"
+                  aria-label="Add one more to cart"
+                  className="w-8 h-8 rounded-lg bg-primary text-white flex items-center justify-center shadow-sm shadow-primary/30 hover:bg-blue-700 transition-colors">
+                  <Plus className="w-4 h-4" />
                 </motion.button>
               </div>
             ) : (
               <motion.button whileHover={{scale:1.05}} whileTap={{scale:.95}} onClick={()=>onAddCart(item)} disabled={!item.is_active}
-                className="py-1.5 px-4 rounded-xl bg-primary/10 text-primary text-xs font-bold flex items-center gap-1.5 hover:bg-primary/20 transition-colors disabled:opacity-50">
-                <Plus className="w-3.5 h-3.5" /> Add
+                title={item.is_active ? 'Add to cart' : 'Item unavailable'}
+                aria-label={item.is_active ? 'Add to cart' : 'Item unavailable'}
+                className="min-h-12 flex-1 rounded-xl bg-gradient-to-r from-primary to-cyan-500 px-4 py-2.5 text-sm font-black text-white shadow-lg shadow-primary/25 flex items-center justify-center gap-2 hover:shadow-cyan-500/20 focus-visible:ring-2 focus-visible:ring-cyan-300/60 transition-all disabled:from-slate-600 disabled:to-slate-600 disabled:text-slate-300 disabled:shadow-none disabled:cursor-not-allowed">
+                <ShoppingCart className="w-4 h-4" /> Add
               </motion.button>
             )}
             {isAdmin && (
-              <div className="flex gap-1 ml-auto">
+              <div className="ml-auto flex items-center gap-2">
                 <motion.button whileHover={{scale:1.1}} whileTap={{scale:.9}} onClick={()=>onEdit(item)}
-                  className="p-1.5 rounded-lg hover:bg-primary/10 text-gray-400 hover:text-primary transition-colors"><Edit2 className="w-3.5 h-3.5" /></motion.button>
+                  type="button"
+                  title="Edit item"
+                  aria-label={`Edit ${item.name}`}
+                  className="w-11 h-11 rounded-xl border border-slate-300/80 bg-white text-slate-800 shadow-sm hover:border-primary/50 hover:bg-primary/10 hover:text-primary focus-visible:ring-2 focus-visible:ring-primary/40 dark:border-cyan-400/30 dark:bg-slate-800/90 dark:text-cyan-200 dark:hover:bg-cyan-400/15 dark:hover:text-cyan-100 transition-all"><Edit2 className="w-5 h-5 mx-auto" /></motion.button>
                 <motion.button whileHover={{scale:1.1}} whileTap={{scale:.9}} onClick={()=>onDelete(item)}
-                  className="p-1.5 rounded-lg hover:bg-red-500/10 text-gray-400 hover:text-red-500 transition-colors"><Trash2 className="w-3.5 h-3.5" /></motion.button>
+                  type="button"
+                  title="Delete item"
+                  aria-label={`Delete ${item.name}`}
+                  className="w-11 h-11 rounded-xl border border-red-200 bg-red-50 text-red-600 shadow-sm hover:bg-red-500 hover:text-white focus-visible:ring-2 focus-visible:ring-red-300/50 dark:border-red-400/35 dark:bg-red-500/20 dark:text-red-300 dark:hover:bg-red-500 dark:hover:text-white transition-all"><Trash2 className="w-5 h-5 mx-auto" /></motion.button>
               </div>
             )}
           </div>
@@ -314,6 +346,7 @@ const CheckoutModal = ({ cart, setCart, onClose }) => {
   const [orderType, setOrderType] = useState('takeaway');
   const [selectedTable, setSelectedTable] = useState('');
   const [tables, setTables] = useState([]);
+  const [error, setError] = useState('');
   const total = React.useMemo(() => cart.reduce((s,c)=>s+c.price*c.qty, 0), [cart]);
 
   useEffect(() => {
@@ -330,6 +363,7 @@ const CheckoutModal = ({ cart, setCart, onClose }) => {
 
   const handleSuccess = async (method) => {
     try {
+      setError('');
       const payload = {
         employee_name: user?.full_name || 'POS Cashier',
         payment_method: method.toLowerCase(),
@@ -350,7 +384,8 @@ const CheckoutModal = ({ cart, setCart, onClose }) => {
       showToast('Order Placed Successfully!', { type: 'success', duration: 3000 });
     } catch (err) {
       console.error('Failed to place order:', err);
-      alert('Failed to place order.');
+      setError('Failed to place order. Please check the order details and try again.');
+      setStep(1);
     }
   };
 
@@ -415,6 +450,12 @@ const CheckoutModal = ({ cart, setCart, onClose }) => {
           <textarea className="form-input resize-none text-sm" rows={2} placeholder="e.g. No onions, extra spicy..." value={comment} onChange={e=>setComment(e.target.value)} />
         </div>
 
+        {error && (
+          <Alert variant="error" title="Order failed" className="mb-6">
+            {error}
+          </Alert>
+        )}
+
         <div className="flex justify-between items-center pt-4 border-t border-slate-200 dark:border-slate-700 mb-6">
           <span className="font-bold text-slate-400 uppercase tracking-wider text-sm">Total</span>
           <span className="text-2xl font-black text-primary">${total.toFixed(2)}</span>
@@ -442,6 +483,9 @@ const Menu = () => {
   const [items, setItems]         = useState([]);
   const [search, setSearch]       = useState('');
   const [activeCat, setActiveCat] = useState('All');
+  const [timeFilter, setTimeFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [priceFilter, setPriceFilter] = useState('all');
   const [modalOpen, setModalOpen] = useState(false);
   const [editItem, setEditItem]   = useState(null);
   const [itemToDelete, setItemToDelete] = useState(null);
@@ -515,14 +559,29 @@ const Menu = () => {
 
   const allItems = React.useMemo(() => 
     items.filter(i => {
-      const mc = activeCat === 'All' || i.category_name === activeCat;
-      const ms = i.name.toLowerCase().includes(search.toLowerCase());
-      return mc && ms;
-    }), [items, activeCat, search]
+      const category = i.category_name || i.category;
+      const itemStatus = i.status || (i.is_active ? 'active' : 'inactive');
+      const mc = activeCat === 'All' || category === activeCat;
+      const ms = normalizeText(i.name).includes(normalizeText(search));
+      const mt = matchesDatePreset(i.created_at, timeFilter);
+      const mp = numberInRange(i.price, priceFilter);
+      const mf = statusFilter === 'all' ||
+        (statusFilter === 'available' && i.is_active && itemStatus !== 'pending') ||
+        (statusFilter === 'unavailable' && !i.is_active && itemStatus !== 'pending') ||
+        itemStatus === statusFilter;
+      return mc && ms && mt && mp && mf;
+    }), [items, activeCat, search, timeFilter, statusFilter, priceFilter]
   );
 
   const pending = React.useMemo(() => allItems.filter(i => i.status === 'pending'), [allItems]);
   const active = React.useMemo(() => allItems.filter(i => i.status !== 'pending'), [allItems]);
+  const {
+    page: menuPage,
+    pageSize: menuPageSize,
+    totalItems: menuTotalItems,
+    paginatedItems: paginatedActive,
+    setPage: setMenuPage,
+  } = usePagination(active, 8, `${activeCat}|${search}|${timeFilter}|${statusFilter}|${priceFilter}`);
 
   const cartTotal = React.useMemo(() => cart.reduce((s,c)=>s+c.price*c.qty, 0), [cart]);
   const cartCount = React.useMemo(() => cart.reduce((s,c)=>s+c.qty, 0), [cart]);
@@ -585,7 +644,7 @@ const Menu = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 relative">
       {/* Header */}
       <motion.div initial={{opacity:0,y:-20}} animate={{opacity:1,y:0}} className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
@@ -637,22 +696,64 @@ const Menu = () => {
         ))}
       </div>
 
-      {/* Search */}
-      <div className="relative max-w-sm">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-        <input className="form-input pl-9 text-sm" placeholder="Search menu items…" value={search} onChange={e=>setSearch(e.target.value)} />
+      {/* Filters */}
+      <div className="flex flex-col xl:flex-row gap-3 xl:items-center">
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <input className="form-input pl-9 text-sm" placeholder="Search menu items…" value={search} onChange={e=>setSearch(e.target.value)} />
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <DatePresetSelect value={timeFilter} onChange={setTimeFilter} label="Menu created time" />
+          <FilterSelect
+            value={statusFilter}
+            onChange={setStatusFilter}
+            label="Menu status"
+            options={[
+              { value: 'all', label: 'All statuses' },
+              { value: 'available', label: 'Available' },
+              { value: 'unavailable', label: 'Unavailable' },
+              { value: 'pending', label: 'Pending' },
+            ]}
+          />
+          <FilterSelect
+            value={priceFilter}
+            onChange={setPriceFilter}
+            label="Menu price range"
+            options={[
+              { value: 'all', label: 'All prices' },
+              { value: 'under10', label: 'Under $10' },
+              { value: '10to25', label: '$10 - $25' },
+              { value: '25plus', label: '$25+' },
+            ]}
+          />
+          <ResetFiltersButton onClick={() => {
+            setSearch('');
+            setActiveCat('All');
+            setTimeFilter('all');
+            setStatusFilter('all');
+            setPriceFilter('all');
+          }} />
+        </div>
       </div>
 
       {/* Grid */}
       <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         <AnimatePresence>
-          {active.map(item=>(
+          {paginatedActive.map(item=>(
             <ItemCard key={item.id} item={item} onToggle={toggle} isAdmin={isAdmin}
               onEdit={handleEdit} onDelete={handleDelete} onApprove={approve} onReject={reject} 
               onAddCart={handleAddCartClick} onDecCart={decCart} cartQty={cart.filter(c=>c.id===item.id).reduce((s,c)=>s+c.qty, 0)} />
           ))}
         </AnimatePresence>
       </motion.div>
+
+      <PaginationFooter
+        page={menuPage}
+        totalItems={menuTotalItems}
+        pageSize={menuPageSize}
+        onPageChange={setMenuPage}
+        className="rounded-2xl"
+      />
 
       {active.length===0 && (
         <motion.div initial={{opacity:0}} animate={{opacity:1}} className="text-center py-20 text-gray-400">

@@ -2,8 +2,13 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Plus, AlertTriangle, Package, Edit2, Trash2, X, TrendingUp, ArrowUpDown } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
+import Alert from '../components/Alert';
 import ConfirmModal from '../components/ConfirmModal';
+import PaginationFooter from '../components/PaginationFooter';
+import { DatePresetSelect, FilterSelect, ResetFiltersButton } from '../components/FilterControls';
+import { usePagination } from '../hooks/usePagination';
 import inventoryImg from '../assets/inventory.png';
+import { matchesDatePreset, normalizeText, numberInRange } from '../utils/filterUtils';
 import api from '../api/axios';
 
 // MOCK_INVENTORY removed, fetching from API
@@ -91,6 +96,10 @@ const Inventory = () => {
   const [items, setItems] = useState([]);
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('All');
+  const [timeFilter, setTimeFilter] = useState('all');
+  const [stockFilter, setStockFilter] = useState('all');
+  const [unitFilter, setUnitFilter] = useState('all');
+  const [valueFilter, setValueFilter] = useState('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editItem, setEditItem] = useState(null);
   const [sortField, setSortField] = useState('item_name');
@@ -111,18 +120,32 @@ const Inventory = () => {
   }, []);
 
   const lowStock = items.filter(i => i.quantity <= i.min_stock);
+  const unitOptions = ['all', ...new Set(items.map(i => i.unit).filter(Boolean))];
 
   const filtered = items
     .filter(i => {
       const matchCat = category === 'All' || i.category === category;
-      const matchSearch = i.item_name.toLowerCase().includes(search.toLowerCase());
-      return matchCat && matchSearch;
+      const stockStatus = getStockStatus(i.quantity, i.min_stock).label.toLowerCase();
+      const totalValue = Number(i.quantity || 0) * Number(i.cost || 0);
+      const matchSearch = normalizeText(i.item_name).includes(normalizeText(search));
+      const matchTime = matchesDatePreset(i.updated_at, timeFilter);
+      const matchStock = stockFilter === 'all' || stockStatus === stockFilter;
+      const matchUnit = unitFilter === 'all' || i.unit === unitFilter;
+      const matchValue = numberInRange(totalValue, valueFilter);
+      return matchCat && matchSearch && matchTime && matchStock && matchUnit && matchValue;
     })
     .sort((a, b) => {
       if (sortField === 'quantity') return a.quantity - b.quantity;
       if (sortField === 'cost') return b.cost - a.cost;
       return a.item_name.localeCompare(b.item_name);
     });
+  const {
+    page: inventoryPage,
+    pageSize: inventoryPageSize,
+    totalItems: inventoryTotalItems,
+    paginatedItems: paginatedInventory,
+    setPage: setInventoryPage,
+  } = usePagination(filtered, 10, `${category}|${search}|${timeFilter}|${stockFilter}|${unitFilter}|${valueFilter}|${sortField}`);
 
   const handleSave = async (form) => {
     try {
@@ -180,24 +203,22 @@ const Inventory = () => {
 
       {/* Low Stock Alert */}
       {lowStock.length > 0 && (
-        <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="glass-card border-l-4 border-amber-500 p-4 flex items-start space-x-3">
-          <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5 animate-pulse" />
-          <div>
-            <p className="font-bold text-sm text-amber-600 dark:text-amber-400">Low Stock Alert</p>
-            <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
+        <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}>
+          <Alert variant="warning" title="Low Stock Alert">
+            <p className="text-xs">
               {lowStock.map(i => i.item_name).join(', ')} — need restocking.
             </p>
-          </div>
+          </Alert>
         </motion.div>
       )}
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { label: 'Total Items', value: items.length, icon: Package, color: 'text-primary', bg: 'bg-primary/10' },
-          { label: 'Low Stock', value: lowStock.length, icon: AlertTriangle, color: 'text-amber-500', bg: 'bg-amber-500/10' },
-          { label: 'Total Value', value: `$${items.reduce((s, i) => s + i.quantity * i.cost, 0).toFixed(0)}`, icon: TrendingUp, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
-          { label: 'Categories', value: CATEGORIES.length - 1, icon: Package, color: 'text-violet-500', bg: 'bg-violet-500/10' },
+          { label: 'Filtered Items', value: filtered.length, icon: Package, color: 'text-primary', bg: 'bg-primary/10' },
+          { label: 'Low Stock', value: filtered.filter(i => i.quantity <= i.min_stock).length, icon: AlertTriangle, color: 'text-amber-500', bg: 'bg-amber-500/10' },
+          { label: 'Total Value', value: `$${filtered.reduce((s, i) => s + i.quantity * i.cost, 0).toFixed(0)}`, icon: TrendingUp, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
+          { label: 'Categories', value: new Set(filtered.map(i=>i.category)).size, icon: Package, color: 'text-violet-500', bg: 'bg-violet-500/10' },
         ].map((s, i) => (
           <motion.div key={s.label} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }} className="glass-card p-4">
             <div className={`w-9 h-9 rounded-xl ${s.bg} flex items-center justify-center mb-2`}>
@@ -210,7 +231,7 @@ const Inventory = () => {
       </div>
 
       {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-3">
+      <div className="flex flex-col gap-3">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 dark:text-slate-300" />
           <input className="form-input pl-9 text-sm" placeholder="Search items..." value={search} onChange={e => setSearch(e.target.value)} />
@@ -223,6 +244,46 @@ const Inventory = () => {
         <div className="flex space-x-2">
           <button onClick={() => setSortField('item_name')} className={`px-3 py-2 rounded-lg text-xs font-semibold transition-all flex items-center space-x-1 ${sortField === 'item_name' ? 'bg-primary/10 text-primary' : 'glass-card text-slate-500 dark:text-slate-300'}`}><ArrowUpDown className="w-3 h-3" /><span>Name</span></button>
           <button onClick={() => setSortField('quantity')} className={`px-3 py-2 rounded-lg text-xs font-semibold transition-all flex items-center space-x-1 ${sortField === 'quantity' ? 'bg-primary/10 text-primary' : 'glass-card text-slate-500 dark:text-slate-300'}`}><ArrowUpDown className="w-3 h-3" /><span>Qty</span></button>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <DatePresetSelect value={timeFilter} onChange={setTimeFilter} label="Inventory updated time" />
+          <FilterSelect
+            value={stockFilter}
+            onChange={setStockFilter}
+            label="Stock level"
+            options={[
+              { value: 'all', label: 'All stock levels' },
+              { value: 'good', label: 'Good' },
+              { value: 'low', label: 'Low' },
+              { value: 'critical', label: 'Critical' },
+            ]}
+          />
+          <FilterSelect
+            value={unitFilter}
+            onChange={setUnitFilter}
+            label="Unit"
+            options={unitOptions.map(unit => ({ value: unit, label: unit === 'all' ? 'All units' : unit }))}
+          />
+          <FilterSelect
+            value={valueFilter}
+            onChange={setValueFilter}
+            label="Inventory value"
+            options={[
+              { value: 'all', label: 'All values' },
+              { value: 'under500', label: 'Under $500' },
+              { value: '500to1000', label: '$500 - $1,000' },
+              { value: '1000plus', label: '$1,000+' },
+            ]}
+          />
+          <ResetFiltersButton onClick={() => {
+            setSearch('');
+            setCategory('All');
+            setTimeFilter('all');
+            setStockFilter('all');
+            setUnitFilter('all');
+            setValueFilter('all');
+            setSortField('item_name');
+          }} />
         </div>
       </div>
 
@@ -243,7 +304,7 @@ const Inventory = () => {
               </tr>
             </thead>
             <tbody>
-              {filtered.map((item, idx) => {
+              {paginatedInventory.map((item, idx) => {
                 const status = getStockStatus(item.quantity, item.min_stock);
                 return (
                   <motion.tr
@@ -294,6 +355,12 @@ const Inventory = () => {
             <p>No inventory items found</p>
           </div>
         )}
+        <PaginationFooter
+          page={inventoryPage}
+          totalItems={inventoryTotalItems}
+          pageSize={inventoryPageSize}
+          onPageChange={setInventoryPage}
+        />
       </motion.div>
 
       <AnimatePresence>

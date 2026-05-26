@@ -3,9 +3,11 @@ import React, { useMemo } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { useTheme } from '../../hooks/useTheme';
 import { usePerformance } from '../../hooks/usePerformance';
+import AnimatedBackground from '../AnimatedBackground';
 import {
   LogOut, ChefHat, Moon, Sun, LayoutDashboard, UtensilsCrossed,
-  Package, FileText, Settings, Users, DollarSign, Menu, X, Zap, ZapOff, BarChart2
+  Package, FileText, Settings, Users, DollarSign, Menu, X, Zap, ZapOff, BarChart2,
+  BriefcaseBusiness, MessageSquare
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
@@ -22,6 +24,11 @@ const NAV_ITEMS = [
 const ADMIN_ITEMS = [
   { to: '/employees', icon: Users, label: 'Employees' },
   { to: '/salaries', icon: DollarSign, label: 'Salaries' },
+  { to: '/system/messages', icon: MessageSquare, label: 'Messages' },
+];
+
+const ADMIN_ONLY_ITEMS = [
+  { to: '/admin/jobs', icon: BriefcaseBusiness, label: 'Jobs' },
 ];
 
 /**
@@ -88,6 +95,13 @@ const SidebarContent = ({ onClose, user, logout, theme, toggleTheme, lowPerforma
         <>
           <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 px-4 pt-4 pb-2">Management</p>
           {ADMIN_ITEMS.map(item => <NavItem key={item.to} {...item} onClick={onClose} enableHover={animationConfig.enableHover} />)}
+        </>
+      )}
+
+      {user?.role === 'Admin' && ADMIN_ONLY_ITEMS.length > 0 && (
+        <>
+          <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 px-4 pt-4 pb-2">Admin Only</p>
+          {ADMIN_ONLY_ITEMS.map(item => <NavItem key={item.to} {...item} onClick={onClose} enableHover={animationConfig.enableHover} />)}
         </>
       )}
     </nav>
@@ -158,13 +172,14 @@ export const AdminLayout = () => {
   }), [animationConfig]);
 
   return (
-    <div className="flex h-[100dvh] bg-transparent dark:bg-dark transition-colors duration-300 overflow-hidden">
+    <div className="flex h-[100dvh] bg-transparent dark:bg-dark transition-colors duration-300 overflow-hidden relative">
+      <AnimatedBackground className="z-0" />
       {/* Desktop Sidebar */}
       <motion.aside
         initial="closed"
         animate="open"
         variants={sidebarVariants}
-        className="hidden lg:flex w-64 flex-col bg-transparent dark:bg-dark border-r border-white/70 dark:border-slate-700/50 flex-shrink-0"
+        className="hidden lg:flex w-64 flex-col bg-transparent dark:bg-dark border-r border-white/70 dark:border-slate-700/50 flex-shrink-0 relative z-10"
         style={{ willChange: 'transform, opacity' }}
       >
         <SidebarContent user={user} logout={logout} theme={theme} toggleTheme={toggleTheme} lowPerformance={lowPerformance} togglePerformance={togglePerformance} animationConfig={animationConfig} />
@@ -197,7 +212,7 @@ export const AdminLayout = () => {
       </AnimatePresence>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden relative z-10">
         {/* Mobile Top Bar */}
         <div className="lg:hidden flex items-center justify-between px-4 py-3 border-b border-white/70 dark:border-slate-700 bg-white/70 dark:bg-dark backdrop-blur-2xl dark:backdrop-blur-none">
           <button onClick={() => setSidebarOpen(true)} className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors">

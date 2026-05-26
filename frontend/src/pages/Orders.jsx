@@ -3,9 +3,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Clock, CheckCircle, XCircle, Loader, ShoppingBag, Eye, X, Plus, Minus, CreditCard, Trash2, BarChart2 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../context/ToastContext';
+import Alert from '../components/Alert';
 import ConfirmModal from '../components/ConfirmModal';
+import PaginationFooter from '../components/PaginationFooter';
+import { DatePresetSelect, FilterSelect, ResetFiltersButton } from '../components/FilterControls';
+import { usePagination } from '../hooks/usePagination';
 import PaymentModal from '../components/PaymentModal';
 import { FOOD_PHOTOS } from '../data/menuCatalog';
+import { matchesDatePreset, normalizeText, numberInRange } from '../utils/filterUtils';
 import api from '../api/axios';
 
 // MOCK_ORDERS removed. Data will be fetched from API.
@@ -16,7 +21,16 @@ const STATUS_CFG = {
   pending:    { label:'Pending',    icon:Clock,       cls:'badge-yellow', dot:'bg-amber-500'              },
   cancelled:  { label:'Cancelled',  icon:XCircle,     cls:'badge-red',    dot:'bg-red-500'                },
 };
-const PAY_CFG = { Cash:'badge-green', Mastercard:'badge-purple', PayPal:'badge-blue', Zaad:'badge-yellow' };
+const PAY_CFG = {
+  cash:'badge-green',
+  mastercard:'badge-purple',
+  paypal:'badge-blue',
+  zaad:'badge-yellow',
+  Cash:'badge-green',
+  Mastercard:'badge-purple',
+  PayPal:'badge-blue',
+  Zaad:'badge-yellow',
+};
 
 /* ── Catalog Item Picker ── */
 const CatalogPicker = ({ cart, setCart, menuItems }) => {
@@ -56,7 +70,7 @@ const CatalogPicker = ({ cart, setCart, menuItems }) => {
 };
 
 /* ── New Order Modal ── */
-const NewOrderModal = ({ onClose, onPlaced, menuItems }) => {
+const NewOrderModal = ({ onClose, onPlaced, menuItems, employees = [] }) => {
   const [employee, setEmployee] = useState('');
   const [cart, setCart]         = useState([]);
   const [step, setStep]         = useState(1);
@@ -98,8 +112,15 @@ const NewOrderModal = ({ onClose, onPlaced, menuItems }) => {
           </div>
 
           <div className="mb-4">
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Customer / Employee Name</label>
-            <input className="form-input" placeholder="e.g. Ahmed Hassan" value={employee} onChange={e=>setEmployee(e.target.value)} />
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Employee Name</label>
+            <select className="form-input" aria-label="Employee Name" value={employee} onChange={e=>setEmployee(e.target.value)}>
+              <option value="">Select employee...</option>
+              {employees.map(emp => (
+                <option key={emp.id} value={emp.full_name}>
+                  {emp.full_name}{emp.job_title ? ` - ${emp.job_title}` : ''}
+                </option>
+              ))}
+            </select>
           </div>
 
           <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Select Items from Menu</label>
@@ -123,12 +144,16 @@ const NewOrderModal = ({ onClose, onPlaced, menuItems }) => {
             </div>
           )}
 
-          {error && <p className="text-red-500 text-xs mt-2">{error}</p>}
+          {error && (
+            <Alert variant="error" title="Order could not be placed" className="mt-4">
+              {error}
+            </Alert>
+          )}
 
           <div className="flex gap-3 mt-4">
             <button onClick={onClose} className="flex-1 py-3 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">Cancel</button>
             <motion.button whileHover={{scale:1.02}} whileTap={{scale:.98}}
-              onClick={()=>{ if(!employee.trim()){setError('Please enter customer name');return;} if(cart.length===0){setError('Please select at least one item');return;} setError('');setStep(2); }}
+              onClick={()=>{ if(!employee.trim()){setError('Please select an employee');return;} if(cart.length===0){setError('Please select at least one item');return;} setError('');setStep(2); }}
               className="flex-1 btn-primary py-3 text-sm flex items-center justify-center gap-2">
               <CreditCard className="w-4 h-4"/> Proceed to Payment
             </motion.button>
@@ -228,7 +253,7 @@ const SalesReport = ({ orders }) => {
     <motion.div initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} className="glass-card p-6">
       <div className="flex items-center gap-3 mb-5">
         <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center"><BarChart2 className="w-5 h-5 text-white"/></div>
-        <div><h2 className="text-xl font-black">Sales Report</h2><p className="text-xs text-slate-400">Today's revenue breakdown</p></div>
+        <div><h2 className="text-xl font-black">Sales Report</h2><p className="text-xs text-slate-400">Filtered order breakdown</p></div>
         <div className="ml-auto text-right">
           <p className="text-3xl font-black text-primary">${revenue.toFixed(2)}</p>
           <p className="text-xs text-slate-400">Total Revenue</p>
@@ -282,10 +307,16 @@ const Orders = () => {
   const [orders, setOrders]       = useState([]);
   const [search, setSearch]       = useState('');
   const [statusFilter, setFilter] = useState('all');
+  const [timeFilter, setTimeFilter] = useState('all');
+  const [paymentFilter, setPaymentFilter] = useState('all');
+  const [typeFilter, setTypeFilter] = useState('all');
+  const [paymentStatusFilter, setPaymentStatusFilter] = useState('all');
+  const [amountFilter, setAmountFilter] = useState('all');
   const [selected, setSelected]   = useState(null);
   const [newOpen, setNewOpen]     = useState(false);
   const [orderToDelete, setOrderToDelete] = useState(null);
   const [menuItems, setMenuItems] = useState([]);
+  const [employees, setEmployees] = useState([]);
   
 
   const fetchOrders = async () => {
@@ -302,18 +333,41 @@ const Orders = () => {
     } catch (err) { console.error('Failed to fetch menu items:', err); }
   };
 
+  const fetchEmployees = async () => {
+    try {
+      const res = await api.get('employees/');
+      setEmployees(res.data.results || res.data);
+    } catch (err) { console.error('Failed to fetch employees:', err); }
+  };
+
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchOrders();
     fetchMenuItems();
+    fetchEmployees();
   }, []);
 
   const filtered = orders.filter(o=>{
+    const total = Number(o.total_amount || o.total || o.total_price || 0);
+    const q = normalizeText(search);
     const ms = statusFilter==='all'||o.status===statusFilter;
-    const q = search.toLowerCase();
-    const mq = (o.order_number||'').toLowerCase().includes(q) || (o.employee_name||'').toLowerCase().includes(q);
-    return ms&&mq;
+    const mt = matchesDatePreset(o.created_at, timeFilter);
+    const mp = paymentFilter === 'all' || normalizeText(o.payment_method) === paymentFilter;
+    const mo = typeFilter === 'all' || normalizeText(o.order_type || 'takeaway') === typeFilter;
+    const mps = paymentStatusFilter === 'all' || normalizeText(o.payment_status || 'paid') === paymentStatusFilter;
+    const ma = numberInRange(total, amountFilter);
+    const mq = normalizeText(o.order_number).includes(q) ||
+      normalizeText(o.employee_name).includes(q) ||
+      normalizeText(o.customer_name).includes(q);
+    return ms && mt && mp && mo && mps && ma && mq;
   });
+  const {
+    page: ordersPage,
+    pageSize: ordersPageSize,
+    totalItems: ordersTotalItems,
+    paginatedItems: paginatedOrders,
+    setPage: setOrdersPage,
+  } = usePagination(filtered, 10, `${statusFilter}|${search}|${timeFilter}|${paymentFilter}|${typeFilter}|${paymentStatusFilter}|${amountFilter}`);
 
   const handleStatusChange = async (order, s) => {
     try {
@@ -334,14 +388,14 @@ const Orders = () => {
   const handlePlaced       = order => setOrders(p=>[order,...p]);
 
   const stats = {
-    total:    orders.length,
-    completed:orders.filter(o=>o.status==='completed').length,
-    processing:orders.filter(o=>o.status==='processing').length,
-    revenue:  orders.filter(o=>o.status!=='cancelled').reduce((s,o)=>s+Number(o.total_amount||o.total||0),0),
+    total:    filtered.length,
+    completed:filtered.filter(o=>o.status==='completed').length,
+    processing:filtered.filter(o=>o.status==='processing').length,
+    revenue:  filtered.filter(o=>o.status!=='cancelled').reduce((s,o)=>s+Number(o.total_amount||o.total||o.total_price||0),0),
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 relative">
       {/* Header */}
       <motion.div initial={{opacity:0,y:-20}} animate={{opacity:1,y:0}} className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
@@ -375,7 +429,7 @@ const Orders = () => {
       </div>
 
       {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-3">
+      <div className="flex flex-col gap-3">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"/>
           <input className="form-input pl-9 text-sm" placeholder="Search by ID or employee…" value={search} onChange={e=>setSearch(e.target.value)}/>
@@ -388,6 +442,63 @@ const Orders = () => {
             </motion.button>
           ))}
         </div>
+        <div className="flex flex-wrap gap-2">
+          <DatePresetSelect value={timeFilter} onChange={setTimeFilter} label="Order time" />
+          <FilterSelect
+            value={paymentFilter}
+            onChange={setPaymentFilter}
+            label="Payment method"
+            options={[
+              { value: 'all', label: 'All payments' },
+              { value: 'cash', label: 'Cash' },
+              { value: 'mastercard', label: 'Mastercard' },
+              { value: 'paypal', label: 'PayPal' },
+              { value: 'zaad', label: 'Zaad' },
+            ]}
+          />
+          <FilterSelect
+            value={typeFilter}
+            onChange={setTypeFilter}
+            label="Order type"
+            options={[
+              { value: 'all', label: 'All types' },
+              { value: 'dine_in', label: 'Dine-in' },
+              { value: 'takeaway', label: 'Takeaway' },
+              { value: 'delivery', label: 'Delivery' },
+            ]}
+          />
+          <FilterSelect
+            value={paymentStatusFilter}
+            onChange={setPaymentStatusFilter}
+            label="Payment status"
+            options={[
+              { value: 'all', label: 'All payment statuses' },
+              { value: 'paid', label: 'Paid' },
+              { value: 'unpaid', label: 'Unpaid' },
+              { value: 'refunded', label: 'Refunded' },
+            ]}
+          />
+          <FilterSelect
+            value={amountFilter}
+            onChange={setAmountFilter}
+            label="Order total"
+            options={[
+              { value: 'all', label: 'All totals' },
+              { value: 'under10', label: 'Under $10' },
+              { value: '10to25', label: '$10 - $25' },
+              { value: '25plus', label: '$25+' },
+            ]}
+          />
+          <ResetFiltersButton onClick={() => {
+            setSearch('');
+            setFilter('all');
+            setTimeFilter('all');
+            setPaymentFilter('all');
+            setTypeFilter('all');
+            setPaymentStatusFilter('all');
+            setAmountFilter('all');
+          }} />
+        </div>
       </div>
 
       {/* Table */}
@@ -397,7 +508,7 @@ const Orders = () => {
             <thead><tr><th>Order ID</th><th>Employee</th><th>Items</th><th>Total</th><th>Payment</th><th>Status</th><th>Time</th><th>Actions</th></tr></thead>
             <tbody>
               <AnimatePresence>
-                {filtered.map((order,idx)=>{
+                {paginatedOrders.map((order,idx)=>{
                   const cfg=STATUS_CFG[order.status];
                   return (
                     <motion.tr key={order.id} initial={{opacity:0,x:-10}} animate={{opacity:1,x:0}} exit={{opacity:0,x:10}} transition={{delay:idx*.04}}>
@@ -426,14 +537,20 @@ const Orders = () => {
             <ShoppingBag className="w-14 h-14 mx-auto mb-3 opacity-30"/><p className="text-lg font-medium">No orders found</p>
           </motion.div>
         )}
+        <PaginationFooter
+          page={ordersPage}
+          totalItems={ordersTotalItems}
+          pageSize={ordersPageSize}
+          onPageChange={setOrdersPage}
+        />
       </motion.div>
 
       {/* Sales Report */}
-      <SalesReport orders={orders} />
+      <SalesReport orders={filtered} />
 
       <AnimatePresence>
         {selected  && <OrderModal order={selected} onClose={()=>setSelected(null)} onStatusChange={handleStatusChange} isAdmin={isAdmin}/>}
-        {newOpen   && <NewOrderModal onClose={()=>setNewOpen(false)} onPlaced={handlePlaced} menuItems={menuItems} />}
+        {newOpen   && <NewOrderModal onClose={()=>setNewOpen(false)} onPlaced={handlePlaced} menuItems={menuItems} employees={employees} />}
       </AnimatePresence>
 
       <ConfirmModal

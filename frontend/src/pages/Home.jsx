@@ -7,6 +7,14 @@ import {
   Utensils, Coffee, Play, Volume2, VolumeX
 } from 'lucide-react';
 
+/* ── Feature card photos (AI-generated) ── */
+import featureAnalytics from '../assets/feature_analytics.png';
+import featureMenu     from '../assets/feature_menu.png';
+import featureOrders   from '../assets/feature_orders.png';
+import featureInventory from '../assets/feature_inventory.png';
+import featureTeam     from '../assets/feature_team.png';
+import featurePayroll  from '../assets/dashboard_analytics.png';
+
 /* ── Animated Counter ── */
 /**
  * Counter Component
@@ -85,7 +93,7 @@ const TiltCard = ({ children, className = '', intensity = 15 }) => {
 };
 
 /* ── Feature Card ── */
-const FeatureCard = ({ icon: Icon, title, desc, color, delay }) => (
+const FeatureCard = ({ photo, icon: Icon, title, desc, color, delay }) => (
   <motion.div
     initial={{ opacity: 0, y: 50 }}
     whileInView={{ opacity: 1, y: 0 }}
@@ -96,10 +104,16 @@ const FeatureCard = ({ icon: Icon, title, desc, color, delay }) => (
       style={{ boxShadow: '0 10px 40px -10px rgba(0,0,0,0.12)' }}
     >
       <motion.div
-        whileHover={{ scale: 1.15, rotate: 5 }}
-        className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-5 ${color} shadow-lg`}
+        whileHover={{ scale: 1.08 }}
+        className="w-16 h-16 rounded-2xl overflow-hidden mb-5 shadow-lg flex-shrink-0"
       >
-        <Icon className="w-7 h-7 text-white" />
+        {photo ? (
+          <img src={photo} alt={title} className="w-full h-full object-cover" />
+        ) : (
+          <div className={`w-full h-full flex items-center justify-center ${color}`}>
+            <Icon className="w-7 h-7 text-white" />
+          </div>
+        )}
       </motion.div>
       <h3 className="text-xl font-bold mb-3 group-hover:text-primary transition-colors">{title}</h3>
       <p className="text-gray-500 dark:text-slate-400 text-sm leading-relaxed">{desc}</p>
@@ -120,6 +134,7 @@ const Orb = ({ className }) => (
 const Home = () => {
   const [muted, setMuted] = useState(true);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const [showScrollCue, setShowScrollCue] = useState(true);
   const heroRef = useRef(null);
   const videoRef = useRef(null);
   const { scrollYProgress } = useScroll();
@@ -139,14 +154,27 @@ const Home = () => {
     return () => window.removeEventListener('mousemove', handle);
   }, []);
 
+  useEffect(() => {
+    const handleScroll = () => setShowScrollCue(window.scrollY < 80);
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   const features = [
-    { icon: BarChart3, title: 'Live Analytics', desc: 'Real-time dashboard with beautiful charts, KPIs and revenue tracking.', color: 'bg-gradient-to-br from-blue-500 to-cyan-600', delay: 0 },
-    { icon: Utensils, title: 'Menu Builder', desc: 'Manage food categories, item photos, prices and live availability.', color: 'bg-gradient-to-br from-emerald-500 to-teal-600', delay: 0.1 },
-    { icon: ShoppingBag, title: 'Order Tracking', desc: 'Follow every order from placement to delivery in real-time.', color: 'bg-gradient-to-br from-violet-500 to-purple-700', delay: 0.2 },
-    { icon: Package, title: 'Smart Inventory', desc: 'Stock alerts, cost tracking and supply chain management.', color: 'bg-gradient-to-br from-amber-500 to-orange-600', delay: 0.3 },
-    { icon: Users, title: 'Team Manager', desc: 'Employee profiles, roles, permissions and shift management.', color: 'bg-gradient-to-br from-rose-500 to-pink-600', delay: 0.4 },
-    { icon: DollarSign, title: 'Payroll System', desc: 'Automate salaries, bonuses, deductions and payment records.', color: 'bg-gradient-to-br from-cyan-500 to-sky-600', delay: 0.5 },
+    { photo: featureAnalytics, icon: BarChart3,   title: 'Live Analytics',  desc: 'Real-time dashboard with beautiful charts, KPIs and revenue tracking.', color: 'bg-gradient-to-br from-blue-500 to-cyan-600',    delay: 0   },
+    { photo: featureMenu,      icon: Utensils,    title: 'Menu Builder',    desc: 'Manage food categories, item photos, prices and live availability.',   color: 'bg-gradient-to-br from-emerald-500 to-teal-600',  delay: 0.1 },
+    { photo: featureOrders,    icon: ShoppingBag, title: 'Order Tracking',  desc: 'Follow every order from placement to delivery in real-time.',          color: 'bg-gradient-to-br from-violet-500 to-purple-700', delay: 0.2 },
+    { photo: featureInventory, icon: Package,     title: 'Smart Inventory', desc: 'Stock alerts, cost tracking and supply chain management.',              color: 'bg-gradient-to-br from-amber-500 to-orange-600',  delay: 0.3 },
+    { photo: featureTeam,      icon: Users,       title: 'Team Manager',    desc: 'Employee profiles, roles, permissions and shift management.',          color: 'bg-gradient-to-br from-rose-500 to-pink-600',    delay: 0.4 },
+    { photo: featurePayroll,   icon: DollarSign,  title: 'Payroll System',  desc: 'Automate salaries, bonuses, deductions and payment records.',          color: 'bg-gradient-to-br from-cyan-500 to-sky-600',     delay: 0.5 },
   ];
+
+  const nextSectionRef = useRef(null);
+
+  const scrollToNextSection = () => {
+    nextSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
 
   return (
     <div className="overflow-x-hidden">
@@ -154,7 +182,7 @@ const Home = () => {
       {/* ════ HERO — Video BG + 3D Mouse ════ */}
       <section
         ref={heroRef}
-        className="relative min-h-screen flex items-center justify-center overflow-hidden"
+        className="relative min-h-[calc(100dvh-5rem)] flex items-center justify-center overflow-hidden pt-10 pb-28 md:pt-14 md:pb-32"
       >
         {/* Video Background */}
         <video
@@ -187,7 +215,7 @@ const Home = () => {
 
         {/* 3D mouse-tracked hero content */}
         <motion.div
-          className="relative z-20 max-w-6xl mx-auto px-6 text-center"
+          className="relative z-20 max-w-6xl mx-auto px-6 py-10 text-center"
           style={{
             y: heroY,
             opacity: heroOpacity,
@@ -265,7 +293,7 @@ const Home = () => {
             initial={{ opacity: 0, y: 80 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, delay: 0.5 }}
-            className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto"
+            className="mt-12 md:mt-16 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto"
           >
             {[
               { value: 50, suffix: '+', label: 'Fresh Meals', icon: '🍽️' },
@@ -290,18 +318,21 @@ const Home = () => {
         </motion.div>
 
         {/* Scroll indicator */}
-        <motion.div
+        <motion.button
+          type="button"
+          onClick={scrollToNextSection}
+          aria-label="Scroll to highlights"
           animate={{ y: [0, 12, 0] }}
           transition={{ duration: 2, repeat: Infinity }}
-          className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center space-y-1 text-white/40"
+          className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center space-y-1 text-white/60 hover:text-white transition-opacity duration-300 cursor-pointer ${showScrollCue ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
         >
           <span className="text-xs uppercase tracking-widest">Scroll</span>
           <div className="w-px h-10 bg-gradient-to-b from-white/40 to-transparent" />
-        </motion.div>
+        </motion.button>
       </section>
 
       {/* ════ STATS MARQUEE ════ */}
-      <div className="py-8 bg-gradient-to-r from-primary/10 via-accent/10 to-violet-500/10 border-y border-gray-200/50 dark:border-slate-700/50 overflow-hidden">
+      <div ref={nextSectionRef} className="scroll-mt-24 py-8 bg-gradient-to-r from-sky-100/80 via-rose-100/70 to-emerald-100/80 dark:from-indigo-900/60 dark:via-cyan-900/45 dark:to-emerald-900/55 border-y border-sky-200/60 dark:border-cyan-400/10 overflow-hidden">
         <motion.div
           animate={{ x: [0, -1200] }}
           transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
@@ -318,8 +349,8 @@ const Home = () => {
       </div>
 
       {/* ════ FEATURES ════ */}
-      <section className="py-28 px-6">
-        <div className="max-w-6xl mx-auto">
+      <section className="relative overflow-hidden py-28 px-6 bg-gradient-to-br from-sky-50 via-rose-50 to-emerald-50 dark:from-slate-950 dark:via-fuchsia-900/45 dark:to-teal-900/45 border-b border-white/70 dark:border-slate-800/80">
+        <div className="relative max-w-6xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -349,8 +380,8 @@ const Home = () => {
       </section>
 
       {/* ════ PHOTO SHOWCASE w/ Unsplash ════ */}
-      <section className="py-28 px-6 glass-section">
-        <div className="max-w-6xl mx-auto">
+      <section className="relative overflow-hidden py-28 px-6 bg-gradient-to-tr from-amber-50 via-white to-cyan-50 dark:from-slate-950 dark:via-cyan-900/45 dark:to-amber-900/35 border-y border-amber-200/40 dark:border-cyan-400/10">
+        <div className="relative max-w-6xl mx-auto">
           <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16">
             <h2 className="text-5xl font-black mb-4">Built for <span className="gradient-text">Real Cafeterias</span></h2>
           </motion.div>
@@ -388,8 +419,8 @@ const Home = () => {
       </section>
 
       {/* ════ TESTIMONIALS ════ */}
-      <section className="py-28 px-6">
-        <div className="max-w-6xl mx-auto">
+      <section className="relative overflow-hidden py-28 px-6 bg-gradient-to-br from-violet-50 via-white to-sky-50 dark:from-slate-950 dark:via-violet-900/50 dark:to-sky-900/40">
+        <div className="relative max-w-6xl mx-auto">
           <div className="text-center max-w-3xl mx-auto mb-20">
             <h2 className="text-4xl md:text-5xl font-black mb-6 text-slate-800 dark:text-white">
               What Our <span className="text-primary">Guests Say</span>
@@ -405,19 +436,25 @@ const Home = () => {
                 name: "Sarah Jenkins",
                 role: "Daily Customer",
                 text: "The artisan coffee here is the best I've ever had. And the lunch specials are always fresh and delicious!",
-                stars: 5, avatar: "S"
+                stars: 5,
+                avatar: "S",
+                avatarPhoto: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=160&h=160&fit=crop&crop=face"
               },
               {
                 name: "Marcus Chen",
                 role: "Local Business Owner",
                 text: "We use their catering services for all our corporate events. Professional, punctual, and amazing food.",
-                stars: 5, avatar: "M"
+                stars: 5,
+                avatar: "M",
+                avatarPhoto: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=160&h=160&fit=crop&crop=face"
               },
               {
                 name: "Elena Rodriguez",
                 role: "Student",
                 text: "Great atmosphere to study, friendly staff, and the vegan options are incredible. Highly recommend!",
-                stars: 5, avatar: "E"
+                stars: 5,
+                avatar: "E",
+                avatarPhoto: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=160&h=160&fit=crop&crop=face"
               }
             ].map((t, i) => (
               <motion.div
@@ -435,8 +472,12 @@ const Home = () => {
                   </div>
                   <p className="text-gray-600 dark:text-slate-300 text-sm italic mb-6 leading-relaxed">"{t.text}"</p>
                   <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-bold">
-                      {t.avatar}
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-bold overflow-hidden">
+                      {t.avatarPhoto ? (
+                        <img src={t.avatarPhoto} alt={t.name} className="w-full h-full object-cover" />
+                      ) : (
+                        t.avatar
+                      )}
                     </div>
                     <div>
                       <p className="font-bold text-sm">{t.name}</p>

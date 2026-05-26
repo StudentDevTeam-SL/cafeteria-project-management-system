@@ -4,7 +4,12 @@ import {
   DollarSign, Plus, Search, Edit2, Trash2, X,
   TrendingUp, Users, Calendar, CheckCircle, Clock, AlertCircle
 } from 'lucide-react';
+import Alert from '../components/Alert';
+import PaginationFooter from '../components/PaginationFooter';
+import { DatePresetSelect, FilterSelect, ResetFiltersButton } from '../components/FilterControls';
+import { usePagination } from '../hooks/usePagination';
 import staffTeamImg from '../assets/staff_team.png';
+import { matchesDatePreset, normalizeText, numberInRange, uniqueOptions } from '../utils/filterUtils';
 import api from '../api/axios';
 
 // Helper: compute net from plain numbers
@@ -40,12 +45,17 @@ const SalaryModal = ({ record, employees, onClose, onSave }) => {
         }
       : defaultForm
   );
+  const [formError, setFormError] = useState('');
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
   const net = Number(form.base_salary || 0) + Number(form.bonus || 0) - Number(form.deduction || 0);
 
   const handleSave = () => {
-    if (!form.employee) { alert('Please select an employee'); return; }
+    if (!form.employee) {
+      setFormError('Please select an employee before saving this salary record.');
+      return;
+    }
+    setFormError('');
     onSave({
       employee:     Number(form.employee),
       base_salary:  Number(form.base_salary),
@@ -70,13 +80,19 @@ const SalaryModal = ({ record, employees, onClose, onSave }) => {
         <h2 className="text-2xl font-black gradient-text mb-6">{record ? 'Edit Salary' : 'Add Salary Record'}</h2>
 
         <div className="space-y-4">
+          {formError && (
+            <Alert variant="error" title="Missing employee">
+              {formError}
+            </Alert>
+          )}
+
           {/* Employee dropdown — sends FK integer, not a free-text name */}
           <div>
             <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1.5">Employee</label>
             <select
               className="form-input"
               value={form.employee}
-              onChange={e => set('employee', e.target.value)}
+              onChange={e => { set('employee', e.target.value); setFormError(''); }}
             >
               <option value="">Select employee...</option>
               {employees.map(emp => (
@@ -137,6 +153,10 @@ const Salaries = () => {
   const [salaries,     setSalaries]     = useState([]);
   const [employees,    setEmployees]    = useState([]);   // for dropdown
   const [search,       setSearch]       = useState('');
+  const [timeFilter,   setTimeFilter]   = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [employeeFilter, setEmployeeFilter] = useState('all');
+  const [payFilter,    setPayFilter]    = useState('all');
   const [isModalOpen,  setIsModalOpen]  = useState(false);
   const [editRecord,   setEditRecord]   = useState(null);
 
@@ -160,16 +180,29 @@ const Salaries = () => {
     fetchEmployees();
   }, []);
 
-  const totalPayroll    = salaries.reduce((s, r) => s + getNet(r), 0);
-  const paidCount       = salaries.filter(r => r.status === 'paid').length;
-  const totalBonuses    = salaries.reduce((s, r) => s + Number(r.bonus), 0);
-  const totalDeductions = salaries.reduce((s, r) => s + Number(r.deduction), 0);
-
   // Search by employee_name or employee_position returned by serializer
-  const filtered = salaries.filter(s =>
-    (s.employee_name     || '').toLowerCase().includes(search.toLowerCase()) ||
-    (s.employee_position || '').toLowerCase().includes(search.toLowerCase())
-  );
+  const employeeOptions = uniqueOptions(salaries, s => s.employee_name);
+  const filtered = salaries.filter(s => {
+    const matchSearch = normalizeText(s.employee_name).includes(normalizeText(search)) ||
+      normalizeText(s.employee_position).includes(normalizeText(search));
+    const matchTime = matchesDatePreset(s.payment_date, timeFilter);
+    const matchStatus = statusFilter === 'all' || s.status === statusFilter;
+    const matchEmployee = employeeFilter === 'all' || s.employee_name === employeeFilter;
+    const matchPay = numberInRange(getNet(s), payFilter);
+    return matchSearch && matchTime && matchStatus && matchEmployee && matchPay;
+  });
+  const totalPayroll    = filtered.reduce((s, r) => s + getNet(r), 0);
+  const paidCount       = filtered.filter(r => r.status === 'paid').length;
+  const totalBonuses    = filtered.reduce((s, r) => s + Number(r.bonus), 0);
+  const totalDeductions = filtered.reduce((s, r) => s + Number(r.deduction), 0);
+
+  const {
+    page: salariesPage,
+    pageSize: salariesPageSize,
+    totalItems: salariesTotalItems,
+    paginatedItems: paginatedSalaries,
+    setPage: setSalariesPage,
+  } = usePagination(filtered, 10, `${search}|${timeFilter}|${statusFilter}|${employeeFilter}|${payFilter}`);
 
   const handleSave = async (form) => {
     try {
@@ -220,7 +253,7 @@ const Salaries = () => {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
           { label: 'Total Payroll',  value: `$${totalPayroll.toLocaleString()}`,    icon: DollarSign, color: 'text-primary',     bg: 'bg-primary/10'     },
-          { label: 'Employees',      value: salaries.length,                        icon: Users,      color: 'text-violet-500',  bg: 'bg-violet-500/10'  },
+          { label: 'Records',        value: filtered.length,                        icon: Users,      color: 'text-violet-500',  bg: 'bg-violet-500/10'  },
           { label: 'Total Bonuses',  value: `$${totalBonuses.toLocaleString()}`,    icon: TrendingUp, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
           { label: 'Deductions',     value: `$${totalDeductions.toLocaleString()}`, icon: Calendar,   color: 'text-red-400',     bg: 'bg-red-400/10'     },
         ].map((s, i) => (
@@ -238,25 +271,68 @@ const Salaries = () => {
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="glass-card p-5">
         <div className="flex items-center justify-between mb-3">
           <h3 className="font-bold">Payroll Status</h3>
-          <span className="text-sm text-slate-500 dark:text-slate-300">{paidCount}/{salaries.length} processed</span>
+          <span className="text-sm text-slate-500 dark:text-slate-300">{paidCount}/{filtered.length} processed</span>
         </div>
         <div className="h-3 bg-gray-100 dark:bg-slate-700 rounded-full overflow-hidden">
           <motion.div
             initial={{ width: 0 }}
-            animate={{ width: salaries.length ? `${(paidCount / salaries.length) * 100}%` : '0%' }}
+            animate={{ width: filtered.length ? `${(paidCount / filtered.length) * 100}%` : '0%' }}
             transition={{ duration: 1.5, ease: 'easeOut' }}
             className="h-full bg-gradient-to-r from-primary to-accent rounded-full"
           />
         </div>
         <p className="text-xs text-slate-500 dark:text-slate-300 mt-2">
-          {salaries.length ? Math.round((paidCount / salaries.length) * 100) : 0}% payroll completed
+          {filtered.length ? Math.round((paidCount / filtered.length) * 100) : 0}% payroll completed
         </p>
       </motion.div>
 
-      {/* Search */}
-      <div className="relative max-w-sm">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 dark:text-slate-300" />
-        <input className="form-input pl-9 text-sm" placeholder="Search employees..." value={search} onChange={e => setSearch(e.target.value)} />
+      {/* Filters */}
+      <div className="flex flex-col gap-3">
+        <div className="relative max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 dark:text-slate-300" />
+          <input className="form-input pl-9 text-sm" placeholder="Search employees..." value={search} onChange={e => setSearch(e.target.value)} />
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <DatePresetSelect value={timeFilter} onChange={setTimeFilter} label="Payment date time" />
+          <FilterSelect
+            value={statusFilter}
+            onChange={setStatusFilter}
+            label="Salary status"
+            options={[
+              { value: 'all', label: 'All statuses' },
+              { value: 'paid', label: 'Paid' },
+              { value: 'pending', label: 'Pending' },
+              { value: 'processing', label: 'Processing' },
+            ]}
+          />
+          <FilterSelect
+            value={employeeFilter}
+            onChange={setEmployeeFilter}
+            label="Employee"
+            options={[
+              { value: 'all', label: 'All employees' },
+              ...employeeOptions.map(name => ({ value: name, label: name })),
+            ]}
+          />
+          <FilterSelect
+            value={payFilter}
+            onChange={setPayFilter}
+            label="Net salary"
+            options={[
+              { value: 'all', label: 'All net salary' },
+              { value: 'under500', label: 'Under $500' },
+              { value: '500to1000', label: '$500 - $1,000' },
+              { value: '1000plus', label: '$1,000+' },
+            ]}
+          />
+          <ResetFiltersButton onClick={() => {
+            setSearch('');
+            setTimeFilter('all');
+            setStatusFilter('all');
+            setEmployeeFilter('all');
+            setPayFilter('all');
+          }} />
+        </div>
       </div>
 
       {/* Table */}
@@ -277,7 +353,7 @@ const Salaries = () => {
               </tr>
             </thead>
             <tbody>
-              {filtered.map((record, idx) => {
+              {paginatedSalaries.map((record, idx) => {
                 const cfg = STATUS_CFG[record.status] || STATUS_CFG.pending;
                 return (
                   <motion.tr key={record.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.07 }}>
@@ -314,6 +390,12 @@ const Salaries = () => {
             <p>No salary records found</p>
           </div>
         )}
+        <PaginationFooter
+          page={salariesPage}
+          totalItems={salariesTotalItems}
+          pageSize={salariesPageSize}
+          onPageChange={setSalariesPage}
+        />
       </motion.div>
 
       <AnimatePresence>

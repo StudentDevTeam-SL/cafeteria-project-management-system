@@ -1,12 +1,14 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { Bell, Lock, Moon, Palette, Save, Check, User, Shield, Database, Zap, Camera, Type, Trash2, PlusCircle, Users as UsersIcon } from 'lucide-react';
+import { Bell, Lock, Moon, Palette, Save, Check, User, Shield, Database, Zap, Camera, Type, Trash2, PlusCircle, Users as UsersIcon, MessageSquare, Mail, Eye, X, RefreshCw } from 'lucide-react';
 import { useTheme } from '../hooks/useTheme';
 import { useAuth } from '../hooks/useAuth';
 import { useSoundContext } from '../context/SoundContext';
 import { Volume2, VolumeX, Music } from 'lucide-react';
 import api from '../api/axios';
 import { useToast } from '../context/ToastContext';
+import { DatePresetSelect, ResetFiltersButton } from '../components/FilterControls';
+import { matchesDatePreset, normalizeText } from '../utils/filterUtils';
 
 /* ── Accent color presets — live-update CSS variable ── */
 const ACCENT_COLORS = [
@@ -50,6 +52,146 @@ const Row = ({ icon:Icon, label, desc, children }) => (
   </div>
 );
 
+const ContactMessagesModal = ({
+  messages,
+  loading,
+  search,
+  setSearch,
+  timeFilter,
+  setTimeFilter,
+  selectedMessage,
+  setSelectedMessage,
+  onClose,
+  onRefresh,
+  onDelete,
+}) => {
+  const filtered = messages.filter(message => {
+    const text = [
+      message.name,
+      message.email,
+      message.subject,
+      message.message,
+    ].map(normalizeText).join(' ');
+
+    return text.includes(normalizeText(search)) &&
+      matchesDatePreset(message.created_at, timeFilter);
+  });
+
+  const formatDate = value => value ? new Date(value).toLocaleString() : 'No date';
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/65 backdrop-blur-sm">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.96, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        className="glass-card dark:bg-slate-900 w-full max-w-4xl max-h-[90vh] overflow-hidden"
+      >
+        <div className="flex items-center justify-between gap-4 p-5 border-b border-slate-200 dark:border-slate-800">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+              <MessageSquare className="w-5 h-5" />
+            </div>
+            <div className="min-w-0">
+              <h2 className="text-xl font-black">Contact Us Messages</h2>
+              <p className="text-xs text-slate-500 dark:text-slate-300">{filtered.length} of {messages.length} messages</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <button onClick={onRefresh} className="p-2 rounded-xl glass-card text-slate-500 hover:text-primary" title="Refresh messages">
+              <RefreshCw className="w-4 h-4" />
+            </button>
+            <button onClick={onClose} className="p-2 rounded-xl glass-card text-slate-500 hover:text-red-500" title="Close messages">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+
+        <div className="p-5 space-y-4 overflow-y-auto max-h-[calc(90vh-86px)]">
+          <div className="flex flex-wrap gap-2">
+            <div className="relative w-full sm:w-64 shrink-0">
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <input
+                className="form-input pl-9 text-sm"
+                placeholder="Search messages..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+              />
+            </div>
+            <DatePresetSelect value={timeFilter} onChange={setTimeFilter} label="Message time" />
+            <ResetFiltersButton onClick={() => {
+              setSearch('');
+              setTimeFilter('all');
+              setSelectedMessage(null);
+            }} />
+          </div>
+
+          {selectedMessage && (
+            <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4">
+              <div className="flex items-start justify-between gap-3 mb-3">
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-wider text-primary mb-1">Reading Message</p>
+                  <h3 className="text-lg font-black">{selectedMessage.subject}</h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-300">{formatDate(selectedMessage.created_at)}</p>
+                </div>
+                <button onClick={() => setSelectedMessage(null)} className="p-1.5 rounded-lg hover:bg-slate-200/60 dark:hover:bg-slate-800">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+              <div className="grid sm:grid-cols-2 gap-3 text-sm mb-3">
+                <div>
+                  <p className="text-xs text-slate-500 dark:text-slate-300">Name</p>
+                  <p className="font-bold">{selectedMessage.name}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-slate-500 dark:text-slate-300">Email</p>
+                  <p className="font-bold break-all">{selectedMessage.email}</p>
+                </div>
+              </div>
+              <p className="text-sm leading-6 whitespace-pre-wrap text-slate-700 dark:text-slate-200">{selectedMessage.message}</p>
+            </div>
+          )}
+
+          <div className="space-y-2">
+            {loading && (
+              <div className="py-12 text-center text-slate-400">Loading messages...</div>
+            )}
+
+            {!loading && filtered.length === 0 && (
+              <div className="py-12 text-center text-slate-400">
+                <MessageSquare className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                <p>No contact messages found</p>
+              </div>
+            )}
+
+            {!loading && filtered.map(message => (
+              <div key={message.id} className="glass-card p-4 flex flex-col md:flex-row md:items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-xs font-bold text-primary">#{message.id}</span>
+                    <span className="text-xs text-slate-500 dark:text-slate-300">{formatDate(message.created_at)}</span>
+                  </div>
+                  <p className="font-black truncate">{message.subject}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-300 truncate">{message.name} - {message.email}</p>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <button onClick={() => setSelectedMessage(message)} className="px-3 py-2 rounded-xl bg-primary/10 text-primary text-xs font-bold flex items-center gap-1.5 hover:bg-primary/20">
+                    <Eye className="w-3.5 h-3.5" />
+                    Read
+                  </button>
+                  <button onClick={() => onDelete(message)} className="px-3 py-2 rounded-xl bg-red-500/10 text-red-500 text-xs font-bold flex items-center gap-1.5 hover:bg-red-500/20">
+                    <Trash2 className="w-3.5 h-3.5" />
+                    Delete
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </motion.div>
+    </div>
+  );
+};
+
 const Settings = () => {
   const { theme, toggleTheme } = useTheme();
   const { user, logout, updateUser, switchRole } = useAuth();
@@ -59,6 +201,12 @@ const Settings = () => {
   const [saved, setSaved]   = useState(false);
   const [saving, setSaving] = useState(false);
   const [tab, setTab]       = useState('personal'); // 'personal' | 'system'
+  const [contactMessagesOpen, setContactMessagesOpen] = useState(false);
+  const [contactMessages, setContactMessages] = useState([]);
+  const [contactLoading, setContactLoading] = useState(false);
+  const [contactSearch, setContactSearch] = useState('');
+  const [contactTimeFilter, setContactTimeFilter] = useState('all');
+  const [selectedContactMessage, setSelectedContactMessage] = useState(null);
   // Avatar: persist locally in localStorage (no backend field required)
   const [avatar, setAvatar] = useState(() => localStorage.getItem('avatar') || '');
   const [accentIdx, setAccentIdx] = useState(0);
@@ -82,6 +230,26 @@ const Settings = () => {
     }
   }, [isAdmin, tab]);
 
+  const fetchContactMessages = useCallback(async () => {
+    setContactLoading(true);
+    try {
+      const res = await api.get('menu/contact-messages/');
+      setContactMessages(res.data.results || res.data);
+    } catch (err) {
+      console.error('Failed to fetch contact messages:', err);
+      showToast('Failed to load contact messages', { type: 'error' });
+    } finally {
+      setContactLoading(false);
+    }
+  }, [showToast]);
+
+  useEffect(() => {
+    if (isAdmin && contactMessagesOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      fetchContactMessages();
+    }
+  }, [isAdmin, contactMessagesOpen, fetchContactMessages]);
+
   const handleCreateUser = async () => {
     if(!newUser.username || !newUser.password) {
       showToast('Username and password are required', {type:'error'}); return;
@@ -104,6 +272,22 @@ const Settings = () => {
       showToast('User deleted successfully', {type:'warning'});
     } catch(err) {
       console.error(err);
+    }
+  };
+
+  const handleDeleteContactMessage = async (message) => {
+    if (!window.confirm(`Delete message from ${message.name}?`)) return;
+
+    try {
+      await api.delete(`menu/contact-messages/${message.id}/`);
+      setContactMessages(prev => prev.filter(item => item.id !== message.id));
+      if (selectedContactMessage?.id === message.id) {
+        setSelectedContactMessage(null);
+      }
+      showToast('Contact message deleted', { type: 'warning' });
+    } catch (err) {
+      console.error('Failed to delete contact message:', err);
+      showToast('Failed to delete contact message', { type: 'error' });
     }
   };
 
@@ -313,6 +497,33 @@ const Settings = () => {
           </div>
         </Section>
 
+        {/* Contact messages */}
+        <Section icon={MessageSquare} title="Contact Us Messages" delay={.07}>
+          <Row
+            icon={Mail}
+            label="Send a Message Inbox"
+            desc="Read messages submitted from the public Contact Us page"
+          >
+            <button
+              onClick={() => setContactMessagesOpen(true)}
+              className="btn-primary text-sm px-4 py-2 flex items-center gap-2"
+            >
+              <Eye className="w-4 h-4" />
+              View Messages
+            </button>
+          </Row>
+          <div className="grid grid-cols-2 gap-3 pt-4">
+            <div className="rounded-xl bg-primary/5 border border-primary/10 p-3">
+              <p className="text-xs text-slate-500 dark:text-slate-300">Loaded Messages</p>
+              <p className="text-2xl font-black text-primary">{contactMessages.length}</p>
+            </div>
+            <div className="rounded-xl bg-emerald-500/5 border border-emerald-500/10 p-3">
+              <p className="text-xs text-slate-500 dark:text-slate-300">Last Check</p>
+              <p className="text-sm font-bold text-emerald-500">{contactMessagesOpen ? 'Open now' : 'Ready'}</p>
+            </div>
+          </div>
+        </Section>
+
         {/* User Management */}
         <Section icon={UsersIcon} title="User Management" delay={.08}>
           <div className="mb-6 space-y-4">
@@ -377,6 +588,22 @@ const Settings = () => {
           </div>
         </Section>
       </>}
+
+      {contactMessagesOpen && (
+        <ContactMessagesModal
+          messages={contactMessages}
+          loading={contactLoading}
+          search={contactSearch}
+          setSearch={setContactSearch}
+          timeFilter={contactTimeFilter}
+          setTimeFilter={setContactTimeFilter}
+          selectedMessage={selectedContactMessage}
+          setSelectedMessage={setSelectedContactMessage}
+          onClose={() => setContactMessagesOpen(false)}
+          onRefresh={fetchContactMessages}
+          onDelete={handleDeleteContactMessage}
+        />
+      )}
 
       {/* Save + Logout */}
       <motion.div className="flex items-center gap-4 pb-6">

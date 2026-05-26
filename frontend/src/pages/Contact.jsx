@@ -25,8 +25,8 @@ const Contact = () => {
   return (
     <div className="overflow-x-hidden">
       {/* Hero */}
-      <section className="pt-24 lg:pt-32 pb-16 px-6 relative overflow-hidden">
-        <div className="absolute inset-0 particles-bg grid-pattern opacity-50" />
+      <section className="pt-24 lg:pt-32 pb-16 px-6 relative overflow-hidden bg-gradient-to-br from-cyan-50 via-fuchsia-50 to-emerald-50 dark:from-slate-950 dark:via-violet-900/45 dark:to-cyan-900/35 border-b border-cyan-200/50 dark:border-cyan-400/10">
+        <div className="absolute inset-0 particles-bg grid-pattern opacity-40" />
         <div className="relative max-w-6xl mx-auto text-center">
           <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}>
             <div className="inline-flex items-center space-x-2 px-4 py-2 glass dark:glass-dark rounded-full mb-8 text-sm">
@@ -44,8 +44,9 @@ const Contact = () => {
       </section>
 
       {/* Content */}
-      <section className="pt-12 lg:pt-16 pb-20 px-6 relative z-10">
-        <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+      <section className="pt-12 lg:pt-16 pb-20 px-6 relative z-10 overflow-hidden bg-gradient-to-tr from-amber-50 via-white to-sky-50 dark:from-slate-950 dark:via-emerald-900/35 dark:to-rose-900/30">
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
+        <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-start relative">
           {/* Info */}
           <motion.div initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 }} className="space-y-8">
             <div>
@@ -68,7 +69,7 @@ const Contact = () => {
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: i * 0.1 + 0.2 }}
                   whileHover={{ x: 4 }}
-                  className="flex items-center space-x-4 glass-card p-4"
+                  className="flex items-center space-x-4 glass-card p-4 border-white/70 dark:border-white/10"
                 >
                   <div className={`w-10 h-10 rounded-xl ${color} flex items-center justify-center`}>
                     <Icon className="w-5 h-5" />
@@ -90,7 +91,7 @@ const Contact = () => {
                   { q: 'Are there gluten-free or vegan options available?', a: 'Absolutely. We have a dedicated menu for various dietary requirements.' },
                   { q: 'Do I need to make a reservation for lunch?', a: 'Reservations are recommended for groups of 6 or more during peak hours.' },
                 ].map((faq, i) => (
-                  <motion.div key={i} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.1 + 0.5 }} className="glass-card p-4">
+                  <motion.div key={i} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.1 + 0.5 }} className="glass-card p-4 border-white/70 dark:border-white/10">
                     <p className="font-semibold text-sm text-primary mb-1">{faq.q}</p>
                     <p className="text-xs text-gray-500 dark:text-slate-400">{faq.a}</p>
                   </motion.div>
@@ -101,7 +102,7 @@ const Contact = () => {
 
           {/* Form */}
           <motion.div initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}>
-            <div className="glass-card p-8 relative">
+            <div className="glass-card p-8 relative border-white/70 dark:border-white/10 shadow-2xl shadow-cyan-500/5">
               {submitted ? (
                 <motion.div
                   initial={{ opacity: 0, scale: 0.8 }}

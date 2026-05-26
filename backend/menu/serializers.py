@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import (
-    Category, MenuItem, ContactMessage, Recipe, RecipeIngredient,
+    Category, MenuItem, ContactMessage, NewsletterSubscription, JobApplication, Recipe, RecipeIngredient,
     ModifierGroup, ModifierOption, MenuItemModifier
 )
 
@@ -152,3 +152,64 @@ class ContactMessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = ContactMessage
         fields = '__all__'
+
+
+class NewsletterSubscriptionSerializer(serializers.ModelSerializer):
+    """
+    Serializer for footer newsletter subscriptions.
+    """
+    class Meta:
+        model = NewsletterSubscription
+        fields = ['id', 'email', 'source', 'created_at']
+        read_only_fields = ['id', 'source', 'created_at']
+        extra_kwargs = {
+            'email': {'validators': []},
+        }
+
+    def create(self, validated_data):
+        email = validated_data['email'].strip().lower()
+        subscription, _ = NewsletterSubscription.objects.get_or_create(
+            email=email,
+            defaults={'source': 'footer'},
+        )
+        return subscription
+
+
+class JobApplicationSerializer(serializers.ModelSerializer):
+    """
+    Serializer for public job applications with CV uploads.
+    """
+    cv_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = JobApplication
+        fields = [
+            'id', 'first_name', 'last_name', 'email', 'phone', 'position',
+            'experience_level', 'availability', 'start_date', 'expected_salary',
+            'portfolio_url', 'cover_letter', 'cv', 'cv_url', 'agreed_to_policy',
+            'status', 'created_at',
+        ]
+        read_only_fields = ['id', 'cv_url', 'created_at']
+
+    def get_cv_url(self, obj):
+        request = self.context.get('request')
+        if not obj.cv:
+            return None
+        if request:
+            return request.build_absolute_uri(obj.cv.url)
+        return obj.cv.url
+
+    def validate_cv(self, value):
+        allowed_extensions = ('.pdf', '.doc', '.docx')
+        if not value.name.lower().endswith(allowed_extensions):
+            raise serializers.ValidationError('Upload a CV as PDF, DOC, or DOCX.')
+        return value
+
+    def validate_agreed_to_policy(self, value):
+        if not value:
+            raise serializers.ValidationError('You must confirm the application details are correct.')
+        return value
+
+    def create(self, validated_data):
+        validated_data['status'] = 'new'
+        return super().create(validated_data)

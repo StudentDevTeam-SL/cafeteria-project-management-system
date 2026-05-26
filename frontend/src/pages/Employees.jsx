@@ -4,6 +4,10 @@ import { UserPlus, X, Shield, User, Briefcase, Search, Edit2, Trash2, Phone, Clo
 import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../context/ToastContext';
 import ConfirmModal from '../components/ConfirmModal';
+import PaginationFooter from '../components/PaginationFooter';
+import { DatePresetSelect, FilterSelect, ResetFiltersButton } from '../components/FilterControls';
+import { usePagination } from '../hooks/usePagination';
+import { matchesDatePreset, normalizeText, uniqueOptions } from '../utils/filterUtils';
 
 import api from '../api/axios';
 
@@ -97,6 +101,9 @@ const Employees = () => {
   const [editEmp, setEditEmp]     = useState(null);
   const [search, setSearch]       = useState('');
   const [statusFilter, setFilter] = useState('all');
+  const [timeFilter, setTimeFilter] = useState('all');
+  const [shiftFilter, setShiftFilter] = useState('all');
+  const [jobFilter, setJobFilter] = useState('all');
   const [empToDelete, setEmpToDelete] = useState(null);
 
 
@@ -114,12 +121,27 @@ const Employees = () => {
     fetchEmployees();
   }, []);
 
+  const shiftOptions = uniqueOptions(employees, e => e.shift);
+  const jobOptions = uniqueOptions(employees, e => e.job_title || e.position);
+
   const filtered = employees.filter(e => {
     const matchStatus = statusFilter === 'all' || e.status === statusFilter;
-    const matchSearch = e.full_name.toLowerCase().includes(search.toLowerCase()) || 
-                        e.job_title.toLowerCase().includes(search.toLowerCase());
-    return matchStatus && matchSearch;
+    const title = e.job_title || e.position || '';
+    const matchSearch = normalizeText(e.full_name).includes(normalizeText(search)) ||
+                        normalizeText(title).includes(normalizeText(search)) ||
+                        normalizeText(e.phone).includes(normalizeText(search));
+    const matchTime = matchesDatePreset(e.hire_date, timeFilter);
+    const matchShift = shiftFilter === 'all' || e.shift === shiftFilter;
+    const matchJob = jobFilter === 'all' || title === jobFilter;
+    return matchStatus && matchSearch && matchTime && matchShift && matchJob;
   });
+  const {
+    page: employeesPage,
+    pageSize: employeesPageSize,
+    totalItems: employeesTotalItems,
+    paginatedItems: paginatedEmployees,
+    setPage: setEmployeesPage,
+  } = usePagination(filtered, 8, `${statusFilter}|${search}|${timeFilter}|${shiftFilter}|${jobFilter}`);
 
   const handleSave = async form => {
     try {
@@ -195,8 +217,8 @@ const Employees = () => {
       {/* Stats */}
       <div className="grid grid-cols-2 gap-4">
         {[
-          { label:'Total Staff',    value:employees.length,                                           color:'text-primary',     bg:'bg-primary/10'     },
-          { label:'Active',         value:employees.filter(e=>e.status==='active').length,            color:'text-emerald-500', bg:'bg-emerald-500/10' },
+          { label:'Filtered Staff', value:filtered.length,                                            color:'text-primary',     bg:'bg-primary/10'     },
+          { label:'Active',         value:filtered.filter(e=>e.status==='active').length,             color:'text-emerald-500', bg:'bg-emerald-500/10' },
         ].map((s,i) => (
           <motion.div key={s.label} initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} transition={{delay:i*.08}}
             whileHover={{y:-4,scale:1.02}} className="glass-card hover-lift p-5">
@@ -210,7 +232,7 @@ const Employees = () => {
       </div>
 
       {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-3">
+      <div className="flex flex-col gap-3">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input className="form-input pl-9 text-sm" placeholder="Search employees..." value={search} onChange={e=>setSearch(e.target.value)} />
@@ -223,12 +245,40 @@ const Employees = () => {
             </motion.button>
           ))}
         </div>
+        <div className="flex flex-wrap gap-2">
+          <DatePresetSelect value={timeFilter} onChange={setTimeFilter} label="Hire date time" />
+          <FilterSelect
+            value={shiftFilter}
+            onChange={setShiftFilter}
+            label="Shift"
+            options={[
+              { value: 'all', label: 'All shifts' },
+              ...shiftOptions.map(shift => ({ value: shift, label: shift })),
+            ]}
+          />
+          <FilterSelect
+            value={jobFilter}
+            onChange={setJobFilter}
+            label="Job title"
+            options={[
+              { value: 'all', label: 'All jobs' },
+              ...jobOptions.map(job => ({ value: job, label: job })),
+            ]}
+          />
+          <ResetFiltersButton onClick={() => {
+            setSearch('');
+            setFilter('all');
+            setTimeFilter('all');
+            setShiftFilter('all');
+            setJobFilter('all');
+          }} />
+        </div>
       </div>
 
       {/* Grid */}
       <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
         <AnimatePresence mode="popLayout">
-          {filtered.map(emp => (
+          {paginatedEmployees.map(emp => (
             <motion.div 
               layout 
               initial={{opacity:0,y:20,scale:.95}} 
@@ -275,6 +325,21 @@ const Employees = () => {
           ))}
         </AnimatePresence>
       </motion.div>
+
+      <PaginationFooter
+        page={employeesPage}
+        totalItems={employeesTotalItems}
+        pageSize={employeesPageSize}
+        onPageChange={setEmployeesPage}
+        className="rounded-2xl"
+      />
+
+      {filtered.length === 0 && (
+        <div className="py-16 text-center text-slate-500 dark:text-slate-300">
+          <User className="w-14 h-14 mx-auto mb-3 opacity-30" />
+          <p>No employees found</p>
+        </div>
+      )}
 
       <AnimatePresence>
         {modalOpen && (

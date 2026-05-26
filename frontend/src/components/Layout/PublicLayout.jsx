@@ -13,11 +13,13 @@
 import { useState, useMemo } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import api from '../../api/axios';
 import { usePerformance } from '../../hooks/usePerformance';
 import { useTheme } from '../../hooks/useTheme';
 import {
   Moon, Sun, ChefHat, Menu, X, MapPin, Phone, Mail,
-  ExternalLink, Zap, ZapOff
+  ExternalLink, Zap, ZapOff, BriefcaseBusiness, CalendarDays,
+  ShieldCheck, Send, CheckCircle2, LoaderCircle
 } from 'lucide-react';
 
 /* ── Social media icon components (inline SVG for no extra deps) ── */
@@ -67,12 +69,34 @@ export const PublicLayout = () => {
   const { lowPerformance, togglePerformance, animationConfig } = usePerformance();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [newsletterEmail, setNewsletterEmail] = useState('');
+  const [newsletterStatus, setNewsletterStatus] = useState('idle');
+  const [newsletterMessage, setNewsletterMessage] = useState('');
 
   const navLinks = [
     { to: '/home',       label: 'Home' },
     { to: '/about',      label: 'About' },
     { to: '/contact-us', label: 'Contact' },
   ];
+
+  const handleNewsletterSubmit = async (event) => {
+    event.preventDefault();
+    if (!newsletterEmail) return;
+
+    setNewsletterStatus('loading');
+    setNewsletterMessage('');
+
+    try {
+      await api.post('menu/newsletter-subscriptions/', { email: newsletterEmail });
+      setNewsletterStatus('success');
+      setNewsletterMessage('Subscribed. We will send cafeteria updates to your email.');
+      setNewsletterEmail('');
+    } catch (error) {
+      console.error('Failed to subscribe newsletter email:', error);
+      setNewsletterStatus('error');
+      setNewsletterMessage('We could not subscribe this email. Please try again.');
+    }
+  };
 
   // Performance-optimized variants
   const menuVariants = useMemo(() => ({
@@ -211,6 +235,86 @@ export const PublicLayout = () => {
 
       {/* ════ Full Footer ════ */}
       <footer className="bg-dark-lighter border-t border-slate-800 text-slate-400">
+        {/* ── Newsletter subscribe ── */}
+        <div className="relative isolate overflow-hidden border-b border-slate-800 bg-slate-950 px-6 py-14 sm:py-16">
+          <div aria-hidden="true" className="absolute left-1/2 top-0 -z-10 -translate-x-1/2 blur-3xl">
+            <div
+              className="aspect-[1155/678] w-[72rem] bg-gradient-to-tr from-fuchsia-400 to-cyan-400 opacity-20"
+              style={{
+                clipPath:
+                  'polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)',
+              }}
+            />
+          </div>
+
+          <div className="mx-auto grid max-w-7xl grid-cols-1 gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
+            <div className="max-w-2xl">
+              <span className="mb-4 inline-flex items-center gap-2 rounded-full border border-cyan-400/20 bg-cyan-400/10 px-4 py-1.5 text-xs font-black uppercase tracking-widest text-cyan-200">
+                <Mail className="h-4 w-4" />
+                Cafeteria messages
+              </span>
+              <h2 className="text-3xl font-black tracking-tight text-white sm:text-4xl">
+                Subscribe for fresh cafeteria updates
+              </h2>
+              <p className="mt-4 max-w-xl text-sm leading-7 text-slate-300 sm:text-base">
+                Get weekly menu news, catering notes, and special cafeteria announcements by email.
+              </p>
+
+              <form onSubmit={handleNewsletterSubmit} className="mt-6 flex max-w-xl flex-col gap-3 sm:flex-row">
+                <label htmlFor="newsletter-email" className="sr-only">Email address</label>
+                <input
+                  id="newsletter-email"
+                  name="email"
+                  type="email"
+                  required
+                  placeholder="Enter your email"
+                  autoComplete="email"
+                  value={newsletterEmail}
+                  onChange={event => setNewsletterEmail(event.target.value)}
+                  className="min-w-0 flex-auto rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-white outline-none transition-colors placeholder:text-slate-500 focus:border-primary focus:ring-2 focus:ring-primary/30"
+                />
+                <button
+                  type="submit"
+                  disabled={newsletterStatus === 'loading'}
+                  className="inline-flex flex-none items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-black text-white shadow-lg shadow-primary/20 transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-70"
+                >
+                  {newsletterStatus === 'loading' ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                  Subscribe
+                </button>
+              </form>
+
+              {newsletterMessage && (
+                <p className={`mt-3 flex items-center gap-2 text-sm font-semibold ${newsletterStatus === 'success' ? 'text-emerald-300' : 'text-red-300'}`}>
+                  {newsletterStatus === 'success' && <CheckCircle2 className="h-4 w-4" />}
+                  {newsletterMessage}
+                </p>
+              )}
+            </div>
+
+            <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              {[
+                {
+                  icon: CalendarDays,
+                  title: 'Weekly updates',
+                  desc: 'Receive menu highlights, event reminders, and seasonal cafeteria news.',
+                },
+                {
+                  icon: ShieldCheck,
+                  title: 'No spam',
+                  desc: 'Only useful cafeteria messages. Your email is kept for system updates.',
+                },
+              ].map(({ icon: Icon, title, desc }) => (
+                <div key={title} className="rounded-2xl border border-white/10 bg-white/[0.04] p-5 shadow-2xl shadow-black/10">
+                  <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-white/5 text-white ring-1 ring-white/10">
+                    <Icon className="h-5 w-5" />
+                  </div>
+                  <dt className="font-black text-white">{title}</dt>
+                  <dd className="mt-2 text-sm leading-6 text-slate-400">{desc}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        </div>
 
         {/* ── Top section ── */}
         <div className="max-w-7xl mx-auto px-6 py-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
@@ -226,6 +330,13 @@ export const PublicLayout = () => {
             <p className="text-sm leading-relaxed mb-6">
               A premier dining destination offering a rich variety of freshly cooked meals, healthy alternatives, and the finest artisan coffee.
             </p>
+            <Link
+              to="/jobs"
+              className="mb-6 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-primary to-cyan-500 px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-primary/20 transition-transform hover:-translate-y-0.5"
+            >
+              <BriefcaseBusiness className="h-4 w-4" />
+              <span>For Job</span>
+            </Link>
             {/* Social media icons */}
             <div className="flex flex-wrap gap-2">
               {SOCIAL_LINKS.map(s => (

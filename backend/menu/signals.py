@@ -1,22 +1,22 @@
 """
 menu/signals.py
 ───────────────────────────────────────────────────────────────────
-Django signals that clean up image files from disk whenever a
-MenuItem is deleted or its image field is replaced with a new file.
+Django signals that clean up uploaded files from disk whenever a
+MenuItem or JobApplication is deleted or its file field is replaced.
 
-This prevents orphaned files from accumulating in media/menu_images/.
+This prevents orphaned files from accumulating in media uploads.
 """
 import os
 from django.db.models.signals import post_delete, pre_save
 from django.dispatch import receiver
-from .models import MenuItem
+from .models import JobApplication, MenuItem
 
 
-def _delete_image_file(image_field):
-    """Delete the file on disk that an ImageField points to, if it exists."""
-    if not image_field:
+def _delete_uploaded_file(file_field):
+    """Delete the file on disk that a file field points to, if it exists."""
+    if not file_field:
         return
-    path = image_field.path
+    path = file_field.path
     if os.path.isfile(path):
         os.remove(path)
 
@@ -27,7 +27,7 @@ def delete_image_on_item_delete(sender, instance, **kwargs):
     When a MenuItem is deleted, also delete its image file from disk.
     Triggered after the database row is removed.
     """
-    _delete_image_file(instance.image)
+    _delete_uploaded_file(instance.image)
 
 
 @receiver(pre_save, sender=MenuItem)
@@ -50,4 +50,32 @@ def delete_old_image_on_update(sender, instance, **kwargs):
 
     # Only delete if the image has actually changed and is a real file path
     if old_image and old_image != new_image:
-        _delete_image_file(old_image)
+        _delete_uploaded_file(old_image)
+
+
+@receiver(post_delete, sender=JobApplication)
+def delete_cv_on_application_delete(sender, instance, **kwargs):
+    """
+    When a JobApplication is deleted, also delete its CV file from disk.
+    """
+    _delete_uploaded_file(instance.cv)
+
+
+@receiver(pre_save, sender=JobApplication)
+def delete_old_cv_on_update(sender, instance, **kwargs):
+    """
+    When a JobApplication CV is replaced, delete the previous CV file.
+    """
+    if not instance.pk:
+        return
+
+    try:
+        old_instance = JobApplication.objects.get(pk=instance.pk)
+    except JobApplication.DoesNotExist:
+        return
+
+    old_cv = old_instance.cv
+    new_cv = instance.cv
+
+    if old_cv and old_cv != new_cv:
+        _delete_uploaded_file(old_cv)

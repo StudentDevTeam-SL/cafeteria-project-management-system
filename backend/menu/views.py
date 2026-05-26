@@ -1,14 +1,18 @@
 from rest_framework import viewsets, mixins
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework.response import Response
-from .models import Category, MenuItem, Recipe, ModifierGroup, ModifierOption
+from .models import (
+    Category, MenuItem, Recipe, ModifierGroup, ModifierOption,
+    ContactMessage, NewsletterSubscription, JobApplication
+)
 from .serializers import (
     CategorySerializer, MenuItemSerializer, RecipeSerializer,
-    ModifierGroupSerializer, ModifierOptionSerializer
+    ModifierGroupSerializer, ModifierOptionSerializer, ContactMessageSerializer,
+    NewsletterSubscriptionSerializer, JobApplicationSerializer
 )
-from accounts.permissions import IsManagerOrAdminOrReadOnly
+from accounts.permissions import IsAdminRole, IsManagerOrAdmin, IsManagerOrAdminOrReadOnly
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
@@ -47,15 +51,72 @@ class MenuItemViewSet(viewsets.ModelViewSet):
         item.save()
         return Response(MenuItemSerializer(item, context={'request': request}).data)
 
-class ContactMessageViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
+class ContactMessageViewSet(
+    mixins.CreateModelMixin,
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet,
+):
     """
-    ViewSet for handling public contact form submissions.
+    ViewSet for public contact submissions and admin review.
     """
-    from .models import ContactMessage
-    from .serializers import ContactMessageSerializer
-    queryset = ContactMessage.objects.all()
+    queryset = ContactMessage.objects.order_by('-created_at')
     serializer_class = ContactMessageSerializer
-    permission_classes = [AllowAny]
+
+    def get_permissions(self):
+        if self.action == 'create':
+            return [AllowAny()]
+        if self.action in ['list', 'retrieve']:
+            return [IsAuthenticated()]
+        return [IsAdminRole()]
+
+
+class NewsletterSubscriptionViewSet(
+    mixins.CreateModelMixin,
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet,
+):
+    """
+    ViewSet for public newsletter subscriptions and system review.
+    """
+    queryset = NewsletterSubscription.objects.order_by('-created_at')
+    serializer_class = NewsletterSubscriptionSerializer
+
+    def get_permissions(self):
+        if self.action == 'create':
+            return [AllowAny()]
+        if self.action in ['list', 'retrieve']:
+            return [IsManagerOrAdmin()]
+        return [IsAdminRole()]
+
+
+class JobApplicationViewSet(
+    mixins.CreateModelMixin,
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet,
+):
+    """
+    ViewSet for public job applications and admin review.
+    """
+    queryset = JobApplication.objects.order_by('-created_at')
+    serializer_class = JobApplicationSerializer
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
+
+    def get_permissions(self):
+        if self.action == 'create':
+            return [AllowAny()]
+        return [IsAdminRole()]
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
@@ -83,5 +144,3 @@ class ModifierOptionViewSet(viewsets.ModelViewSet):
     queryset = ModifierOption.objects.all()
     serializer_class = ModifierOptionSerializer
     permission_classes = [IsManagerOrAdminOrReadOnly]
-
-

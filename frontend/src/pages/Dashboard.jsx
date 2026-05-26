@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth';
 import {
   DollarSign, ShoppingBag, AlertTriangle, TrendingUp, TrendingDown,
   Users, Coffee, ArrowUpRight, ArrowDownRight, Clock,
-  CheckCircle, XCircle, Loader, Star
+  CheckCircle, XCircle, Loader, Star, BriefcaseBusiness, MessageSquare
 } from 'lucide-react';
 import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid,
@@ -159,14 +160,26 @@ const Dashboard = () => {
           </h1>
           <p className="text-gray-500 dark:text-slate-400 mt-1">Here's what's happening at your café today.</p>
         </div>
-        <motion.div
-          animate={{ opacity: [0.5, 1, 0.5] }}
-          transition={{ duration: 2, repeat: Infinity }}
-          className="flex items-center space-x-2 px-4 py-2 glass dark:glass-dark rounded-xl self-start"
-        >
-          <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
-          <span className="text-sm font-medium text-accent">Live Data</span>
-        </motion.div>
+        <div className="flex flex-wrap items-center gap-3 self-start">
+          <Link to="/contact-messages" className="btn-ghost inline-flex items-center gap-2">
+            <MessageSquare className="h-4 w-4" />
+            Contact Us Messages
+          </Link>
+          {user?.role === 'Admin' && (
+            <Link to="/admin/jobs" className="btn-primary inline-flex items-center gap-2">
+              <BriefcaseBusiness className="h-4 w-4" />
+              Jobs
+            </Link>
+          )}
+          <motion.div
+            animate={{ opacity: [0.5, 1, 0.5] }}
+            transition={{ duration: 2, repeat: Infinity }}
+            className="flex items-center space-x-2 px-4 py-2 glass dark:glass-dark rounded-xl"
+          >
+            <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
+            <span className="text-sm font-medium text-accent">Live Data</span>
+          </motion.div>
+        </div>
       </motion.div>
 
       {/* ── Analytics Image Banner ── */}
