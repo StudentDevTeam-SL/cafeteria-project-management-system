@@ -161,7 +161,8 @@ const Jobs = () => {
   }, []);
 
   useEffect(() => {
-    fetchApplications();
+    const timeoutId = window.setTimeout(fetchApplications, 0);
+    return () => window.clearTimeout(timeoutId);
   }, [fetchApplications]);
 
   const positions = useMemo(() => uniqueOptions(applications, app => app.position), [applications]);

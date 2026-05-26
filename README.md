@@ -1,193 +1,161 @@
-# 🍽️ Cafeteria Project Management System
+# Cafeteria Project Management System
 
-Welcome! This repository contains a full cafeteria operations platform designed for restaurant administrators, staff, and managers.
+Last updated: May 26, 2026
 
-A complete cafeteria operations management system built with:
-- **Django REST Framework** for the backend API
-- **React + Vite** for the frontend single-page application
-- **PostgreSQL** for data persistence
+This repository contains a full cafeteria operations platform with a React/Vite frontend, a Django REST Framework backend, and PostgreSQL persistence. The system manages public website forms, authentication, menu operations, POS orders, inventory, employees, salaries, reporting, and admin review screens.
 
-This system is designed to manage cafeteria operations end-to-end, including menu management, order processing, inventory control, employee management, and payroll.
+## System Status
 
----
+Verified in this workspace:
 
-## 🧠 What this system does
+- Frontend lint: `npm run lint` passes.
+- Frontend production build: `npm run build` passes.
+- Backend Django check: `python manage.py check` passes.
+- Backend tests: `python manage.py test` passes with 48 tests.
+- Django migrations: `python manage.py makemigrations --check --dry-run` reports no model changes.
 
-The Cafeteria Project Management System centralizes cafeteria workflows into a single application.
-It supports:
-- **POS-style order creation** for cafeteria staff
-- **Menu item administration** with categories, availability, and media support
-- **Real-time inventory tracking** and low-stock alerting
-- **Employee profile management** with roles and status control
-- **Salary record tracking** and payroll status updates
-- **Business analytics** for revenue, orders, and inventory trends
-- **Role-based access control** for Admin and Employee users
+## Technology Stack
 
----
+| Layer | Technology |
+| --- | --- |
+| Frontend | React 19, Vite, Tailwind CSS, Axios, React Router, Framer Motion, Recharts, Lucide React |
+| Backend | Django 5.0.4, Django REST Framework, SimpleJWT, django-cors-headers, WhiteNoise |
+| Database | PostgreSQL |
+| Deployment | Render blueprint in `render.yaml` |
 
-## 🚦 Key System Modules
+## Main Modules
 
-### 🔐 Authentication
-- JWT-based login and refresh tokens
-- Role-based permissions for `Admin` and `Employee`
-- Token-backed session security and API protection
+| Module | Frontend page | Backend/API | Database tables |
+| --- | --- | --- | --- |
+| Authentication | Login, protected routes, settings profile | `/api/auth/` | `accounts_customuser` |
+| Dashboard | Dashboard | `/api/dashboard/stats/` | Reads orders, employees, inventory |
+| Menu | Menu | `/api/menu/` | `menu_category`, `menu_menuitem`, recipe/modifier tables |
+| POS orders | Menu order modal, Orders | `/api/orders/`, `/api/orders/tables/` | `orders_order`, `orders_orderitem`, `orders_table` |
+| Inventory | Inventory, Reports | `/api/inventory/` | `inventory_inventoryitem` |
+| Employees | Employees | `/api/employees/` | `employees_employee` |
+| Salaries | Salaries, Reports | `/api/salaries/` | `salaries_salaryrecord` |
+| Contact messages | Contact, Contact Messages, Settings message panel | `/api/menu/contact-messages/` | `menu_contactmessage` |
+| Newsletter messages | Public footer, System Messages | `/api/menu/newsletter-subscriptions/` | `menu_newslettersubscription` |
+| Job applications | Jobs public form, admin Jobs, Reports | `/api/menu/job-applications/` | `menu_jobapplication` |
 
-### 🍕 Menu Management
-- Manage menu categories and menu items
-- Create, read, update, delete menu entries
-- Toggle item availability for real-time status control
-- Upload or associate images for each menu item
+## Data Flow
 
-### 🛒 Order Processing
-- Create new orders from the POS interface
-- Track order status from `pending` to `processing` to `completed`
-- Save payment method metadata for Cash, Card, and Mobile Money
-- Store order history for reporting and analytics
+The full system flow is documented in [backend/docs/data_flow.md](backend/docs/data_flow.md).
 
-### 📦 Inventory Control
-- Track raw ingredients and supply stock levels
-- Manage units, cost per unit, and minimum stock alert thresholds
-- Detect low-stock items before supplies run out
+Short version:
 
-### 👥 Employee Management
-- Maintain employee profiles, roles, and job details
-- Track active status, assigned shift, and contact information
-- Restrict payroll and personnel features to authorized users
-
-### 💰 Payroll / Salaries
-- Store salary records per employee
-- Calculate net salary from base pay, bonus, and deductions
-- Mark salaries as paid and record payment dates
-
-### 📈 Analytics & Dashboard
-- Summarize sales, orders, inventory, and staffing metrics
-- Provide dashboard KPI views for quick operations monitoring
-- Support manager decisions with data insights
-
----
-
-## 📦 Project Structure
-
-```text
-catateria-project-management-system/
-├── backend/          # Django REST API, models, tests, scripts, docs
-├── frontend/         # React + Vite user interface
-├── render.yaml       # Render deployment blueprint
-├── reorganize.bat    # Folder restructure script
-└── .gitignore
+```mermaid
+flowchart LR
+    Browser["React frontend"] --> Axios["Axios API client"]
+    Axios --> Auth["JWT auth interceptor"]
+    Auth --> API["Django REST API"]
+    API --> Permissions["Role permissions"]
+    Permissions --> Serializers["DRF serializers"]
+    Serializers --> Models["Django models"]
+    Models --> DB["PostgreSQL"]
+    DB --> Models --> Serializers --> API --> Axios --> Browser
 ```
 
----
+## Buttons and Tables That Save to Backend
 
-## 🧰 Tech Stack
+These screens use real backend/database persistence:
 
-**Backend:** Django 5.0.4 · Django REST Framework 3.15.1 · SimpleJWT · django-cors-headers · dj-database-url · gunicorn · WhiteNoise
+- Login and Google sign-in checks use `/api/auth/`.
+- Contact form saves to `/api/menu/contact-messages/`.
+- Newsletter footer saves to `/api/menu/newsletter-subscriptions/`.
+- Job application form saves applicant data and CV files to `/api/menu/job-applications/`.
+- Menu page saves menu CRUD, item status toggles, and POS orders.
+- Orders page saves new orders, status changes, and admin deletes.
+- Inventory page saves stock CRUD.
+- Employees page saves employee CRUD and active/inactive toggles.
+- Salaries page saves payroll CRUD.
+- Settings page saves user profile patches and admin user create/delete.
+- Contact Messages, System Messages, Jobs, and Reports read database data and expose admin actions where allowed.
 
-**Frontend:** React 19.2.5 · Vite · TailwindCSS · Recharts · Framer Motion · Axios
+These controls are local/client-side only:
 
-**Database:** PostgreSQL 14+
+- Theme, accent color, sound choice, performance mode, and avatar preview in Settings use browser state/local storage.
+- Report CSV export, print buttons, and receipts are generated in the browser from loaded API data.
+- Payment modal records payment method/status with the order, but it does not call an external payment provider.
 
-**Deployment:** Render.com
+## Local Setup
 
----
+### Backend
 
-## 🚀 Local Setup
-
-### Prerequisites
-
-- Python 3.10+
-- Node.js 18+
-- PostgreSQL 14+
-
-### Backend Setup
-
-```bash
+```powershell
 cd backend
 python -m venv venv
-venv\Scripts\activate          # Windows
-# source venv/bin/activate     # Linux/macOS
+.\venv\Scripts\activate
 pip install -r requirements.txt
 copy .env.example .env
-# Edit .env with your PostgreSQL credentials
-python setup_db.py
+python manage.py migrate
 python test_and_seed.py
 python manage.py runserver
 ```
 
-### Frontend Setup
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-- Frontend: `http://localhost:5173`
-- Backend API: `http://localhost:8000`
-
----
-
-## 🔑 Default Accounts
-
-| Role     | Username   | Password |
-| -------- | ---------- | -------- |
-| Admin    | `admin`    | `admin`  |
-| Employee | `employee` | `1234`   |
-
-> Default accounts are automatically created by the backend after migrations.
-
----
-
-## ✅ Useful Commands
-
-### Backend
-```bash
-# Run all backend tests
-cd backend
-venv\Scripts\activate
-python manage.py test
-
-# Seed data
-python test_and_seed.py
-
-# Reset and reseed
-python seed_full.py --force
-```
+The API runs at `http://localhost:8000/`.
 
 ### Frontend
-```bash
+
+```powershell
 cd frontend
 npm install
 npm run dev
 ```
 
----
+The frontend runs at `http://localhost:5173/`.
 
-## 🌐 Deployment with Render
+Set `VITE_API_URL` when the backend is not at the default local URL:
 
-This repository includes a `render.yaml` blueprint for Render deployment.
-It provisions:
-- PostgreSQL database (`cafeteria-db`)
-- Django backend service (`cafeteria-backend`)
-- React frontend static site (`cafeteria-frontend`)
+```env
+VITE_API_URL=http://localhost:8000/api/
+```
 
-See [`backend/docs/render.md`](backend/docs/render.md) for deployment details.
+## Demo Accounts
 
----
+Demo users are created by seed scripts such as `backend/test_and_seed.py` or `backend/seed_full.py`, not automatically on every migration.
 
-## 📘 Additional Documentation
+Common seeded demo accounts:
 
-- `backend/docs/run.md` — local run guide
-- `backend/docs/test.md` — backend test guide
-- `backend/docs/database.md` — database schema details
-- `backend/docs/backend.md` — backend architecture
-- `frontend/docs/frontend.md` — frontend architecture
-- `backend/docs/project_system.md` — project team and structure
+| Role | Username | Password |
+| --- | --- | --- |
+| Admin | `admin` | `admin` or `admin1234`, depending on the seed script |
+| Manager | `manager` | `manager` |
+| Employee | `employee` | `1234` |
 
----
+For local demos only, you can enable optional post-migration demo user creation with:
 
-## 💡 Notes
+```env
+CREATE_DEMO_USERS=true
+```
 
-- Use the `VITE_API_URL` environment variable in the frontend to point to the backend API.
-- Production backend uses `DATABASE_URL` and secure settings when `DEBUG=False`.
-- Static files are served via WhiteNoise in production.
+Leave this disabled in production.
+
+## Useful Commands
+
+```powershell
+# Backend validation
+cd backend
+.\venv\Scripts\python.exe manage.py check
+.\venv\Scripts\python.exe manage.py makemigrations --check --dry-run
+.\venv\Scripts\python.exe manage.py test
+```
+
+```powershell
+# Frontend validation
+cd frontend
+npm run lint
+npm run build
+```
+
+## Documentation
+
+- [backend/docs/data_flow.md](backend/docs/data_flow.md) - complete data/API flow
+- [backend/docs/backend.md](backend/docs/backend.md) - backend architecture and endpoints
+- [backend/docs/database.md](backend/docs/database.md) - database schema and relationships
+- [backend/docs/run.md](backend/docs/run.md) - local run guide
+- [backend/docs/test.md](backend/docs/test.md) - verification and test guide
+- [backend/docs/render.md](backend/docs/render.md) - Render deployment guide
+- [backend/docs/project_system.md](backend/docs/project_system.md) - project ownership and system map
+- [frontend/docs/frontend.md](frontend/docs/frontend.md) - frontend architecture and page behavior
+- [SECURITY.md](SECURITY.md) - security policy and deployment rules

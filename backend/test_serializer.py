@@ -6,15 +6,20 @@ django.setup()
 
 from employees.serializers import EmployeeSerializer
 
-data = {
-    'full_name': 'Test',
-    'job_title': 'Chef',
-    'status': 'active',
-    'user_id': None
-}
+def main():
+    data = {
+        'full_name': 'Test',
+        'job_title': 'Chef',
+        'status': 'active',
+        'user_id': None,
+    }
 
-s = EmployeeSerializer(data=data)
-if not s.is_valid():
-    print("ERRORS:", s.errors)
-else:
-    print("VALID:", s.validated_data)
+    serializer = EmployeeSerializer(data=data)
+    if not serializer.is_valid():
+        print("ERRORS:", serializer.errors)
+    else:
+        print("VALID:", serializer.validated_data)
+
+
+if __name__ == "__main__":
+    main()

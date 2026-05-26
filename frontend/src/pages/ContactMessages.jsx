@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import {
-  Eye, Mail, MessageSquare, RefreshCw, Search, ShieldCheck,
+  Eye, MessageSquare, RefreshCw, Search, ShieldCheck,
   Trash2, UserRound
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
@@ -43,7 +43,8 @@ const ContactMessages = () => {
   }, []);
 
   useEffect(() => {
-    fetchMessages();
+    const timeoutId = window.setTimeout(fetchMessages, 0);
+    return () => window.clearTimeout(timeoutId);
   }, [fetchMessages]);
 
   const filtered = useMemo(() => messages.filter(message => {

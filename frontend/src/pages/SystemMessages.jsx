@@ -49,7 +49,8 @@ const SystemMessages = () => {
   }, []);
 
   useEffect(() => {
-    fetchSubscriptions();
+    const timeoutId = window.setTimeout(fetchSubscriptions, 0);
+    return () => window.clearTimeout(timeoutId);
   }, [fetchSubscriptions]);
 
   const filtered = useMemo(() => subscriptions.filter(item => (

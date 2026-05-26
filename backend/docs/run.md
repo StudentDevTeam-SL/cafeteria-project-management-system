@@ -1,94 +1,144 @@
-# Run Guide — Cafeteria Management System
+# Run Guide
 
-This document explains how to run the Cafeteria Management System locally for both backend and frontend development.
+Last updated: May 26, 2026
+
+This guide explains how to run the backend and frontend locally.
 
 ## Prerequisites
 
-- **Python** 3.10+
-- **Node.js** 18+
-- **PostgreSQL** 14+
-- **Git**
+- Python 3.10 or newer
+- Node.js 18 or newer
+- PostgreSQL 14 or newer
+- Git
 
 ## Backend Setup
 
-1. Open a terminal and switch to the backend folder:
-   ```bash
-   cd backend
-   ```
+From the repository root:
 
-2. Create and activate the virtual environment:
-   ```bash
-   python -m venv venv
-   .\venv\Scripts\activate
-   ```
+```powershell
+cd backend
+python -m venv venv
+.\venv\Scripts\activate
+pip install -r requirements.txt
+copy .env.example .env
+```
 
-3. Install backend dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
+Edit `.env` and confirm the database values:
 
-4. Copy environment variables:
-   ```bash
-   copy .env.example .env
-   ```
-   Update `.env` if necessary with your PostgreSQL credentials.
+```env
+SECRET_KEY=your-local-secret
+DEBUG=True
+ALLOWED_HOSTS=localhost,127.0.0.1
+DB_NAME=cafeteria_db
+DB_USER=postgres
+DB_PASSWORD=postgres
+DB_HOST=localhost
+DB_PORT=5432
+CORS_ALLOWED_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
+```
 
-5. Initialize the database and run migrations:
-   ```bash
-   python setup_db.py
-   ```
+Apply migrations:
 
-6. Seed demo data and verify connectivity:
-   ```bash
-   python test_and_seed.py
-   ```
+```powershell
+python manage.py migrate
+```
 
-7. Start the backend server:
-   ```bash
-   python manage.py runserver
-   ```
+Optional: verify the database and seed demo data:
 
-The API will be available at `http://localhost:8000/`.
+```powershell
+python test_and_seed.py
+```
+
+Run the backend:
+
+```powershell
+python manage.py runserver
+```
+
+Backend URLs:
+
+- API root: `http://localhost:8000/api/`
+- Health check: `http://localhost:8000/health/`
+- Django admin: `http://localhost:8000/admin/`
 
 ## Frontend Setup
 
-1. Open a second terminal and switch to the frontend folder:
-   ```bash
-   cd frontend
-   ```
+Open a second terminal:
 
-2. Install frontend dependencies:
-   ```bash
-   npm install
-   ```
+```powershell
+cd frontend
+npm install
+npm run dev
+```
 
-3. Start the development server:
-   ```bash
-   npm run dev
-   ```
+Frontend URL:
 
-The frontend will run at `http://localhost:5173/`.
+```text
+http://localhost:5173/
+```
 
-## Default Credentials
+If the backend API is not on `http://localhost:8000/api/`, set:
 
-- Admin: `admin` / `admin`
-- Employee: `employee` / `1234`
+```env
+VITE_API_URL=http://localhost:8000/api/
+```
 
-## Common Tasks
+## Demo Users
 
-- **Run backend tests:**
-  ```bash
-  cd backend
-  .\venv\Scripts\activate
-  python manage.py test
-  ```
-- **Reset and seed fresh data:**
-  ```bash
-  python seed_full.py --force
-  ```
+Demo users are created by seed scripts, not automatically on every migration.
+
+Common local seed credentials:
+
+| Role | Username | Password |
+| --- | --- | --- |
+| Admin | `admin` | `admin` or `admin1234` |
+| Manager | `manager` | `manager` |
+| Employee | `employee` | `1234` |
+
+For local demo environments only, optional post-migration demo user creation can be enabled with:
+
+```env
+CREATE_DEMO_USERS=true
+```
+
+Leave it disabled in production.
+
+## Common Commands
+
+```powershell
+# Backend checks and tests
+cd backend
+.\venv\Scripts\activate
+python manage.py check
+python manage.py makemigrations --check --dry-run
+python manage.py test
+```
+
+```powershell
+# Frontend checks
+cd frontend
+npm run lint
+npm run build
+```
+
+```powershell
+# Reset and seed richer demo data
+cd backend
+python seed_full.py --force
+```
 
 ## Troubleshooting
 
-- If PostgreSQL is not reachable, confirm the service is running and the credentials in `.env` are correct.
-- If the frontend cannot reach the backend, verify `VITE_API_URL` is set and the backend is running on `http://localhost:8000/`.
-- If migrations fail, delete the local database and rerun `python setup_db.py`.
+| Problem | Fix |
+| --- | --- |
+| Backend cannot connect to database | Start PostgreSQL and verify `.env` DB values |
+| Frontend API calls fail | Confirm backend is running and `VITE_API_URL` points to `/api/` |
+| Login fails after reseed | Check which seed script was used and confirm the seeded password |
+| Migrations fail locally | Recreate the local database, then run `python manage.py migrate` |
+| CORS error | Add the frontend origin to `CORS_ALLOWED_ORIGINS` |
+
+## Related Docs
+
+- [System data flow](data_flow.md)
+- [Backend architecture](backend.md)
+- [Frontend architecture](../../frontend/docs/frontend.md)

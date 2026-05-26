@@ -44,7 +44,7 @@ export const AuthProvider = ({ children }) => {
    */
   const login = async (username, password) => {
     try {
-      const res = await import('../api/axios').then(module => module.default.post('auth/login/', { username, password }));
+      const res = await api.post('auth/login/', { username, password });
       const { access, refresh, user: userData } = res.data;
       
       localStorage.setItem('token', access);
@@ -63,7 +63,7 @@ export const AuthProvider = ({ children }) => {
    */
   const googleSocialLogin = async (credential) => {
     try {
-      const res = await import('../api/axios').then(module => module.default.post('auth/google-social-login/', { credential }));
+      const res = await api.post('auth/google-social-login/', { credential });
       const { access, refresh, user: userData } = res.data;
       
       localStorage.setItem('token', access);
@@ -82,7 +82,7 @@ export const AuthProvider = ({ children }) => {
     try {
       const refresh = localStorage.getItem('refresh');
       if (refresh) {
-        await import('../api/axios').then(module => module.default.post('auth/logout/', { refresh }));
+        await api.post('auth/logout/', { refresh });
       }
     } catch (error) {
       console.error('Logout error:', error);

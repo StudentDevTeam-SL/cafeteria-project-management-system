@@ -1,4 +1,6 @@
 """Accounts app config."""
+import os
+
 from django.apps import AppConfig
 
 class AccountsConfig(AppConfig):
@@ -6,17 +8,14 @@ class AccountsConfig(AppConfig):
     name = 'accounts'
 
     def ready(self):
-        """Create default users after migrations complete.
+        """Optionally create demo users after migrations complete."""
+        create_demo_users = os.environ.get('CREATE_DEMO_USERS', '').strip().lower()
+        if create_demo_users not in {'1', 'true', 'yes'}:
+            return
 
-        Using the `post_migrate` signal avoids accessing the database during
-        application import which triggers a runtime warning and can fail
-        during initial migrations.
-        """
         from django.db.models.signals import post_migrate
-        from django.dispatch import receiver
         from django.contrib.auth import get_user_model
 
-        @receiver(post_migrate)
         def create_default_users(sender, **kwargs):
             CustomUser = get_user_model()
             try:
@@ -70,3 +69,8 @@ class AccountsConfig(AppConfig):
             except Exception:
                 # Silently ignore failures during test/migrate workflows
                 pass
+
+        post_migrate.connect(
+            create_default_users,
+            dispatch_uid='accounts.create_demo_users',
+        )

@@ -12,7 +12,7 @@ User = get_user_model()
 class POSAdvancedFeaturesTestCase(APITestCase):
     def setUp(self):
         # Create user
-        self.user = User.objects.create_user(username='cashier_test', password='password123', role='cashier')
+        self.user = User.objects.create_user(username='cashier_test', password='password123', role='Employee')
         self.client.force_authenticate(user=self.user)
         
         # Create Category

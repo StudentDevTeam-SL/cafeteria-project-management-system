@@ -100,7 +100,7 @@ def seed_data():
 from accounts.models import CustomUser
 if not CustomUser.objects.filter(username='admin').exists():
     u = CustomUser.objects.create_superuser('admin', 'admin@cafeteria.com', 'admin1234')
-    u.role = 'admin'
+    u.role = 'Admin'
     u.save()
     print('  ✅ Superuser created: admin / admin1234')
 else:

@@ -1,91 +1,85 @@
-# Cafeteria Management System — Backend Overview
+# Backend Overview for AI and Project Review
 
-## Project Overview
-This backend is implemented with **Django REST Framework** and **PostgreSQL** to support the Cafeteria Management System frontend.
+Last updated: May 26, 2026
 
-## Backend Apps
-- `accounts` — Custom user model, JWT authentication, default users
-- `menu` — Menu item and category management
-- `orders` — Order creation, line items, and status updates
-- `inventory` — Stock and inventory tracking
-- `employees` — Employee profiles and staff management
-- `salaries` — Payroll and salary record tracking
-- `analytics` — Dashboard metrics and reporting
+This document is a compact review guide for understanding the backend quickly. Use it with [data_flow.md](data_flow.md), [backend.md](backend.md), and [database.md](database.md).
 
-## API Endpoints
-The backend exposes the following major API prefixes:
+## What the Backend Provides
 
-- `/api/auth/`
-- `/api/menu/`
-- `/api/orders/`
-- `/api/inventory/`
-- `/api/employees/`
-- `/api/salaries/`
-- `/api/dashboard/`
-- `/health/`
-- `/admin/`
+The backend provides:
 
-## Setup Summary
+- JWT authentication and refresh.
+- User roles: `Admin`, `Manager`, `Staff`, and `Employee`.
+- CRUD APIs for menu, inventory, employees, salaries, orders, tables, and users.
+- Public APIs for contact messages, newsletter subscriptions, and job applications.
+- Dashboard aggregation for revenue, orders, active staff, and low-stock inventory.
+- PostgreSQL-backed persistence.
+- CV/media upload support.
+- Role-based permissions for protected management actions.
 
-### Local Development
+## Important Files
 
-1. Activate backend virtual environment:
-   ```bash
-   cd backend
-   python -m venv venv
-   .\venv\Scripts\activate
-   ```
-2. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-3. Create `.env` from `.env.example`.
-4. Run database setup:
-   ```bash
-   python setup_db.py
-   ```
-5. Seed demo content:
-   ```bash
-   python test_and_seed.py
-   ```
-6. Run the server:
-   ```bash
-   python manage.py runserver
-   ```
+| File | Purpose |
+| --- | --- |
+| `config/settings.py` | Installed apps, database, auth, CORS, JWT, static/media settings |
+| `config/urls.py` | Top-level API routing and health check |
+| `accounts/models.py` | Custom user and role field |
+| `accounts/views.py` | Login, logout, email check, Google login, users API |
+| `accounts/permissions.py` | Main role-based permission classes |
+| `menu/models.py` | Menu, public messages, applications, recipes, modifiers |
+| `orders/serializers.py` | Order creation, totals, modifiers, inventory deduction |
+| `analytics/views.py` | Dashboard KPI aggregation |
+| `tests/` | Main backend automated tests |
 
-### Default Users
+## Current API Coverage
 
-- **Admin:** `admin` / `admin`
-- **Employee:** `employee` / `1234`
+| Feature | Status |
+| --- | --- |
+| Auth login/refresh/logout | Implemented |
+| Google token login | Implemented |
+| System users | Implemented |
+| Menu CRUD and toggle | Implemented |
+| Contact messages | Implemented |
+| Newsletter subscriptions | Implemented |
+| Job applications and CV upload | Implemented |
+| Orders, tables, status updates | Implemented |
+| Inventory CRUD | Implemented |
+| Employees CRUD and toggle | Implemented |
+| Salaries CRUD and net salary calculation | Implemented |
+| Dashboard stats | Implemented |
+| Real payment gateway | Not implemented; payment modal saves payment metadata only |
 
-Those users are created automatically after migrations by the `accounts` app.
+## Recent Corrections
 
-## Notes
+- Removed automatic demo user creation unless `CREATE_DEMO_USERS=true` is explicitly set.
+- Prevented `backend/test_serializer.py` from printing during Django test discovery.
+- Updated test role data to use valid role choices.
+- Cleaned frontend auth API imports and React lint issues.
+- Confirmed backend tests pass with 48 tests.
 
-- Django settings use `dj-database-url` for production `DATABASE_URL` parsing.
-- In production, the backend serves static files via WhiteNoise.
-- The health endpoint at `/health/` verifies DB connectivity.
-- The backend is configured for Render deployment using `render.yaml`.
+## Safe Review Checklist
 
-## Testing
+When changing the backend:
 
-Run the backend test suite:
-```bash
-cd backend
-venv\Scripts\activate
+1. Check whether the endpoint already exists in `config/urls.py` and app `urls.py`.
+2. Confirm the serializer fields match the frontend payload.
+3. Confirm permission classes match the user role expected by the UI.
+4. Run:
+
+```powershell
+python manage.py check
+python manage.py makemigrations --check --dry-run
 python manage.py test
 ```
 
-## Frontend Compatibility
+5. If frontend calls are affected, run:
 
-Ensure the frontend `VITE_API_URL` points to the backend API base URL, for example:
-```env
-VITE_API_URL=https://cafeteria-backend.onrender.com/api/
+```powershell
+cd ..\frontend
+npm run lint
+npm run build
 ```
 
-## Security & Deployment
+## Data Flow Link
 
-- `DEBUG=False` in production
-- `CSRF_TRUSTED_ORIGINS` configured for the frontend URL
-- `CORS_ALLOWED_ORIGINS` configured for the frontend URL
-- `PGSSLMODE=require` is recommended for production
+The complete UI-to-database map is in [data_flow.md](data_flow.md).
