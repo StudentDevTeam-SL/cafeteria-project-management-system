@@ -1,79 +1,101 @@
 # 🗄️ Database Schema
 
-The Cafeteria Management System uses **PostgreSQL** in both development and production. The schema is implemented using Django's ORM.
+The Cafeteria Management System uses **PostgreSQL** for development and production. The schema is created through Django models and migrations.
 
 ## Database Connection
 
-- **Local:** Connects via `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_HOST`, `DB_PORT` in `.env`.
-- **Production (Render):** Connects via the `DATABASE_URL` environment variable.
+- **Local**: configured using `.env` values:
+  - `DB_NAME`
+  - `DB_USER`
+  - `DB_PASSWORD`
+  - `DB_HOST`
+  - `DB_PORT`
+- **Production / Render**: uses `DATABASE_URL`
 
-## Schema Architecture
+## Core Tables
 
-### 1. Accounts (`accounts_customuser`)
-Stores all staff and admin users for authentication and authorization.
-- `id` (Primary Key)
-- `username` (String, unique)
-- `email` (String, unique)
-- `role` (String, choices: 'admin', 'employee')
-- *Plus standard Django User fields (password, is_staff, is_active, etc.)*
+### Accounts (`accounts_customuser`)
+Stores user authentication and role data.
+- `id`
+- `username` (unique)
+- `email` (unique)
+- `role` (`Admin`, `Manager`, `Staff`, `Employee`)
+- `password`
+- `is_staff`
+- `is_superuser`
+- `is_active`
+- `first_name`
+- `last_name`
+- `phone_number`
 
-### 2. Employees (`employees_employee`)
-Detailed profiles for staff members, linked to their account.
-- `id` (Primary Key)
-- `user` (OneToOneField -> CustomUser)
-- `employee_id` (String, unique - e.g., 'EMP-1001')
-- `phone` (String, max_length=20)
-- `job_title` (String, max_length=100)
-- `shift` (String, choices: 'Morning', 'Evening', 'Night')
-- `status` (String, choices: 'Active', 'On Leave', 'Inactive')
+### Employees (`employees_employee`)
+Employee profile details.
+- `id`
+- `user` (OneToOneField → CustomUser)
+- `employee_id`
+- `full_name`
+- `phone`
+- `job_title`
+- `shift`
+- `status`
+- `hire_date`
 
-### 3. Menu Items (`menu_menuitem`)
-Stores all food/beverage items available for ordering.
-- `id` (Primary Key)
-- `name` (String, max_length=255)
-- `category` (String, choices: 'Main Course', 'Beverages', 'Salads', 'Snacks', 'Desserts')
-- `price` (DecimalField, max_digits=10, decimal_places=2)
-- `is_available` (Boolean, default=True)
-- `image` (ImageField, upload_to='menu_items/', null=True, blank=True)
+### Menu Items (`menu_menuitem`)
+Holds cafeteria menu items.
+- `id`
+- `name`
+- `description`
+- `category`
+- `price`
+- `is_available`
+- `image`
+- `created_at`
+- `updated_at`
 
-### 4. Orders (`orders_order`)
-Stores customer/employee orders and their status.
-- `id` (Primary Key)
-- `order_number` (String, unique - auto-generated, e.g., 'ORD-20260514-A1B2')
-- `cashier` (ForeignKey -> CustomUser)
-- `total_amount` (DecimalField, max_digits=10, decimal_places=2)
-- `status` (String, choices: 'pending', 'processing', 'completed', 'cancelled')
-- `payment_method` (String, choices: 'Cash', 'Card', 'Mobile Money')
-- `created_at` (DateTimeField, auto_now_add=True)
-- `updated_at` (DateTimeField, auto_now=True)
+### Orders (`orders_order`)
+Tracks each order and payment detail.
+- `id`
+- `order_number`
+- `cashier` (ForeignKey → CustomUser)
+- `total_amount`
+- `status`
+- `payment_method`
+- `created_at`
+- `updated_at`
 
-### 5. Order Items (`orders_orderitem`)
-Bridge table linking Orders to Menu Items with quantities and locked-in prices.
-- `id` (Primary Key)
-- `order` (ForeignKey -> Order)
-- `menu_item` (ForeignKey -> MenuItem)
-- `quantity` (IntegerField, default=1)
-- `price_at_time` (DecimalField, max_digits=10, decimal_places=2)
+### Order Items (`orders_orderitem`)
+Links orders to menu items.
+- `id`
+- `order` (ForeignKey → Order)
+- `menu_item` (ForeignKey → MenuItem)
+- `quantity`
+- `price_at_time`
 
-### 6. Inventory (`inventory_inventoryitem`)
-Stores raw materials, stock levels, and supplies.
-- `id` (Primary Key)
-- `item_name` (String, max_length=255)
-- `category` (String, choices: 'Produce', 'Meat', 'Dairy', 'Beverages', 'Dry Goods', 'Supplies')
-- `quantity` (DecimalField, max_digits=10, decimal_places=2)
-- `unit` (String, choices: 'kg', 'g', 'L', 'ml', 'pcs', 'boxes')
-- `min_stock` (DecimalField, default=0) - *Threshold for low stock alerts*
-- `cost_per_unit` (DecimalField, max_digits=10, decimal_places=2)
-- `last_updated` (DateTimeField, auto_now=True)
+### Inventory (`inventory_inventoryitem`)
+Manages stock items and thresholds.
+- `id`
+- `item_name`
+- `category`
+- `quantity`
+- `unit`
+- `min_stock`
+- `cost_per_unit`
+- `last_updated`
 
-### 7. Salaries / Payroll (`salaries_salaryrecord`)
-Stores monthly payroll records for employees.
-- `id` (Primary Key)
-- `employee` (ForeignKey -> Employee)
-- `month` (DateField) - *Usually stores the first day of the relevant month*
-- `base_salary` (DecimalField, max_digits=10, decimal_places=2)
-- `bonus` (DecimalField, max_digits=10, decimal_places=2, default=0)
-- `deductions` (DecimalField, max_digits=10, decimal_places=2, default=0)
-- `net_salary` (DecimalField) - *(Calculated: Base + Bonus - Deductions)*
-- `status` (String, choices: 'Pending', 'Paid')
-- `payment_date` (DateField, null=True, blank=True)
+### Salaries (`salaries_salaryrecord`)
+Stores payroll records for employees.
+- `id`
+- `employee` (ForeignKey → Employee)
+- `month`
+- `base_salary`
+- `bonus`
+- `deductions`
+- `net_salary`
+- `status`
+- `payment_date`
+
+## Notes
+
+- The backend uses `dj-database-url` to parse `DATABASE_URL` in production.
+- Default users are created automatically after migrations via the `accounts` app startup hook.
+- Use `python manage.py migrate` to apply schema changes and `python seed_full.py --force` to refresh seeded demo data.

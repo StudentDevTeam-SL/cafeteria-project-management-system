@@ -2,96 +2,101 @@
 
 ## Structure
 
-```
+```text
 backend/
-├── config/           # Django settings, URLs, WSGI
-├── accounts/         # Custom user model, JWT auth
-├── employees/        # Employee management
-├── menu/             # Menu categories & items
+├── accounts/         # Custom user model, JWT auth, registration
+├── analytics/        # Dashboard & report endpoints
+├── config/           # Settings, URLs, WSGI
 ├── inventory/        # Stock management
+├── menu/             # Menu categories & items
+├── media/            # Uploaded media assets
 ├── orders/           # Order processing
 ├── salaries/         # Payroll records
-├── analytics/        # Dashboard & reports
-├── media/            # Uploaded images
-├── docs/             # Documentation
+├── tests/            # Automated model, API, and integrity tests
+├── docs/             # Project documentation
 ├── manage.py
 ├── requirements.txt
-├── .env              # Local secrets (gitignored)
-├── .env.example      # Template for .env
-├── setup_db.py       # Auto PostgreSQL setup script
-└── test_and_seed.py  # DB test + seed data script
+├── .env.example
+├── setup_db.py
+└── test_and_seed.py
 ```
 
----
+## Environment Variables
 
-## ⚙️ Environment Variables
-
-Copy `.env.example` → `.env` and fill in:
+Copy `.env.example` to `.env` and configure for local development:
 
 ```env
 SECRET_KEY=your-secret-key
 DEBUG=True
 ALLOWED_HOSTS=localhost,127.0.0.1
 
-# Local PostgreSQL
 DB_NAME=cafeteria_db
 DB_USER=postgres
-DB_PASSWORD=your_password
+DB_PASSWORD=postgres
 DB_HOST=localhost
 DB_PORT=5432
 
-# Production (Render)
-# DATABASE_URL=postgres://user:pass@host:port/db
+# Production only:
+# DATABASE_URL=postgres://user:pass@host:port/dbname
 ```
 
----
+The backend also supports:
 
-## 🗄️ Database Setup
+- `CORS_ALLOWED_ORIGINS`
+- `CSRF_TRUSTED_ORIGINS`
+- `PGSSLMODE`
+- `PYTHON_VERSION`
+
+## Database Setup
 
 ```bash
-# Auto-detects PostgreSQL password, creates DB, runs migrations
 python setup_db.py
-
-# Test connection + seed full data
 python test_and_seed.py
-
-# Force re-seed (wipe + reload)
 python seed_full.py --force
 ```
 
----
+## API Endpoints
 
-## 🔌 API Endpoints
-
-| Prefix | App |
-|--------|-----|
-| `/api/auth/` | Login, refresh, logout |
-| `/api/employees/` | Employee CRUD |
-| `/api/menu/` | Menu items & categories |
+| Prefix | Purpose |
+|--------|---------|
+| `/api/auth/` | Authentication and token operations |
+| `/api/employees/` | Employee CRUD and profile data |
+| `/api/menu/` | Menu items and categories |
 | `/api/inventory/` | Inventory management |
-| `/api/orders/` | Order management |
-| `/api/salaries/` | Salary records |
-| `/api/dashboard/` | Analytics & KPIs |
-| `/health/` | Health check (used by Render) |
-| `/admin/` | Django admin panel |
+| `/api/orders/` | Order creation and tracking |
+| `/api/salaries/` | Salary records and payroll |
+| `/api/dashboard/` | Analytics and KPIs |
+| `/health/` | Application and DB health check |
+| `/admin/` | Django admin interface |
 
----
-
-## 🚀 Running Locally
+## Running Locally
 
 ```bash
-# Activate venv
+cd backend
 venv\Scripts\activate
-
-# Start dev server
 python manage.py runserver
-# API available at http://localhost:8000
 ```
 
----
+Visit `http://localhost:8000` to confirm the backend is active.
 
-## 🌐 Production (Render)
+## Production Notes
 
-- Build: `pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate`
-- Start: `gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 2`
-- DB: PostgreSQL via `DATABASE_URL` environment variable (auto-set by Render)
+Render service uses the backend root `backend/` and runs:
+
+```bash
+pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate
+```
+
+Then starts the app with:
+
+```bash
+gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --worker-class gthread --threads 4 --timeout 120
+```
+
+## Backend Features
+
+- JWT authentication via `rest_framework_simplejwt`
+- CORS support with `django-cors-headers`
+- Static media served through WhiteNoise in production
+- Automatic default user creation after migrations
+- Health check endpoint for uptime monitoring

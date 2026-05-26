@@ -1,91 +1,94 @@
-# 🏃‍♂️ Cafeteria Management System - Run Guide
+# Run Guide — Cafeteria Management System
 
-This document provides instructions on how to set up, run, and use the Cafeteria Management System project locally.
+This document explains how to run the Cafeteria Management System locally for both backend and frontend development.
 
-## 🛠️ Prerequisites
+## Prerequisites
 
-Before you begin, ensure you have the following installed on your machine:
-- **Node.js** (v18 or higher)
-- **Python** (v3.10 or higher)
-- **PostgreSQL** (v14 or higher)
+- **Python** 3.10+
+- **Node.js** 18+
+- **PostgreSQL** 14+
 - **Git**
 
-## 🔙 Backend Setup (Django + PostgreSQL)
+## Backend Setup
 
-We have fully automated the backend setup process on Windows.
-
-1. **Navigate to the backend directory:**
+1. Open a terminal and switch to the backend folder:
    ```bash
    cd backend
    ```
 
-2. **Create and activate a virtual environment:**
+2. Create and activate the virtual environment:
    ```bash
-   # Windows
    python -m venv venv
    .\venv\Scripts\activate
-   
-   # macOS/Linux
-   python3 -m venv venv
-   source venv/bin/activate
    ```
 
-3. **Install Python dependencies:**
+3. Install backend dependencies:
    ```bash
    pip install -r requirements.txt
    ```
 
-4. **Environment Variables:**
-   Copy `.env.example` to `.env`. The auto-setup script will populate the password for you.
+4. Copy environment variables:
+   ```bash
+   copy .env.example .env
+   ```
+   Update `.env` if necessary with your PostgreSQL credentials.
 
-5. **Auto-Setup PostgreSQL Database (Windows only):**
-   This script will auto-elevate to admin, create the `cafeteria_db` database, reset the `postgres` user password, update your `.env` file, and run Django migrations.
+5. Initialize the database and run migrations:
    ```bash
    python setup_db.py
    ```
-   *(If prompted by Windows UAC, click "Yes")*
 
-6. **Test Connection & Seed Data:**
-   This verifies the connection and populates the database with test data (menus, inventory, employees, orders).
+6. Seed demo data and verify connectivity:
    ```bash
    python test_and_seed.py
    ```
 
-7. **Start the backend server:**
+7. Start the backend server:
    ```bash
    python manage.py runserver
    ```
-   The backend API will be available at `http://localhost:8000/`.
 
-## 🎨 Frontend Setup (React + Vite)
+The API will be available at `http://localhost:8000/`.
 
-1. **Open a new terminal window and navigate to the frontend directory:**
+## Frontend Setup
+
+1. Open a second terminal and switch to the frontend folder:
    ```bash
    cd frontend
    ```
 
-2. **Install Node dependencies:**
+2. Install frontend dependencies:
    ```bash
    npm install
    ```
 
-3. **Start the React development server:**
+3. Start the development server:
    ```bash
    npm run dev
    ```
-   The frontend application will open at `http://localhost:5173/`.
 
-## 🧑‍💻 Usage Flow
+The frontend will run at `http://localhost:5173/`.
 
-1. **Login:** Access the frontend application at `http://localhost:5173/login`.
-2. **Credentials:** 
-   - **Admin:** Username: `admin` | Password: `admin`
-   - **Employee:** Username: `employee` | Password: `1234`
-3. **Admin Dashboard:** Admins can manage menu items, approve new menu item requests, manage employees, payroll, and view analytics.
-4. **Employee POS:** Employees can view the menu, add items to the cart, process checkouts, and view inventory.
+## Default Credentials
 
-## ⚠️ Troubleshooting
+- Admin: `admin` / `admin`
+- Employee: `employee` / `1234`
 
-- **PostgreSQL Connection Errors:** Ensure the PostgreSQL service is running (`services.msc` -> `postgresql-x64`). Run `python setup_db.py` to auto-fix credentials.
-- **CORS Issues:** Ensure the backend `CORS_ALLOWED_ORIGINS` setting in `.env` matches your frontend URL.
-- **No Data:** If the app is empty, run `python seed_full.py --force` in the backend directory to wipe and re-seed the database.
+## Common Tasks
+
+- **Run backend tests:**
+  ```bash
+  cd backend
+  .\venv\Scripts\activate
+  python manage.py test
+  ```
+- **Reset and seed fresh data:**
+  ```bash
+  python seed_full.py --force
+  ```
+
+## Troubleshooting
+
+- If PostgreSQL is not reachable, confirm the service is running and the credentials in `.env` are correct.
+- If the frontend cannot reach the backend, verify `VITE_API_URL` is set and the backend is running on `http://localhost:8000/`.
+- If migrations fail, delete the local database and rerun `python setup_db.py`.

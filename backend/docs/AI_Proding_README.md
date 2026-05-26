@@ -1,61 +1,91 @@
-# Cafeteria Management System - Backend Reconstruction
+# Cafeteria Management System — Backend Overview
 
 ## Project Overview
-This project involves a completely clean reconstruction of the backend for the Cafeteria Management System using Django REST Framework and PostgreSQL, replacing an inconsistent legacy backend while preserving the React frontend contract.
+This backend is implemented with **Django REST Framework** and **PostgreSQL** to support the Cafeteria Management System frontend.
 
-## Backend Structure
-The backend uses a modular Django design with the following apps:
-- `accounts`: Custom User Model (`role`, `phone_number`), JWT Auth.
-- `menu`: Catalog management (`Category`, `MenuItem`).
-- `orders`: Transaction tracking (`Order`, `OrderItem`).
-- `inventory`: Stock management (`InventoryItem`).
-- `employees`: Employee profiles (`Employee`).
-- `salaries`: Financial salary records (`SalaryRecord`).
-- `analytics`: (Placeholder for dashboard aggregation).
-
-## Database Schema
-- **PostgreSQL** is the primary database.
-- **Relations:** 
-  - `OrderItem` -> `MenuItem` and `Order`.
-  - `MenuItem` -> `Category`.
-  - `SalaryRecord` -> `Employee`.
-  - `Employee` -> `CustomUser` (OneToOne).
+## Backend Apps
+- `accounts` — Custom user model, JWT authentication, default users
+- `menu` — Menu item and category management
+- `orders` — Order creation, line items, and status updates
+- `inventory` — Stock and inventory tracking
+- `employees` — Employee profiles and staff management
+- `salaries` — Payroll and salary record tracking
+- `analytics` — Dashboard metrics and reporting
 
 ## API Endpoints
-All endpoints are prefixed with `/api/`:
-- **Auth:** `auth/login/`, `auth/refresh/`, `auth/logout/`
-- **Menu:** `menu/`, `menu/<id>/`, `menu/<id>/toggle/`
-- **Orders:** `orders/`, `orders/<id>/`, `orders/<id>/status/`
-- **Inventory:** `inventory/`, `inventory/<id>/`
-- **Employees:** `employees/`, `employees/<id>/`, `employees/<id>/toggle/`
-- **Salaries:** `salaries/`, `salaries/<id>/`
-- **Dashboard:** `dashboard/revenue/`, `dashboard/orders/`, `dashboard/inventory/`
+The backend exposes the following major API prefixes:
 
-## Automated Setup (Windows)
-We provide a fully automated script for Windows that sets up PostgreSQL:
-1. `python setup_db.py` (elevates to Admin, creates DB, updates `.env`, runs migrations)
-2. `python test_and_seed.py` (verifies connection, seeds full demo data)
+- `/api/auth/`
+- `/api/menu/`
+- `/api/orders/`
+- `/api/inventory/`
+- `/api/employees/`
+- `/api/salaries/`
+- `/api/dashboard/`
+- `/health/`
+- `/admin/`
 
-## Manual Setup Steps
-1. **Database:** Ensure PostgreSQL is running and a database named `cafeteria_db` exists (user/pass: `postgres/postgres`).
-2. **Environment:** Create a virtual environment: `python -m venv venv` and activate it.
-3. **Dependencies:** Run `pip install -r requirements.txt`.
-4. **Environment Variables:** Copy `.env.example` to `.env`.
-5. **Migrations:** 
-   - `python manage.py makemigrations accounts menu orders inventory employees salaries analytics`
-   - `python manage.py migrate`
-6. **Data:** Run `python seed_full.py` to seed data.
+## Setup Summary
 
-## Run Steps
-Start the Django development server:
-`python manage.py runserver`
+### Local Development
 
-## Test Steps
-To test endpoints, use tools like Postman or run Django's test suite:
-`python manage.py test`
+1. Activate backend virtual environment:
+   ```bash
+   cd backend
+   python -m venv venv
+   .\venv\Scripts\activate
+   ```
+2. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+3. Create `.env` from `.env.example`.
+4. Run database setup:
+   ```bash
+   python setup_db.py
+   ```
+5. Seed demo content:
+   ```bash
+   python test_and_seed.py
+   ```
+6. Run the server:
+   ```bash
+   python manage.py runserver
+   ```
 
-## Developer Notes
-- AI tools generated the original codebase. This reconstruction standardizes the API endpoints for full compatibility with the existing React frontend.
-- JWT tokens now contain `role` and `username` claims to avoid extra profile fetches on the frontend.
-- Ensure the `CORS_ALLOWED_ORIGINS` in `.env` matches your frontend port (e.g., `http://localhost:3000` or `http://localhost:5173`).
-- **Deployment:** A `render.yaml` blueprint is located in the root directory for one-click deployment to Render.com.
+### Default Users
+
+- **Admin:** `admin` / `admin`
+- **Employee:** `employee` / `1234`
+
+Those users are created automatically after migrations by the `accounts` app.
+
+## Notes
+
+- Django settings use `dj-database-url` for production `DATABASE_URL` parsing.
+- In production, the backend serves static files via WhiteNoise.
+- The health endpoint at `/health/` verifies DB connectivity.
+- The backend is configured for Render deployment using `render.yaml`.
+
+## Testing
+
+Run the backend test suite:
+```bash
+cd backend
+venv\Scripts\activate
+python manage.py test
+```
+
+## Frontend Compatibility
+
+Ensure the frontend `VITE_API_URL` points to the backend API base URL, for example:
+```env
+VITE_API_URL=https://cafeteria-backend.onrender.com/api/
+```
+
+## Security & Deployment
+
+- `DEBUG=False` in production
+- `CSRF_TRUSTED_ORIGINS` configured for the frontend URL
+- `CORS_ALLOWED_ORIGINS` configured for the frontend URL
+- `PGSSLMODE=require` is recommended for production

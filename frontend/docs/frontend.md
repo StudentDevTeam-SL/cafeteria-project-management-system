@@ -1,60 +1,57 @@
 # Frontend Architecture (React + Vite)
 
-Cafeteria Management is a modern, high-performance single-page application built with React 19.
+The frontend is a modern single-page application built with **React 19** and **Vite**.
 
 ## Tech Stack
-- **Framework**: React 19 + Vite (for fast HMR and optimized builds)
-- **Styling**: Tailwind CSS (with native dark/light mode support)
-- **Animations**: Framer Motion (for fluid, hardware-accelerated UI transitions)
+- **Framework**: React 19 + Vite
+- **Styling**: Tailwind CSS
+- **Animations**: Framer Motion
 - **Icons**: Lucide React
-- **Routing**: React Router DOM (v7)
+- **Routing**: React Router DOM v7
+- **HTTP Client**: Axios
+
+## Project Structure
+- `src/App.jsx` — main app wrapper and route configuration
+- `src/main.jsx` — app entry point
+- `src/pages/` — page-level route components
+- `src/components/` — reusable UI components and layout wrappers
+- `src/context/` — React Context providers for auth, theme, sound, and notifications
+- `src/assets/` — static image and icon assets
 
 ## State Management
-Global state is managed using React Context API to ensure a lightweight and predictable state flow without heavy external libraries.
-- `AuthContext`: Manages user login, session, JWT refresh cycles, and Role-Based Access Control.
-- `ThemeContext`: Handles Light/Dark mode toggling and OS preference detection.
-- `SoundContext`: Provides an auditory feedback system for Point-of-Sale interactions.
-- `ToastContext`: Provides a global, animated popup notification system with built-in 7-second "Undo" functionality for critical destructive actions.
+The app uses React Context API for lightweight global state.
+- `AuthContext.jsx` — login, logout, token storage, and protected routes
+- `ThemeContext.jsx` — light/dark mode support and preference persistence
+- `SoundContext.jsx` — UI feedback sounds for button actions and notifications
+- `ToastContext.jsx` — global notification system for success/error messages
 
-## Layout & Structure
-The app utilizes a dual-layout system based on authentication state:
-- **Public Layout**: Simple wrapper with a Navbar/Footer for marketing pages (`Home`, `About`, `Contact`, `Login`).
-- **Admin Layout**: A sidebar-driven application shell with a top header (for user profile & theme toggle). Restricted to logged-in users.
+## Layout & Routing
+There are two main layout types:
+- **PublicLayout** — landing pages, login, about, and contact pages
+- **AdminLayout** — authenticated dashboard shell with sidebar navigation
 
-## Core Features & Modules
-1. **Point of Sale (POS) / Menu (`Menu.jsx`)**: 
-   - A visual, touch-friendly catalog for taking orders.
-   - Image upload functionality supporting local files and internet URLs.
-   - Includes an interactive cart and checkout modal.
-   - Haptic-style audio feedback on button presses.
-2. **Order Management (`Orders.jsx`)**:
-   - Kanban-style status tracking (Pending -> Processing -> Completed).
-   - Multi-step Payment Modal supporting Cash, Zaad, PayPal, and Mastercard.
-3. **Inventory Control (`Inventory.jsx`)**:
-   - Data table for tracking raw ingredients.
-   - Visual low-stock indicators and progress bars.
-4. **Employee Management (`Employees.jsx`)**:
-   - List and manage staff members, shift tracking.
-   - Quick status toggles directly on the employee cards (Active/Inactive).
-   - Filter tabs to easily view All, Active, or Inactive staff.
-   - *Restricted to Admin users.*
-5. **Payroll (`Salaries.jsx`)**:
-   - Track base pay, bonuses, deductions, and payment status.
-   - *Restricted to Admin users.*
-6. **Dashboard (`Dashboard.jsx`)**:
-   - Live clock and stat cards.
-   - Dual analytics charts (Area and Bar) using Recharts.
-   - Recent orders table.
+Protected routing is handled with `ProtectedRoute.jsx` and `PublicRoute.jsx`.
 
-## Design System & CSS Philosophy
-All styling uses Tailwind utility classes, extended by a custom `index.css` file containing:
-- **Glassmorphism**: Reusable `.glass`, `.glass-dark`, and `.glass-card` classes for premium UI overlays.
-- **Animations**: Custom `@keyframes` (float, shimmer, pulse) injected globally.
-- **Responsive Design**: Mobile-first approach using `md:`, `lg:`, `xl:` breakpoints.
+## Core Pages
+- `Dashboard.jsx` — KPIs, charts, and recent order summary
+- `Menu.jsx` — menu catalog, item search, filters, and ordering flow
+- `Orders.jsx` — order history, status updates, and order details
+- `Inventory.jsx` — stock list, quantity details, and low-stock alerts
+- `Employees.jsx` — employee directory and profile management
+- `Salaries.jsx` — payroll records, net salary, and payment status
+- `Reports.jsx` — analytics and revenue charts
+- `Settings.jsx` — account and app preferences
 
-## Deployment (Render)
-The frontend is deployed as a Static Site via Render.
+## Deployment
+This frontend is built as a static app and can be deployed to Render or any static host.
+
 - **Build Command**: `npm install && npm run build`
 - **Publish Directory**: `dist`
-- **Environment Variables**: Requires `VITE_API_URL` to point to the Django backend (e.g., `https://cafeteria-backend.onrender.com/api/`).
-- **SPA Rules**: All unresolved routes rewrite to `index.html`.
+- **Required Env**: `VITE_API_URL` should point to the backend API base URL
+- **SPA Routing**: All unmatched routes should rewrite to `index.html`
+
+Example Render environment variable:
+
+```env
+VITE_API_URL=https://cafeteria-backend.onrender.com/api/
+```

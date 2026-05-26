@@ -1,7 +1,7 @@
-# Catateria Project Management System - Team Structure
+# Catateria Project Management System — Team Structure
 
 ## Project Overview
-This document outlines the organizational structure and team assignments for the Catateria Project Management System.
+This document describes team roles and ownership for the Catateria Project Management System.
 
 ---
 
@@ -41,6 +41,6 @@ This document outlines the organizational structure and team assignments for the
 ---
 
 ## Contact & Updates
-For project-related inquiries, contact the respective team leads or administration.
+For project inquiries, coordinate with the named team members or project administration.
 
-**Last Updated:** May 12, 2026
+**Last Updated:** May 25, 2026
