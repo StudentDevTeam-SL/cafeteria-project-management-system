@@ -5,7 +5,9 @@ import { useAuth } from '../hooks/useAuth';
 import {
   DollarSign, ShoppingBag, AlertTriangle, TrendingUp, TrendingDown,
   Users, Coffee, ArrowUpRight, ArrowDownRight, Clock,
-  CheckCircle, XCircle, Loader, Star, BriefcaseBusiness, MessageSquare
+  CheckCircle, XCircle, Loader, Star, BriefcaseBusiness, MessageSquare,
+  Bell, DatabaseBackup, DownloadCloud, UploadCloud, RefreshCcw, ShieldCheck,
+  UserCheck
 } from 'lucide-react';
 import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid,
@@ -98,14 +100,314 @@ const CustomTooltip = ({ active, payload, label }) => {
   return null;
 };
 
+const NotificationDrawer = ({ open, onClose, notifications, loading }) => {
+  const severityClasses = {
+    info: 'bg-blue-500/10 text-blue-500 border-blue-500/20',
+    success: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20',
+    warning: 'bg-amber-500/10 text-amber-500 border-amber-500/20',
+    danger: 'bg-red-500/10 text-red-500 border-red-500/20',
+  };
+
+  return (
+    <AnimatePresence>
+      {open && (
+        <div className="fixed inset-0 z-50 flex justify-end">
+          <motion.button
+            type="button"
+            aria-label="Close notifications"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm"
+            onClick={onClose}
+          />
+          <motion.aside
+            initial={{ x: 420 }}
+            animate={{ x: 0 }}
+            exit={{ x: 420 }}
+            transition={{ duration: 0.25 }}
+            className="relative h-full w-full max-w-md overflow-y-auto border-l border-white/10 bg-white p-6 shadow-2xl dark:bg-[#0f172a]"
+          >
+            <div className="mb-6 flex items-center justify-between gap-4">
+              <div>
+                <p className="text-xs font-black uppercase tracking-wider text-primary">Notification Center</p>
+                <h2 className="text-2xl font-black">Manager and Admin updates</h2>
+              </div>
+              <button type="button" onClick={onClose} className="btn-ghost px-3 py-2">Close</button>
+            </div>
+
+            {loading && <div className="py-12 text-center text-slate-400">Loading notifications...</div>}
+            {!loading && notifications.length === 0 && (
+              <div className="rounded-2xl border border-slate-200/70 p-8 text-center text-sm text-slate-500 dark:border-slate-800">
+                No notifications right now.
+              </div>
+            )}
+            <div className="space-y-3">
+              {notifications.map(item => (
+                <Link
+                  key={item.id}
+                  to={item.href || '#'}
+                  onClick={onClose}
+                  className="block rounded-2xl border border-slate-200/70 bg-white/70 p-4 transition hover:border-primary/40 hover:bg-primary/5 dark:border-slate-800 dark:bg-slate-900/50"
+                >
+                  <div className="mb-2 flex items-center justify-between gap-3">
+                    <span className={`rounded-full border px-2.5 py-1 text-[10px] font-black uppercase tracking-wider ${severityClasses[item.severity] || severityClasses.info}`}>
+                      {item.severity}
+                    </span>
+                    <span className="text-[11px] font-semibold text-slate-400">
+                      {item.created_at ? new Date(item.created_at).toLocaleString() : 'Now'}
+                    </span>
+                  </div>
+                  <h3 className="text-sm font-black text-slate-800 dark:text-white">{item.title}</h3>
+                  <p className="mt-1 text-xs leading-5 text-slate-500 dark:text-slate-300">{item.message}</p>
+                </Link>
+              ))}
+            </div>
+          </motion.aside>
+        </div>
+      )}
+    </AnimatePresence>
+  );
+};
+
+const PeopleInsights = ({ roleBreakdown, employeeStatus, jobPipeline }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ delay: 0.45 }}
+    className="grid grid-cols-1 gap-6 xl:grid-cols-3"
+  >
+    <div className="glass-card p-6">
+      <div className="mb-4 flex items-center gap-2">
+        <UserCheck className="h-5 w-5 text-primary" />
+        <h2 className="text-lg font-bold">People by Role</h2>
+      </div>
+      <div className="h-56">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={roleBreakdown}>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(148,163,184,0.1)" />
+            <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 11 }} />
+            <YAxis allowDecimals={false} axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 11 }} />
+            <Tooltip content={<CustomTooltip />} />
+            <Bar dataKey="value" name="people" fill="#14b8a6" radius={[6, 6, 0, 0]} />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+
+    <div className="glass-card p-6">
+      <div className="mb-4 flex items-center gap-2">
+        <Users className="h-5 w-5 text-emerald-500" />
+        <h2 className="text-lg font-bold">Employees</h2>
+      </div>
+      <div className="h-56">
+        <ResponsiveContainer width="100%" height="100%">
+          <PieChart>
+            <Pie data={employeeStatus} cx="50%" cy="50%" outerRadius={82} dataKey="value" label>
+              {employeeStatus.map((entry, index) => (
+                <Cell key={entry.name} fill={index === 0 ? '#10b981' : '#f97316'} stroke="none" />
+              ))}
+            </Pie>
+            <Tooltip formatter={(v) => `${v} employees`} contentStyle={{ background: 'rgba(15,23,42,0.9)', border: 'none', borderRadius: '8px' }} />
+          </PieChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+
+    <div className="glass-card p-6">
+      <div className="mb-4 flex items-center gap-2">
+        <BriefcaseBusiness className="h-5 w-5 text-violet-500" />
+        <h2 className="text-lg font-bold">Job Pipeline</h2>
+      </div>
+      <div className="h-56">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={jobPipeline}>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(148,163,184,0.1)" />
+            <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 11 }} />
+            <YAxis allowDecimals={false} axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 11 }} />
+            <Tooltip content={<CustomTooltip />} />
+            <Bar dataKey="value" name="applications" fill="#8b5cf6" radius={[6, 6, 0, 0]} />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  </motion.div>
+);
+
+const LoginActivityPanel = ({ rows }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ delay: 0.55 }}
+    className="glass-card overflow-hidden"
+  >
+    <div className="border-b border-gray-100 p-6 dark:border-slate-700">
+      <div className="flex items-center gap-2">
+        <ShieldCheck className="h-5 w-5 text-primary" />
+        <h2 className="text-lg font-bold">Manager/Admin Login Activity</h2>
+      </div>
+      <p className="mt-1 text-sm text-slate-500 dark:text-slate-300">Who logged in, when they entered, and when the session closed.</p>
+    </div>
+    <div className="overflow-x-auto">
+      <table className="data-table">
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>Role</th>
+            <th>Login Time</th>
+            <th>Closed Time</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map(row => (
+            <tr key={row.id}>
+              <td>
+                <p className="text-sm font-bold">{row.full_name || row.username}</p>
+                <p className="text-xs text-slate-400">{row.username}</p>
+              </td>
+              <td><span className="badge badge-blue">{row.role}</span></td>
+              <td className="text-xs text-slate-500 dark:text-slate-300">{new Date(row.login_at).toLocaleString()}</td>
+              <td className="text-xs text-slate-500 dark:text-slate-300">{row.logout_at ? new Date(row.logout_at).toLocaleString() : 'Open session'}</td>
+              <td><span className={`badge ${row.status === 'active' ? 'badge-green' : 'badge-yellow'}`}>{row.status}</span></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      {rows.length === 0 && <div className="py-10 text-center text-slate-400">No login activity yet.</div>}
+    </div>
+  </motion.div>
+);
+
+const BackupRestorePanel = ({
+  tables,
+  selectedTables,
+  onToggleTable,
+  onSelectAll,
+  onExport,
+  onRestoreFile,
+  onRestore,
+  status,
+  restoreFileName,
+}) => (
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ delay: 0.5 }}
+    className="glass-card p-6"
+  >
+    <div className="mb-5 flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+      <div>
+        <div className="mb-2 flex items-center gap-2">
+          <DatabaseBackup className="h-5 w-5 text-primary" />
+          <h2 className="text-lg font-bold">Database Backup and Restore</h2>
+        </div>
+        <p className="max-w-2xl text-sm text-slate-500 dark:text-slate-300">
+          Admin-only tools for exporting or restoring selected database tables.
+        </p>
+      </div>
+      <button type="button" onClick={onSelectAll} className="btn-ghost inline-flex items-center gap-2">
+        <RefreshCcw className="h-4 w-4" />
+        Toggle All
+      </button>
+    </div>
+
+    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      {tables.map(table => (
+        <label key={table.key} className="flex cursor-pointer items-center gap-3 rounded-xl border border-slate-200/70 bg-white/50 p-3 dark:border-slate-800 dark:bg-slate-900/30">
+          <input
+            type="checkbox"
+            checked={selectedTables.includes(table.key)}
+            onChange={() => onToggleTable(table.key)}
+            className="h-4 w-4 accent-primary"
+          />
+          <span className="min-w-0">
+            <span className="block truncate text-sm font-bold">{table.label}</span>
+            <span className="text-xs text-slate-400">{table.count} rows</span>
+          </span>
+        </label>
+      ))}
+    </div>
+
+    <div className="mt-5 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+      <div className="flex flex-wrap gap-2">
+        <button type="button" onClick={onExport} className="btn-primary inline-flex items-center gap-2">
+          <DownloadCloud className="h-4 w-4" />
+          Export Selected
+        </button>
+        <label className="btn-ghost inline-flex cursor-pointer items-center gap-2">
+          <UploadCloud className="h-4 w-4" />
+          Choose Backup File
+          <input type="file" accept="application/json,.json" onChange={onRestoreFile} className="hidden" />
+        </label>
+        <button type="button" onClick={onRestore} className="btn-ghost inline-flex items-center gap-2">
+          <DatabaseBackup className="h-4 w-4" />
+          Restore Selected
+        </button>
+      </div>
+      <div className="text-sm text-slate-500 dark:text-slate-300">
+        {restoreFileName && <span className="font-semibold text-primary">{restoreFileName}</span>}
+        {status && <span className="ml-3">{status}</span>}
+      </div>
+    </div>
+  </motion.div>
+);
+
 /* ── Main Dashboard ── */
 const Dashboard = () => {
   const { user } = useAuth();
   const [time, setTime] = useState(new Date());
   const [activeChart, setActiveChart] = useState('sales');
-  const [stats, setStats] = useState({ revenue: 0, orders: 0, staff: 0, lowStock: 0 });
+  const [stats, setStats] = useState({
+    revenue: 0,
+    orders: 0,
+    staff: 0,
+    lowStock: 0,
+    employeeStatus: [],
+    roleBreakdown: [],
+    jobPipeline: [],
+    loginActivity: [],
+    notificationCount: 0,
+  });
   const [orders, setOrders] = useState([]);
   const [weeklyData, setWeeklyData] = useState([]);
+  const [notifications, setNotifications] = useState([]);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [notificationsLoading, setNotificationsLoading] = useState(false);
+  const [backupTables, setBackupTables] = useState([]);
+  const [selectedTables, setSelectedTables] = useState([]);
+  const [backupStatus, setBackupStatus] = useState('');
+  const [restorePayload, setRestorePayload] = useState(null);
+  const [restoreFileName, setRestoreFileName] = useState('');
+
+  const canManage = user?.role === 'Admin' || user?.role === 'Manager';
+  const isAdmin = user?.role === 'Admin';
+
+  const fetchNotifications = useCallback(async () => {
+    if (!canManage) return;
+    setNotificationsLoading(true);
+    try {
+      const response = await api.get('dashboard/notifications/');
+      setNotifications(response.data.notifications || []);
+    } catch (err) {
+      console.error('Failed to fetch notifications:', err);
+    } finally {
+      setNotificationsLoading(false);
+    }
+  }, [canManage]);
+
+  const fetchBackupTables = useCallback(async () => {
+    if (!isAdmin) return;
+    try {
+      const response = await api.get('dashboard/backup/tables/');
+      const tables = response.data.tables || [];
+      setBackupTables(tables);
+      setSelectedTables(current => current.length ? current : tables.map(table => table.key));
+    } catch (err) {
+      console.error('Failed to fetch backup tables:', err);
+      setBackupStatus('Could not load backup tables.');
+    }
+  }, [isAdmin]);
 
   const fetchDashboardData = useCallback(async () => {
     try {
@@ -130,18 +432,103 @@ const Dashboard = () => {
     }
   }, []);
 
+  const toggleBackupTable = (key) => {
+    setSelectedTables(current => (
+      current.includes(key)
+        ? current.filter(item => item !== key)
+        : [...current, key]
+    ));
+  };
+
+  const toggleAllBackupTables = () => {
+    setSelectedTables(current => (
+      current.length === backupTables.length ? [] : backupTables.map(table => table.key)
+    ));
+  };
+
+  const exportBackup = async () => {
+    if (!selectedTables.length) {
+      setBackupStatus('Select at least one table to export.');
+      return;
+    }
+    setBackupStatus('Exporting selected tables...');
+    try {
+      const response = await api.post('dashboard/backup/export/', { tables: selectedTables });
+      const blob = new Blob([JSON.stringify(response.data, null, 2)], { type: 'application/json' });
+      const anchor = document.createElement('a');
+      anchor.href = URL.createObjectURL(blob);
+      anchor.download = `cafeteria-backup-${new Date().toISOString().slice(0, 10)}.json`;
+      anchor.click();
+      URL.revokeObjectURL(anchor.href);
+      setBackupStatus('Backup exported.');
+    } catch (err) {
+      console.error('Failed to export backup:', err);
+      setBackupStatus('Backup export failed.');
+    }
+  };
+
+  const handleRestoreFile = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const parsed = JSON.parse(text);
+      setRestorePayload(parsed);
+      setRestoreFileName(file.name);
+      setBackupStatus('Backup file loaded. Choose tables and restore.');
+    } catch (err) {
+      console.error('Invalid backup file:', err);
+      setRestorePayload(null);
+      setRestoreFileName('');
+      setBackupStatus('Invalid backup JSON file.');
+    }
+  };
+
+  const restoreBackup = async () => {
+    if (!restorePayload) {
+      setBackupStatus('Choose a backup file first.');
+      return;
+    }
+    if (!selectedTables.length) {
+      setBackupStatus('Select at least one table to restore.');
+      return;
+    }
+    setBackupStatus('Restoring selected tables...');
+    try {
+      const response = await api.post('dashboard/backup/restore/', {
+        backup: restorePayload,
+        tables: selectedTables,
+      });
+      setBackupStatus(`Restore complete: ${Object.keys(response.data.restored || {}).join(', ')}`);
+      fetchDashboardData();
+      fetchBackupTables();
+    } catch (err) {
+      console.error('Failed to restore backup:', err);
+      setBackupStatus(err.response?.data?.error || 'Restore failed.');
+    }
+  };
+
   useEffect(() => {
     const t = setInterval(() => setTime(new Date()), 1000);
     // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchDashboardData();
+    fetchNotifications();
+    fetchBackupTables();
     return () => clearInterval(t);
-  }, [fetchDashboardData]);
+  }, [fetchBackupTables, fetchDashboardData, fetchNotifications]);
 
   const greetingHour = time.getHours();
   const greeting = greetingHour < 12 ? 'Good Morning' : greetingHour < 17 ? 'Good Afternoon' : 'Good Evening';
 
   return (
     <div className="space-y-8">
+      <NotificationDrawer
+        open={notificationsOpen}
+        onClose={() => setNotificationsOpen(false)}
+        notifications={notifications}
+        loading={notificationsLoading}
+      />
+
       {/* ── Header ── */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
@@ -161,11 +548,29 @@ const Dashboard = () => {
           <p className="text-gray-500 dark:text-slate-400 mt-1">Here's what's happening at your café today.</p>
         </div>
         <div className="flex flex-wrap items-center gap-3 self-start">
+          {canManage && (
+            <button
+              type="button"
+              onClick={() => {
+                setNotificationsOpen(true);
+                fetchNotifications();
+              }}
+              className="btn-ghost relative inline-flex items-center gap-2"
+            >
+              <Bell className="h-4 w-4" />
+              Notifications
+              {stats.notificationCount > 0 && (
+                <span className="absolute -right-2 -top-2 min-w-5 rounded-full bg-red-500 px-1.5 py-0.5 text-center text-[10px] font-black text-white">
+                  {stats.notificationCount}
+                </span>
+              )}
+            </button>
+          )}
           <Link to="/contact-messages" className="btn-ghost inline-flex items-center gap-2">
             <MessageSquare className="h-4 w-4" />
             Contact Us Messages
           </Link>
-          {user?.role === 'Admin' && (
+          {canManage && (
             <Link to="/admin/jobs" className="btn-primary inline-flex items-center gap-2">
               <BriefcaseBusiness className="h-4 w-4" />
               Jobs
@@ -214,6 +619,28 @@ const Dashboard = () => {
         <StatCard title="Active Staff" value={stats.staff} icon={Users} trend="up" trendValue="5" color="text-emerald-500" bg="bg-emerald-500/10" delay={0.3} />
         <StatCard title="Low Stock Items" value={stats.lowStock} icon={AlertTriangle} trend="down" trendValue="3" color="text-amber-500" bg="bg-amber-500/10" delay={0.4} />
       </div>
+
+      {isAdmin && (
+        <BackupRestorePanel
+          tables={backupTables}
+          selectedTables={selectedTables}
+          onToggleTable={toggleBackupTable}
+          onSelectAll={toggleAllBackupTables}
+          onExport={exportBackup}
+          onRestoreFile={handleRestoreFile}
+          onRestore={restoreBackup}
+          status={backupStatus}
+          restoreFileName={restoreFileName}
+        />
+      )}
+
+      {canManage && (
+        <PeopleInsights
+          roleBreakdown={stats.roleBreakdown || []}
+          employeeStatus={stats.employeeStatus || []}
+          jobPipeline={stats.jobPipeline || []}
+        />
+      )}
 
       {/* ── Charts ── */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
@@ -308,6 +735,8 @@ const Dashboard = () => {
           </div>
         </motion.div>
       </div>
+
+      {canManage && <LoginActivityPanel rows={stats.loginActivity || []} />}
 
       {/* ── Recent Orders + Top Items ── */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">

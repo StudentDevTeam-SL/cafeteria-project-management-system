@@ -45,6 +45,21 @@ const FacebookIcon = () => (
   </svg>
 );
 
+const DEMO_BACKEND_PASSWORDS = {
+  admin: 'admin',
+  manager: 'manager',
+  employee: '1234',
+};
+
+const getPasswordOverrides = () => {
+  try {
+    return JSON.parse(localStorage.getItem('password_overrides') || '{}');
+  } catch {
+    localStorage.removeItem('password_overrides');
+    return {};
+  }
+};
+
 const Login = () => {
   const { login, googleSocialLogin, isLoading } = useAuth();
   const { playSound } = useSoundContext();
@@ -116,29 +131,22 @@ const Login = () => {
     setSubmitting(true); 
     setError('');
     
-    // Check local storage overrides for updated passwords
-    const overrides = JSON.parse(localStorage.getItem('password_overrides') || '{}');
-    const userLower = username.toLowerCase();
+    const overrides = getPasswordOverrides();
+    const userLower = username.trim().toLowerCase();
     const hasOverride = overrides[userLower];
 
     try { 
-      if (hasOverride) {
-        if (hasOverride === password) {
-          // If input matches override password, login using original database credentials
-          let realBackendPassword = password;
-          if (userLower === 'admin') realBackendPassword = 'admin';
-          else if (userLower === 'manager') realBackendPassword = 'manager';
-          else if (userLower === 'employee') realBackendPassword = '1234';
-          
-          await login(username, realBackendPassword);
+      try {
+        await login(username, password);
+      } catch (primaryError) {
+        const backendPassword = DEMO_BACKEND_PASSWORDS[userLower];
+        if (hasOverride && hasOverride === password && backendPassword && backendPassword !== password) {
+          await login(username, backendPassword);
           return;
-        } else {
-          throw new Error('Invalid credentials. Password override did not match.');
         }
+
+        throw primaryError;
       }
-      
-      // Standard auth call
-      await login(username, password); 
     }
     catch (err) { 
       setError(err.message || 'Invalid credentials. Please try again.'); 
@@ -175,13 +183,6 @@ const Login = () => {
     } else if (provider === 'facebook') {
       targetUser = 'employee';
       targetPass = '1234';
-    }
-    
-    // Check overrides
-    const overrides = JSON.parse(localStorage.getItem('password_overrides') || '{}');
-    const hasOverride = overrides[targetUser];
-    if (hasOverride) {
-      targetPass = hasOverride;
     }
     
     try {
@@ -306,7 +307,7 @@ const Login = () => {
     else if (forgotEmail.toLowerCase() === 'manager@cafeteria.com') targetUsername = 'manager';
     else if (forgotEmail.toLowerCase() === 'employee@cafeteria.com') targetUsername = 'employee';
     
-    const overrides = JSON.parse(localStorage.getItem('password_overrides') || '{}');
+    const overrides = getPasswordOverrides();
     overrides[targetUsername] = newPassword;
     localStorage.setItem('password_overrides', JSON.stringify(overrides));
     

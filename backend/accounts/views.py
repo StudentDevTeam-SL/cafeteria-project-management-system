@@ -1,18 +1,60 @@
 import json
 import urllib.request
 from django.conf import settings
+from django.utils import timezone
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.exceptions import PermissionDenied
-from .serializers import CustomTokenObtainPairSerializer, UserSerializer, UserCreateSerializer
-from .models import CustomUser
+from .serializers import (
+    CustomTokenObtainPairSerializer, UserSerializer, UserCreateSerializer,
+    LoginActivitySerializer
+)
+from .models import CustomUser, LoginActivity
 from .google_auth import google_user_payload, resolve_google_user
 from rest_framework import viewsets
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
+from accounts.permissions import IsManagerOrAdmin
+
+
+def get_client_ip(request):
+    forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if forwarded_for:
+        return forwarded_for.split(',')[0].strip()
+    return request.META.get('REMOTE_ADDR')
+
+
+def create_login_activity(request, user):
+    return LoginActivity.objects.create(
+        user=user,
+        username=user.username,
+        role=getattr(user, 'role', ''),
+        ip_address=get_client_ip(request),
+        user_agent=request.META.get('HTTP_USER_AGENT', '')[:1000],
+    )
+
+
+def close_login_activity(user, activity_id=None, reason='logout'):
+    activities = LoginActivity.objects.filter(
+        user=user,
+        status='active',
+        logout_at__isnull=True,
+    )
+    if activity_id:
+        activities = activities.filter(id=activity_id)
+
+    activity = activities.order_by('-login_at').first()
+    if not activity:
+        return None
+
+    activity.logout_at = timezone.now()
+    activity.status = 'closed'
+    activity.close_reason = reason[:80]
+    activity.save(update_fields=['logout_at', 'status', 'close_reason'])
+    return activity
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -44,11 +86,30 @@ class UserViewSet(viewsets.ModelViewSet):
         return super().destroy(request, *args, **kwargs)
 
 
+class LoginActivityViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    Manager/admin endpoint for seeing who logged in and when sessions closed.
+    """
+    queryset = LoginActivity.objects.select_related('user').order_by('-login_at')
+    serializer_class = LoginActivitySerializer
+    permission_classes = [IsManagerOrAdmin]
+
+
 class CustomTokenObtainPairView(TokenObtainPairView):
     """
     View for authenticating and obtaining custom JWT tokens.
     """
     serializer_class = CustomTokenObtainPairSerializer
+
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
+        if response.status_code == status.HTTP_200_OK:
+            username = (request.data.get('username') or '').strip()
+            user = CustomUser.objects.filter(username__iexact=username).first()
+            if user:
+                activity = create_login_activity(request, user)
+                response.data['login_activity_id'] = activity.id
+        return response
 
 
 class LogoutView(APIView):
@@ -59,6 +120,11 @@ class LogoutView(APIView):
 
     def post(self, request):
         try:
+            close_login_activity(
+                request.user,
+                activity_id=request.data.get('login_activity_id'),
+                reason=request.data.get('reason') or 'logout',
+            )
             return Response({"message": "Successfully logged out."}, status=status.HTTP_205_RESET_CONTENT)
         except Exception as e:
             return Response(status=status.HTTP_400_BAD_REQUEST)
@@ -134,10 +200,12 @@ class GoogleSocialLoginView(APIView):
 
         refresh = RefreshToken.for_user(user)
         payload = google_user_payload(user, requested_email)
+        activity = create_login_activity(request, user)
 
         return Response({
             'access':  str(refresh.access_token),
             'refresh': str(refresh),
+            'login_activity_id': activity.id,
             'user': {
                 'id':        user.id,
                 'username':  user.username,

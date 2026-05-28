@@ -25,11 +25,10 @@ const ADMIN_ITEMS = [
   { to: '/employees', icon: Users, label: 'Employees' },
   { to: '/salaries', icon: DollarSign, label: 'Salaries' },
   { to: '/system/messages', icon: MessageSquare, label: 'Messages' },
-];
-
-const ADMIN_ONLY_ITEMS = [
   { to: '/admin/jobs', icon: BriefcaseBusiness, label: 'Jobs' },
 ];
+
+const ADMIN_ONLY_ITEMS = [];
 
 /**
  * Optimized NavItem component

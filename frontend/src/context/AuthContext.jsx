@@ -45,11 +45,14 @@ export const AuthProvider = ({ children }) => {
   const login = async (username, password) => {
     try {
       const res = await api.post('auth/login/', { username, password });
-      const { access, refresh, user: userData } = res.data;
+      const { access, refresh, user: userData, login_activity_id: loginActivityId } = res.data;
       
       localStorage.setItem('token', access);
       localStorage.setItem('refresh', refresh);
       localStorage.setItem('user', JSON.stringify(userData));
+      if (loginActivityId) {
+        localStorage.setItem('login_activity_id', String(loginActivityId));
+      }
       
       setUser(userData);
       return userData;
@@ -64,11 +67,14 @@ export const AuthProvider = ({ children }) => {
   const googleSocialLogin = async (credential) => {
     try {
       const res = await api.post('auth/google-social-login/', { credential });
-      const { access, refresh, user: userData } = res.data;
+      const { access, refresh, user: userData, login_activity_id: loginActivityId } = res.data;
       
       localStorage.setItem('token', access);
       localStorage.setItem('refresh', refresh);
       localStorage.setItem('user', JSON.stringify(userData));
+      if (loginActivityId) {
+        localStorage.setItem('login_activity_id', String(loginActivityId));
+      }
       
       setUser(userData);
       return userData;
@@ -82,7 +88,11 @@ export const AuthProvider = ({ children }) => {
     try {
       const refresh = localStorage.getItem('refresh');
       if (refresh) {
-        await api.post('auth/logout/', { refresh });
+        await api.post('auth/logout/', {
+          refresh,
+          login_activity_id: localStorage.getItem('login_activity_id'),
+          reason: 'logout',
+        });
       }
     } catch (error) {
       console.error('Logout error:', error);
@@ -91,6 +101,7 @@ export const AuthProvider = ({ children }) => {
       localStorage.removeItem('token');
       localStorage.removeItem('refresh');
       localStorage.removeItem('user');
+      localStorage.removeItem('login_activity_id');
     }
   };
 

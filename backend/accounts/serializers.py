@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import CustomUser
+from .models import CustomUser, LoginActivity
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 class UserSerializer(serializers.ModelSerializer):
@@ -55,3 +55,20 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         data = super().validate(attrs)
         data['user'] = UserSerializer(self.user).data
         return data
+
+
+class LoginActivitySerializer(serializers.ModelSerializer):
+    """
+    Read serializer for manager/admin login activity audit records.
+    """
+    full_name = serializers.CharField(source='user.full_name', read_only=True)
+    duration_seconds = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = LoginActivity
+        fields = [
+            'id', 'user', 'username', 'full_name', 'role', 'login_at',
+            'logout_at', 'status', 'close_reason', 'ip_address',
+            'user_agent', 'duration_seconds',
+        ]
+        read_only_fields = fields

@@ -111,7 +111,9 @@ class JobApplicationViewSet(
     def get_permissions(self):
         if self.action == 'create':
             return [AllowAny()]
-        return [IsAdminRole()]
+        if self.action == 'destroy':
+            return [IsAdminRole()]
+        return [IsManagerOrAdmin()]
 
     def get_serializer_context(self):
         context = super().get_serializer_context()

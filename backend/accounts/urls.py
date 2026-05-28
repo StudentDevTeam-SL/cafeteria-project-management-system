@@ -3,11 +3,12 @@ from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenRefreshView
 from .views import (
     CustomTokenObtainPairView, LogoutView, UserViewSet,
-    CheckEmailView, GoogleSocialLoginView
+    CheckEmailView, GoogleSocialLoginView, LoginActivityViewSet
 )
 
 router = DefaultRouter()
 router.register(r'users', UserViewSet, basename='users')
+router.register(r'login-activity', LoginActivityViewSet, basename='login-activity')
 
 urlpatterns = [
     path('', include(router.urls)),
@@ -17,4 +18,3 @@ urlpatterns = [
     path('check-email/', CheckEmailView.as_view(), name='check_email'),
     path('google-social-login/', GoogleSocialLoginView.as_view(), name='google_social_login'),
 ]
-

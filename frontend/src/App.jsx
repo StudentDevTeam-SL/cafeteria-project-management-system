@@ -55,7 +55,7 @@ function App() {
                       <Route path="/salaries" element={<Salaries />} />
                       <Route path="/system/messages" element={<SystemMessages />} />
                     </Route>
-                    <Route element={<ProtectedRoute allowedRoles={['Admin']} />}>
+                    <Route element={<ProtectedRoute allowedRoles={['Admin', 'Manager']} />}>
                       <Route path="/admin/jobs" element={<Jobs />} />
                     </Route>
                   </Route>
