@@ -16,11 +16,11 @@ services:
       - key: SECRET_KEY
         generateValue: true
       - key: ALLOWED_HOSTS
-        value: "cafeteria-backend.onrender.com"
+        value: "cafeteria-backend.onrender.com,cafeteria-systemchi.vercel.app"
       - key: CORS_ALLOWED_ORIGINS
-        value: "https://cafeteria-frontend.onrender.com"
+        value: "https://cafeteria-frontend.onrender.com,https://cafeteria-systemchi.vercel.app"
       - key: CSRF_TRUSTED_ORIGINS
-        value: "https://cafeteria-frontend.onrender.com,https://cafeteria-backend.onrender.com"
+        value: "https://cafeteria-frontend.onrender.com,https://cafeteria-systemchi.vercel.app,https://cafeteria-backend.onrender.com"
       - key: DATABASE_URL
         fromDatabase:
           name: cafeteria-db
