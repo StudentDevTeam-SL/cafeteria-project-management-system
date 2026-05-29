@@ -214,6 +214,139 @@
   .divider {
     @apply border-t border-slate-200 dark:border-slate-700/60;
   }
+
+  /* ── Dashboard redesign system ── */
+  .dashboard-page {
+    @apply relative space-y-5 text-slate-950 dark:text-slate-100;
+  }
+
+  .dashboard-hero {
+    @apply relative overflow-hidden border border-slate-900/10 text-white dark:border-white/10;
+    border-radius: 18px;
+    background:
+      linear-gradient(135deg, #111827 0%, #14323a 52%, #124a45 100%);
+    box-shadow: 0 24px 80px -42px rgba(15, 23, 42, 0.65);
+  }
+
+  .dashboard-hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.22;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.12) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.12) 1px, transparent 1px);
+    background-size: 48px 48px;
+  }
+
+  .dashboard-hero-action {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg border border-white/10
+           bg-white/10 px-4 py-2.5 text-sm font-black text-white
+           transition hover:bg-white/20 focus-visible:ring-2 focus-visible:ring-cyan-200/60;
+  }
+
+  .dashboard-hero-action-primary {
+    @apply border-cyan-200/40 bg-cyan-200/20 text-cyan-50 hover:bg-cyan-200/25;
+  }
+
+  .dashboard-hero-meter {
+    @apply border border-white/10 bg-white/10 p-4 shadow-2xl shadow-slate-950/20;
+    border-radius: 12px;
+  }
+
+  .dashboard-panel {
+    @apply border border-slate-200/80 bg-white/90 shadow-sm backdrop-blur-xl
+           dark:border-white/10 dark:bg-slate-900/80;
+    border-radius: 12px;
+    box-shadow: 0 18px 60px -44px rgba(15, 23, 42, 0.5);
+  }
+
+  .dashboard-stat-card {
+    @apply relative overflow-hidden border border-slate-200/80 bg-white/90 p-5 shadow-sm
+           transition duration-200 hover:-translate-y-0.5 hover:shadow-md
+           dark:border-white/10 dark:bg-slate-900/80;
+    border-radius: 12px;
+  }
+
+  .dashboard-icon-soft {
+    @apply flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg
+           bg-teal-50 text-teal-700 ring-1 ring-teal-500/10
+           dark:bg-teal-400/10 dark:text-teal-200 dark:ring-teal-300/10;
+  }
+
+  .dashboard-trend {
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-black;
+  }
+
+  .dashboard-trend-up {
+    @apply bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300;
+  }
+
+  .dashboard-trend-down {
+    @apply bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-300;
+  }
+
+  .dashboard-action {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-black
+           transition active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-teal-500/30;
+  }
+
+  .dashboard-action-primary {
+    @apply bg-teal-700 text-white shadow-sm shadow-teal-700/20 hover:bg-teal-800;
+  }
+
+  .dashboard-action-ghost {
+    @apply border border-slate-200 bg-white text-slate-700 hover:border-teal-200 hover:bg-teal-50 hover:text-teal-800
+           dark:border-white/10 dark:bg-white/[0.03] dark:text-slate-200 dark:hover:border-teal-300/30 dark:hover:bg-teal-300/10 dark:hover:text-teal-100;
+  }
+
+  .dashboard-segment {
+    @apply inline-flex rounded-lg border border-slate-200 bg-slate-100 p-1 dark:border-white/10 dark:bg-white/[0.04];
+  }
+
+  .dashboard-segment-button {
+    @apply rounded-md px-3 py-1.5 text-xs font-black capitalize text-slate-500 transition
+           hover:text-slate-900 dark:text-slate-400 dark:hover:text-white;
+  }
+
+  .dashboard-segment-button-active {
+    @apply bg-white text-teal-700 shadow-sm dark:bg-white/10 dark:text-teal-200;
+  }
+
+  .dashboard-check-row {
+    @apply flex cursor-pointer items-center gap-3 rounded-lg border border-slate-200 bg-slate-50/80 p-3
+           transition hover:border-teal-300 hover:bg-teal-50/70
+           dark:border-white/10 dark:bg-white/[0.03] dark:hover:border-teal-300/30 dark:hover:bg-teal-300/10;
+  }
+
+  .dashboard-table {
+    @apply w-full border-collapse;
+  }
+
+  .dashboard-table th {
+    @apply border-b border-slate-200 bg-slate-50 px-5 py-3 text-left text-xs font-black uppercase
+           text-slate-500 dark:border-white/10 dark:bg-white/[0.03] dark:text-slate-400;
+  }
+
+  .dashboard-table td {
+    @apply border-b border-slate-100 px-5 py-4 text-sm text-slate-800
+           dark:border-white/10 dark:text-slate-100;
+  }
+
+  .dashboard-table tr:hover td {
+    @apply bg-slate-50/80 dark:bg-white/[0.03];
+  }
+
+  .dashboard-rank-row {
+    @apply flex items-center gap-3 rounded-lg border border-slate-100 bg-slate-50/80 p-3
+           dark:border-white/10 dark:bg-white/[0.03];
+  }
+
+  .dashboard-rank-number {
+    @apply flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg
+           bg-slate-950 text-sm font-black text-white dark:bg-white dark:text-slate-950;
+  }
 }
 
 /* ════════════════════════════════════════

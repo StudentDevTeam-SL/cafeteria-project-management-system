@@ -1,0 +1,92 @@
+[2m8:20:57 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mThe width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+[2m8:20:57 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mThe width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+[2m8:20:57 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mThe width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+[2m8:20:57 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mThe width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+[2m8:20:57 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/dashboard/stats/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m8:20:57 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/dashboard/notifications/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m8:20:57 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/dashboard/stats/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m8:20:57 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/dashboard/notifications/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m8:20:57 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/orders/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m8:20:57 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/orders/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m8:20:58 PM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mFailed to fetch dashboard data: AxiosError: Request failed with status code 502
+    at settle (http://127.0.0.1:5173/node_modules/.vite/deps/axios.js?v=605370f9:1669:14)
+    at XMLHttpRequest.onloadend (http://127.0.0.1:5173/node_modules/.vite/deps/axios.js?v=605370f9:2002:4)
+    at Axios$1.request (http://127.0.0.1:5173/node_modules/.vite/deps/axios.js?v=605370f9:2583:37)
+    at async Promise.all (index 0)
+    at async http://127.0.0.1:5173/src/pages/Dashboard.jsx:1142:25
+[2m8:20:58 PM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mFailed to fetch notifications: AxiosError: Request failed with status code 502
+    at settle (http://127.0.0.1:5173/node_modules/.vite/deps/axios.js?v=605370f9:1669:14)
+    at XMLHttpRequest.onloadend (http://127.0.0.1:5173/node_modules/.vite/deps/axios.js?v=605370f9:2002:4)
+[2m8:20:58 PM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mFailed to fetch dashboard data: AxiosError: Request failed with status code 502
+    at settle (http://127.0.0.1:5173/node_modules/.vite/deps/axios.js?v=605370f9:1669:14)
+    at XMLHttpRequest.onloadend (http://127.0.0.1:5173/node_modules/.vite/deps/axios.js?v=605370f9:2002:4)
+    at Axios$1.request (http://127.0.0.1:5173/node_modules/.vite/deps/axios.js?v=605370f9:2583:37)
+    at async Promise.all (index 0)
+    at async http://127.0.0.1:5173/src/pages/Dashboard.jsx:1142:25
+[2m8:20:58 PM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mFailed to fetch notifications: AxiosError: Request failed with status code 502
+    at settle (http://127.0.0.1:5173/node_modules/.vite/deps/axios.js?v=605370f9:1669:14)
+    at XMLHttpRequest.onloadend (http://127.0.0.1:5173/node_modules/.vite/deps/axios.js?v=605370f9:2002:4)
+[2m8:27:11 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mThe width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+[2m8:27:11 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mThe width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+[2m8:27:11 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mThe width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+[2m8:27:11 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mThe width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+[2m8:27:12 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mThe width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+[2m8:27:12 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mThe width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+[2m8:27:12 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mThe width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+[2m8:27:12 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mThe width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+[2m8:27:12 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mThe width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+[2m8:27:12 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mThe width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
