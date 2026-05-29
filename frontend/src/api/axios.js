@@ -1,7 +1,9 @@
 import axios from 'axios';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '/api/' : 'http://localhost:8000/api/');
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000/api/',
+  baseURL: API_BASE_URL,
 });
 
 // ── Request interceptor: attach access token ──────────────────────────────
@@ -65,7 +67,7 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        const refreshUrl = (import.meta.env.VITE_API_URL || 'http://localhost:8000/api/') + 'auth/refresh/';
+        const refreshUrl = API_BASE_URL + 'auth/refresh/';
         const { data } = await axios.post(refreshUrl, { refresh: refreshToken });
         
         const newAccess = data.access;
