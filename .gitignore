@@ -16,6 +16,7 @@ frontend/*.log
 backend/*.log
 backend/*.err.log
 backend/*.out.log
+**/.codex-logs/
 
 # Environment secrets
 # Local environment files (do NOT commit secrets)

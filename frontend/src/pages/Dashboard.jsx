@@ -232,7 +232,7 @@ const PeopleInsights = ({ roleBreakdown, employeeStatus, jobPipeline }) => (
   >
     <div className="dashboard-panel p-5">
       <SectionHeader icon={UserCheck} title="People by Role" subtitle="Staffing shape across the floor" />
-      <div className="h-56">
+      <div className="h-56 min-h-56 min-w-0">
         {roleBreakdown?.length ? (
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={roleBreakdown}>
@@ -249,7 +249,7 @@ const PeopleInsights = ({ roleBreakdown, employeeStatus, jobPipeline }) => (
 
     <div className="dashboard-panel p-5">
       <SectionHeader icon={Users} title="Employees" subtitle="Active and inactive records" />
-      <div className="h-56">
+      <div className="h-56 min-h-56 min-w-0">
         {employeeStatus?.length ? (
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
@@ -267,7 +267,7 @@ const PeopleInsights = ({ roleBreakdown, employeeStatus, jobPipeline }) => (
 
     <div className="dashboard-panel p-5">
       <SectionHeader icon={BriefcaseBusiness} title="Job Pipeline" subtitle="Applicant movement by stage" />
-      <div className="h-56">
+      <div className="h-56 min-h-56 min-w-0">
         {jobPipeline?.length ? (
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={jobPipeline}>
@@ -746,7 +746,7 @@ const Dashboard = () => {
               </div>
             )}
           />
-          <div className="h-80">
+          <div className="h-80 min-h-80 min-w-0">
             <ResponsiveContainer width="100%" height="100%">
               {activeChart === 'sales' ? (
                 <AreaChart data={weeklyData}>
@@ -782,7 +782,7 @@ const Dashboard = () => {
           className="dashboard-panel p-5"
         >
           <SectionHeader icon={Utensils} title="Sales by Category" subtitle="Today's order mix" />
-          <div className="h-56">
+          <div className="h-56 min-h-56 min-w-0">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie data={categoryData} cx="50%" cy="50%" innerRadius={58} outerRadius={86} paddingAngle={3} dataKey="value">

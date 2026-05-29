@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+venv/
+.venv/
+
+# Django/local runtime
+.env
+db.sqlite3
+staticfiles/
+media/
+
+# Logs and generated diagnostics
+*.log
+*.err.log
+*.out.log
+.codex-logs/
