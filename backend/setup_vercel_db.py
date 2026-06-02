@@ -79,12 +79,17 @@ def main():
                 'last_name': 'Admin'
             }
         )
+        # Always reset the password to ensure login works
+        admin_user.set_password('admin1234')
+        admin_user.is_staff = True
+        admin_user.is_superuser = True
+        admin_user.is_active = True
+        admin_user.role = 'Admin'
+        admin_user.save()
         if created:
-            admin_user.set_password('admin')
-            admin_user.save()
-            print(f"✅ Created new admin superuser: admin / admin")
+            print(f"✅ Created new admin superuser: admin / admin1234")
         else:
-            print(f"ℹ️ Admin superuser already exists in the database.")
+            print(f"ℹ️ Admin superuser already exists — password reset to admin1234")
     except Exception as e:
         print(f"\n❌ ERROR ensuring admin superuser: {e}")
         sys.exit(1)

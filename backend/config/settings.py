@@ -199,7 +199,10 @@ CORS_ALLOWED_ORIGIN_REGEXES = [
 ]
 
 if not DEBUG:
-    SECURE_SSL_REDIRECT = True
+    # Vercel terminates SSL at the edge proxy; the function receives HTTP.
+    # Trust the X-Forwarded-Proto header so Django knows the real scheme.
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SECURE_SSL_REDIRECT = False  # Vercel handles HTTPS — never redirect internally
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SECURE_BROWSER_XSS_FILTER = True
