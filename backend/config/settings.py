@@ -18,7 +18,10 @@ if not SECRET_KEY:
     raise ValueError("SECRET_KEY environment variable is missing and must be set in production (DEBUG=False).")
 
 DEBUG = config('DEBUG', default=False, cast=bool)
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')
+
+# Default ALLOWED_HOSTS for local development and Vercel hosting
+allowed_hosts_str = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,cafeteria-systemchi.vercel.app,.vercel.app')
+ALLOWED_HOSTS = [s.strip() for s in allowed_hosts_str.split(',') if s.strip()]
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -82,8 +85,16 @@ TEMPLATES = [
 WSGI_APPLICATION = 'config.wsgi.application'
 
 _DATABASE_URL = config('DATABASE_URL', default='')
+
+# Production Database Check: Fail loudly if DATABASE_URL is missing in production (DEBUG=False)
+if not DEBUG and not _DATABASE_URL:
+    raise ValueError(
+        "DATABASE_URL environment variable is missing in production (DEBUG=False). "
+        "Please set a valid PostgreSQL connection string (DATABASE_URL) in your Vercel project environment variables."
+    )
+
 if _DATABASE_URL and _HAS_DJ_DB_URL:
-    # Production / Render: use the full connection URL
+    # Production / Vercel: use the full connection URL
     DATABASES = {'default': dj_database_url.parse(_DATABASE_URL, conn_max_age=600)}
 else:
     # Local development: use individual DB_* environment variables
@@ -127,6 +138,32 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
+# ─── Cache Configuration ─────────────────────────────────────────────────
+# Production: Uses Upstash Redis (or any Redis) via REDIS_URL env variable.
+# Local dev:  Falls back to in-memory cache (no Redis install required).
+_REDIS_URL = config('REDIS_URL', default='')
+
+if _REDIS_URL:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django_redis.cache.RedisCache',
+            'LOCATION': _REDIS_URL,
+            'OPTIONS': {
+                'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+            },
+            'KEY_PREFIX': 'cafeteria',
+            'TIMEOUT': 300,  # Default TTL: 5 minutes (overridden per-key)
+        }
+    }
+else:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+            'LOCATION': 'cafeteria-cache',
+            'TIMEOUT': 300,
+        }
+    }
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 REST_FRAMEWORK = {
@@ -147,13 +184,19 @@ SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
 
-CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', default='http://localhost:3000,http://localhost:5173,http://127.0.0.1:5173').split(',')
+cors_str = config('CORS_ALLOWED_ORIGINS', default='http://localhost:3000,http://localhost:5173,http://127.0.0.1:5173,https://cafeteria-systemchi.vercel.app')
+CORS_ALLOWED_ORIGINS = [s.strip() for s in cors_str.split(',') if s.strip()]
 
-CSRF_TRUSTED_ORIGINS = config(
+csrf_str = config(
     'CSRF_TRUSTED_ORIGINS',
-    default='https://cafeteria-frontend.onrender.com',
-    cast=lambda v: [s.strip() for s in v.split(',')]
+    default='https://cafeteria-systemchi.vercel.app',
 )
+CSRF_TRUSTED_ORIGINS = [s.strip() for s in csrf_str.split(',') if s.strip()]
+
+# Support wildcards for Vercel preview environments
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://.*\.vercel\.app$",
+]
 
 if not DEBUG:
     SECURE_SSL_REDIRECT = True

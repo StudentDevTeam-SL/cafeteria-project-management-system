@@ -25,7 +25,7 @@ class Employee(models.Model):
     phone       = models.CharField(max_length=20, blank=True, default='')   # Added
     salary      = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     hire_date   = models.DateField(auto_now_add=True)
-    status      = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')
+    status      = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active', db_index=True)
     shift       = models.CharField(max_length=50, blank=True, default='')   # Added
     hours       = models.CharField(max_length=50, blank=True, default='')   # Added
 

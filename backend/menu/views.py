@@ -1,3 +1,4 @@
+from django.core.cache import cache
 from rest_framework import viewsets, mixins
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.decorators import action
@@ -13,6 +14,11 @@ from .serializers import (
     NewsletterSubscriptionSerializer, JobApplicationSerializer
 )
 from accounts.permissions import IsAdminRole, IsManagerOrAdmin, IsManagerOrAdminOrReadOnly
+from config.cache import (
+    CACHE_KEY_MENU_CATEGORIES, CACHE_KEY_MENU_LIST,
+    CACHE_TTL_CATEGORIES, CACHE_TTL_LONG, make_cache_key,
+    invalidate_menu_caches,
+)
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
@@ -23,6 +29,26 @@ class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = [IsManagerOrAdminOrReadOnly]
+
+    def list(self, request, *args, **kwargs):
+        cached = cache.get(CACHE_KEY_MENU_CATEGORIES)
+        if cached is not None:
+            return Response(cached)
+        response = super().list(request, *args, **kwargs)
+        cache.set(CACHE_KEY_MENU_CATEGORIES, response.data, CACHE_TTL_CATEGORIES)
+        return response
+
+    def perform_create(self, serializer):
+        super().perform_create(serializer)
+        invalidate_menu_caches()
+
+    def perform_update(self, serializer):
+        super().perform_update(serializer)
+        invalidate_menu_caches()
+
+    def perform_destroy(self, instance):
+        super().perform_destroy(instance)
+        invalidate_menu_caches()
 
 
 class MenuItemViewSet(viewsets.ModelViewSet):
@@ -43,12 +69,34 @@ class MenuItemViewSet(viewsets.ModelViewSet):
         context['request'] = self.request
         return context
 
+    def list(self, request, *args, **kwargs):
+        cache_key = make_cache_key(CACHE_KEY_MENU_LIST, request)
+        cached = cache.get(cache_key)
+        if cached is not None:
+            return Response(cached)
+        response = super().list(request, *args, **kwargs)
+        cache.set(cache_key, response.data, CACHE_TTL_LONG)
+        return response
+
+    def perform_create(self, serializer):
+        super().perform_create(serializer)
+        invalidate_menu_caches()
+
+    def perform_update(self, serializer):
+        super().perform_update(serializer)
+        invalidate_menu_caches()
+
+    def perform_destroy(self, instance):
+        super().perform_destroy(instance)
+        invalidate_menu_caches()
+
     @action(detail=True, methods=['patch'])
     def toggle(self, request, pk=None):
         """Toggle active/inactive status; return full updated item."""
         item        = self.get_object()
         item.status = 'inactive' if item.status == 'active' else 'active'
         item.save()
+        invalidate_menu_caches()
         return Response(MenuItemSerializer(item, context={'request': request}).data)
 
 class ContactMessageViewSet(

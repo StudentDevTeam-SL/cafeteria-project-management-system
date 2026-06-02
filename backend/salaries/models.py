@@ -12,8 +12,8 @@ class SalaryRecord(models.Model):
     bonus = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     deduction = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     net_salary = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
-    payment_date = models.DateField()
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    payment_date = models.DateField(db_index=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', db_index=True)
 
     def save(self, *args, **kwargs):
         from decimal import Decimal

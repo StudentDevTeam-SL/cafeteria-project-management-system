@@ -3,6 +3,7 @@ from collections import OrderedDict
 
 from django.apps import apps
 from django.core import serializers
+from django.core.cache import cache
 from django.db import transaction
 from django.db.models import Count, F, Sum
 from django.utils import timezone
@@ -12,6 +13,11 @@ from rest_framework.views import APIView
 
 from accounts.models import CustomUser, LoginActivity
 from accounts.permissions import IsAdminRole, IsManagerOrAdmin
+from config.cache import (
+    CACHE_KEY_BACKUP_TABLES, CACHE_KEY_DASHBOARD_NOTIFICATIONS,
+    CACHE_KEY_DASHBOARD_STATS, CACHE_TTL_MEDIUM, CACHE_TTL_NOTIFICATIONS,
+    CACHE_TTL_SHORT, make_cache_key,
+)
 from .models import SystemNotification
 
 
@@ -46,6 +52,11 @@ def compact_datetime(value):
 
 class DashboardStatsView(APIView):
     def get(self, request):
+        # Check cache first
+        cached = cache.get(CACHE_KEY_DASHBOARD_STATS)
+        if cached is not None:
+            return Response(cached)
+
         from employees.models import Employee
         from inventory.models import InventoryItem
         from menu.models import JobApplication
@@ -98,7 +109,7 @@ class DashboardStatsView(APIView):
             ).count()
         )
 
-        return Response({
+        data = {
             'revenue': float(revenue),
             'orders': orders_count,
             'staff': staff_count,
@@ -108,13 +119,21 @@ class DashboardStatsView(APIView):
             'jobPipeline': job_pipeline,
             'loginActivity': login_activity,
             'notificationCount': notification_count,
-        })
+        }
+        cache.set(CACHE_KEY_DASHBOARD_STATS, data, CACHE_TTL_SHORT)
+        return Response(data)
 
 
 class DashboardNotificationsView(APIView):
     permission_classes = [IsManagerOrAdmin]
 
     def get(self, request):
+        user_role = getattr(request.user, 'role', '')
+        cache_key = make_cache_key(CACHE_KEY_DASHBOARD_NOTIFICATIONS, extra=user_role)
+        cached = cache.get(cache_key)
+        if cached is not None:
+            return Response(cached)
+
         from inventory.models import InventoryItem
         from menu.models import ContactMessage, JobApplication, NewsletterSubscription
         from orders.models import Order
@@ -201,16 +220,22 @@ class DashboardNotificationsView(APIView):
             })
 
         notifications.sort(key=lambda item: item.get('created_at') or now.isoformat(), reverse=True)
-        return Response({
+        data = {
             'count': len(notifications),
             'notifications': notifications[:30],
-        })
+        }
+        cache.set(cache_key, data, CACHE_TTL_NOTIFICATIONS)
+        return Response(data)
 
 
 class BackupTablesView(APIView):
     permission_classes = [IsAdminRole]
 
     def get(self, request):
+        cached = cache.get(CACHE_KEY_BACKUP_TABLES)
+        if cached is not None:
+            return Response(cached)
+
         tables = []
         for key, (_, _, label) in BACKUP_TABLES.items():
             model = get_backup_model(key)
@@ -219,7 +244,9 @@ class BackupTablesView(APIView):
                 'label': label,
                 'count': model.objects.count(),
             })
-        return Response({'tables': tables})
+        data = {'tables': tables}
+        cache.set(CACHE_KEY_BACKUP_TABLES, data, CACHE_TTL_MEDIUM)
+        return Response(data)
 
 
 class BackupExportView(APIView):

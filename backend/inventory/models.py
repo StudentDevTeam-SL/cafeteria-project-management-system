@@ -10,5 +10,11 @@ class InventoryItem(models.Model):
     cost      = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)  # Added
     updated_at = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        indexes = [
+            models.Index(fields=['category']),
+            models.Index(fields=['quantity', 'min_stock']),
+        ]
+
     def __str__(self):
         return f"{self.item_name} ({self.quantity} {self.unit})"
