@@ -4,6 +4,7 @@ from django.http import JsonResponse
 from django.db import connection
 from django.db.utils import OperationalError
 import signal
+from .media_views import media_file
 
 def health_check(request):
     try:
@@ -16,6 +17,7 @@ def health_check(request):
 urlpatterns = [
     path('health/', health_check),
     path('api/health/', health_check),
+    path('api/media/<path:pathname>', media_file),
     path('admin/', admin.site.urls),
     path('api/auth/', include('accounts.urls')),
     path('api/employees/', include('employees.urls')),

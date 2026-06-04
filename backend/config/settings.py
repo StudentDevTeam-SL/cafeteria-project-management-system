@@ -138,6 +138,23 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
+BLOB_STORE_ID = config('BLOB_STORE_ID', default='')
+BLOB_READ_WRITE_TOKEN = config('BLOB_READ_WRITE_TOKEN', default='')
+BLOB_ACCESS = config('BLOB_ACCESS', default='private')
+USE_VERCEL_BLOB_STORAGE = bool(BLOB_READ_WRITE_TOKEN)
+
+if USE_VERCEL_BLOB_STORAGE:
+    MEDIA_URL = config('MEDIA_URL', default='/api/media/')
+    DEFAULT_FILE_STORAGE = 'config.storage.VercelBlobStorage'
+    STORAGES = {
+        'default': {
+            'BACKEND': 'config.storage.VercelBlobStorage',
+        },
+        'staticfiles': {
+            'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage',
+        },
+    }
+
 # ─── Cache Configuration ─────────────────────────────────────────────────
 # Production: Uses Upstash Redis (or any Redis) via REDIS_URL env variable.
 # Local dev:  Falls back to in-memory cache (no Redis install required).

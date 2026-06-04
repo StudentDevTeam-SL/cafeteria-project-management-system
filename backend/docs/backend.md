@@ -100,7 +100,12 @@ Production can use:
 DATABASE_URL=postgres://user:password@host:port/dbname
 DEBUG=False
 PGSSLMODE=require
+BLOB_STORE_ID=your-vercel-blob-store-id
+BLOB_READ_WRITE_TOKEN=your-vercel-blob-read-write-token
+BLOB_ACCESS=private
 ```
+
+When `BLOB_READ_WRITE_TOKEN` is set, uploaded menu images and job application CVs use Vercel Blob storage. Private Blob files are served through `/api/media/<path>`; menu images are readable for display, while CV files require a Manager or Admin JWT.
 
 Optional local/demo helper:
 

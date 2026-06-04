@@ -8,6 +8,7 @@ import PaginationFooter from '../components/PaginationFooter';
 import { DatePresetSelect, FilterSelect, ResetFiltersButton } from '../components/FilterControls';
 import { usePagination } from '../hooks/usePagination';
 import { matchesDatePreset, normalizeText, uniqueOptions } from '../utils/filterUtils';
+import { openProtectedMedia } from '../utils/downloadMedia';
 import api from '../api/axios';
 
 const STATUS_OPTIONS = [
@@ -204,6 +205,16 @@ const Jobs = () => {
     }
   };
 
+  const openCv = async (application, event) => {
+    event?.stopPropagation();
+    try {
+      await openProtectedMedia(application.cv_url);
+    } catch (err) {
+      console.error('Failed to open CV:', err);
+      setError('Failed to open CV.');
+    }
+  };
+
   const stats = [
     { label: 'Total Applications', value: applications.length, icon: BriefcaseBusiness, color: 'text-primary', bg: 'bg-primary/10' },
     { label: 'New', value: applications.filter(app => app.status === 'new').length, icon: Mail, color: 'text-blue-500', bg: 'bg-blue-500/10' },
@@ -345,15 +356,13 @@ const Jobs = () => {
                     <td className="text-xs text-slate-400">{displayDateTime(app.created_at)}</td>
                     <td>
                       {app.cv_url ? (
-                        <a
-                          href={app.cv_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={event => event.stopPropagation()}
+                        <button
+                          type="button"
+                          onClick={event => openCv(app, event)}
                           className="inline-flex items-center gap-1 rounded-lg bg-primary/10 px-2.5 py-1 text-xs font-bold text-primary hover:bg-primary hover:text-white"
                         >
                           Open <ExternalLink className="h-3 w-3" />
-                        </a>
+                        </button>
                       ) : (
                         <span className="text-xs text-slate-400">No CV</span>
                       )}
@@ -389,10 +398,10 @@ const Jobs = () => {
                   </span>
                 </div>
                 {selected.cv_url && (
-                  <a href={selected.cv_url} target="_blank" rel="noopener noreferrer" className="btn-primary inline-flex items-center gap-2">
+                  <button type="button" onClick={() => openCv(selected)} className="btn-primary inline-flex items-center gap-2">
                     <FileText className="h-4 w-4" />
                     CV
-                  </a>
+                  </button>
                 )}
               </div>
 

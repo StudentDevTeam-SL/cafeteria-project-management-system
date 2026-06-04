@@ -22,6 +22,8 @@ Production uses `DATABASE_URL` when it is set:
 DATABASE_URL=postgres://user:password@host:port/dbname
 ```
 
+On Vercel, `DATABASE_URL` is the PostgreSQL connection string. Blob storage is separate and uses `BLOB_STORE_ID` plus `BLOB_READ_WRITE_TOKEN` for uploaded media files.
+
 ## Entity Relationship Overview
 
 ```mermaid

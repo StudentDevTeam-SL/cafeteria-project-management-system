@@ -95,6 +95,21 @@ python manage.py runserver
 
 The API runs at `http://localhost:8000/`.
 
+### Vercel Environment
+
+Set these variables in the Vercel project before deploying the Django API:
+
+```env
+DATABASE_URL=postgres://user:password@host:port/dbname
+DEBUG=False
+SECRET_KEY=your-production-secret-key
+BLOB_STORE_ID=your-vercel-blob-store-id
+BLOB_READ_WRITE_TOKEN=your-vercel-blob-read-write-token
+BLOB_ACCESS=private
+```
+
+`DATABASE_URL` connects the app to PostgreSQL. `BLOB_READ_WRITE_TOKEN` enables Vercel Blob-backed media uploads for menu images and job application CVs.
+
 ### Frontend
 
 ```powershell

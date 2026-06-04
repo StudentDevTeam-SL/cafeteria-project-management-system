@@ -1,24 +1,19 @@
 """
-menu/signals.py
-───────────────────────────────────────────────────────────────────
-Django signals that clean up uploaded files from disk whenever a
-MenuItem or JobApplication is deleted or its file field is replaced.
-
-This prevents orphaned files from accumulating in media uploads.
+Clean up uploaded files when menu images or job CVs are deleted/replaced.
 """
-import os
 from django.db.models.signals import post_delete, pre_save
 from django.dispatch import receiver
 from .models import JobApplication, MenuItem
 
 
 def _delete_uploaded_file(file_field):
-    """Delete the file on disk that a file field points to, if it exists."""
+    """Delete the file through its configured Django storage backend."""
     if not file_field:
         return
-    path = file_field.path
-    if os.path.isfile(path):
-        os.remove(path)
+    name = getattr(file_field, "name", "")
+    if not name or name.startswith(("http://", "https://")):
+        return
+    file_field.storage.delete(name)
 
 
 @receiver(post_delete, sender=MenuItem)
@@ -48,7 +43,7 @@ def delete_old_image_on_update(sender, instance, **kwargs):
     old_image = old_instance.image
     new_image = instance.image
 
-    # Only delete if the image has actually changed and is a real file path
+    # Only delete if the image has actually changed.
     if old_image and old_image != new_image:
         _delete_uploaded_file(old_image)
 

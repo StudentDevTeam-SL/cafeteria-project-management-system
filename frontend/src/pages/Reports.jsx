@@ -12,6 +12,7 @@ import PaginationFooter from '../components/PaginationFooter';
 import { DatePresetSelect, FilterSelect, ResetFiltersButton } from '../components/FilterControls';
 import { usePagination } from '../hooks/usePagination';
 import { matchesDatePreset, normalizeText, numberInRange, uniqueOptions } from '../utils/filterUtils';
+import { openProtectedMedia } from '../utils/downloadMedia';
 import api from '../api/axios';
 
 /* ─── helpers ─────────────────────────────────────────────────────────── */
@@ -1141,9 +1142,13 @@ const JobsReport = () => {
                       <td className="text-xs text-slate-400">{app.created_at ? new Date(app.created_at).toLocaleString() : 'Not set'}</td>
                       <td className="print-hide">
                         {app.cv_url ? (
-                          <a href={app.cv_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 rounded-lg bg-primary/10 px-2 py-1 text-xs font-bold text-primary">
+                          <button
+                            type="button"
+                            onClick={() => openProtectedMedia(app.cv_url).catch(() => {})}
+                            className="inline-flex items-center gap-1 rounded-lg bg-primary/10 px-2 py-1 text-xs font-bold text-primary"
+                          >
                             CV <ExternalLink className="w-3 h-3" />
-                          </a>
+                          </button>
                         ) : (
                           <span className="text-xs text-slate-400">No CV</span>
                         )}
