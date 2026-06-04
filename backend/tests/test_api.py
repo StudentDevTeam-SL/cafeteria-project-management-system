@@ -117,6 +117,33 @@ class AuthAPITests(AuthMixin, APITestCase):
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertIn('access', resp.data)
 
+    def test_public_register_employee_returns_tokens(self):
+        resp = self.client.post('/api/auth/register/', {
+            'username': 'new_employee',
+            'password': 'Pass1234!',
+            'role': 'Employee',
+            'email': 'new.employee@example.com',
+            'first_name': 'New',
+            'last_name': 'Employee',
+            'phone_number': '252610000001',
+        }, format='json')
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+        self.assertIn('access', resp.data)
+        self.assertIn('refresh', resp.data)
+        self.assertEqual(resp.data['user']['username'], 'new_employee')
+        self.assertEqual(resp.data['user']['role'], 'Employee')
+        self.assertTrue(User.objects.filter(username='new_employee', role='Employee').exists())
+
+    def test_public_register_rejects_privileged_roles(self):
+        resp = self.client.post('/api/auth/register/', {
+            'username': 'new_admin',
+            'password': 'Pass1234!',
+            'role': 'Admin',
+            'email': 'new.admin@example.com',
+        }, format='json')
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertFalse(User.objects.filter(username='new_admin').exists())
+
     def test_check_email_finds_registered_gmail_alias(self):
         resp = self.client.post('/api/auth/check-email/', {
             'email': 'Admin@Gmail.com ',

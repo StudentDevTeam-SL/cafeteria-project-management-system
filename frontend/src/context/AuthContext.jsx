@@ -15,6 +15,19 @@ import api from '../api/axios';
 
 export const AuthContext = createContext();
 
+const formatApiError = (data, fallback) => {
+  if (!data) return fallback;
+  if (typeof data === 'string') return data;
+  if (data.detail) return data.detail;
+  if (data.error) return data.error;
+
+  const [field, value] = Object.entries(data)[0] || [];
+  if (!field) return fallback;
+
+  const message = Array.isArray(value) ? value.join(' ') : String(value);
+  return `${field}: ${message}`;
+};
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser]         = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -58,6 +71,28 @@ export const AuthProvider = ({ children }) => {
       return userData;
     } catch (error) {
       throw new Error(error.response?.data?.detail || 'Invalid credentials', { cause: error });
+    }
+  };
+
+  /**
+   * register — creates a public Staff/Employee account and stores its session.
+   */
+  const register = async (payload) => {
+    try {
+      const res = await api.post('auth/register/', payload);
+      const { access, refresh, user: userData, login_activity_id: loginActivityId } = res.data;
+
+      localStorage.setItem('token', access);
+      localStorage.setItem('refresh', refresh);
+      localStorage.setItem('user', JSON.stringify(userData));
+      if (loginActivityId) {
+        localStorage.setItem('login_activity_id', String(loginActivityId));
+      }
+
+      setUser(userData);
+      return userData;
+    } catch (error) {
+      throw new Error(formatApiError(error.response?.data, 'Registration failed'), { cause: error });
     }
   };
 
@@ -136,7 +171,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, googleSocialLogin, updateUser, switchRole, isLoading }}>
+    <AuthContext.Provider value={{ user, login, register, logout, googleSocialLogin, updateUser, switchRole, isLoading }}>
       {children}
     </AuthContext.Provider>
   );

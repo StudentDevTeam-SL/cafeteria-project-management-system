@@ -9,7 +9,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Lock, User, ChefHat, Eye, EyeOff, 
   ArrowRight, Building2, Sparkles, Server,
-  X, Mail, KeyRound, ShieldCheck,
+  X, Mail, KeyRound, ShieldCheck, UserPlus,
   Coffee, Users, DollarSign, CalendarDays, Clock
 } from 'lucide-react';
 
@@ -51,6 +51,22 @@ const DEMO_BACKEND_PASSWORDS = {
   employee: '1234',
 };
 
+const REGISTER_INITIAL_FORM = {
+  first_name: '',
+  last_name: '',
+  username: '',
+  email: '',
+  phone_number: '',
+  role: 'Employee',
+  password: '',
+  confirmPassword: '',
+};
+
+const REGISTER_ROLES = [
+  { value: 'Employee', label: 'Employee' },
+  { value: 'Staff', label: 'Staff' },
+];
+
 const getPasswordOverrides = () => {
   try {
     return JSON.parse(localStorage.getItem('password_overrides') || '{}');
@@ -61,7 +77,7 @@ const getPasswordOverrides = () => {
 };
 
 const Login = () => {
-  const { login, googleSocialLogin, isLoading } = useAuth();
+  const { login, register, googleSocialLogin, isLoading } = useAuth();
   const { playSound } = useSoundContext();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -69,6 +85,10 @@ const Login = () => {
   const [submitting, setSubmitting] = useState(false);
   const [showPw, setShowPw]     = useState(false);
   const [ssoLoading, setSsoLoading] = useState(false);
+  const [showRegisterModal, setShowRegisterModal] = useState(false);
+  const [registerForm, setRegisterForm] = useState(() => ({ ...REGISTER_INITIAL_FORM }));
+  const [registerError, setRegisterError] = useState('');
+  const [registerSubmitting, setRegisterSubmitting] = useState(false);
   
   // Forgot Password State
   const [showForgotModal, setShowForgotModal] = useState(false);
@@ -153,6 +173,47 @@ const Login = () => {
     }
     finally { 
       setSubmitting(false); 
+    }
+  };
+
+  const openRegisterModal = () => {
+    setRegisterForm({ ...REGISTER_INITIAL_FORM });
+    setRegisterError('');
+    setShowRegisterModal(true);
+  };
+
+  const setRegisterField = (field, value) => {
+    setRegisterForm(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleRegisterSubmit = async (e) => {
+    e.preventDefault();
+    setRegisterError('');
+
+    if (registerForm.password !== registerForm.confirmPassword) {
+      setRegisterError('Passwords do not match.');
+      return;
+    }
+
+    setRegisterSubmitting(true);
+
+    try {
+      await register({
+        first_name: registerForm.first_name.trim(),
+        last_name: registerForm.last_name.trim(),
+        username: registerForm.username.trim(),
+        email: registerForm.email.trim(),
+        phone_number: registerForm.phone_number.trim(),
+        role: registerForm.role,
+        password: registerForm.password,
+      });
+
+      if (playSound) playSound('bell');
+      setShowRegisterModal(false);
+    } catch (err) {
+      setRegisterError(err.message || 'Registration failed. Please try again.');
+    } finally {
+      setRegisterSubmitting(false);
     }
   };
 
@@ -621,7 +682,7 @@ const Login = () => {
                 <span>Don't have an account yet? </span>
                 <button
                   type="button"
-                  onClick={() => setError('New staff and manager accounts are provisioned by your system administrator.')}
+                  onClick={openRegisterModal}
                   className="text-accent font-bold hover:underline cursor-pointer bg-transparent border-none"
                 >
                   Register for free
@@ -641,6 +702,186 @@ const Login = () => {
           </div>
         </motion.div>
       </div>
+
+      {/* ── REGISTRATION MODAL ── */}
+      <AnimatePresence>
+        {showRegisterModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => {
+                if (!registerSubmitting) setShowRegisterModal(false);
+              }}
+              className="absolute inset-0 bg-[#070b13]/80 backdrop-blur-md cursor-pointer"
+            />
+
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              transition={{ duration: 0.2 }}
+              className="w-full max-w-lg max-h-[90vh] overflow-y-auto glass-card dark:bg-[#0f172a]/95 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl relative z-10"
+            >
+              <button
+                type="button"
+                disabled={registerSubmitting}
+                onClick={() => setShowRegisterModal(false)}
+                className="absolute top-5 right-5 text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer disabled:opacity-50"
+                aria-label="Close registration"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-11 h-11 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
+                  <UserPlus className="w-5.5 h-5.5" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-extrabold text-slate-900 dark:text-white font-heading">Register for free</h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">Staff and employee access</p>
+                </div>
+              </div>
+
+              <form onSubmit={handleRegisterSubmit} className="space-y-4">
+                {registerError && (
+                  <Alert variant="error">{registerError}</Alert>
+                )}
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">First Name</label>
+                    <input
+                      type="text"
+                      autoComplete="given-name"
+                      className="form-input text-sm h-11"
+                      value={registerForm.first_name}
+                      onChange={e => setRegisterField('first_name', e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Last Name</label>
+                    <input
+                      type="text"
+                      autoComplete="family-name"
+                      className="form-input text-sm h-11"
+                      value={registerForm.last_name}
+                      onChange={e => setRegisterField('last_name', e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Username</label>
+                    <input
+                      type="text"
+                      required
+                      autoComplete="username"
+                      className="form-input text-sm h-11"
+                      value={registerForm.username}
+                      onChange={e => setRegisterField('username', e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Email</label>
+                    <input
+                      type="email"
+                      required
+                      autoComplete="email"
+                      className="form-input text-sm h-11"
+                      value={registerForm.email}
+                      onChange={e => setRegisterField('email', e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Phone</label>
+                  <input
+                    type="tel"
+                    autoComplete="tel"
+                    className="form-input text-sm h-11"
+                    value={registerForm.phone_number}
+                    onChange={e => setRegisterField('phone_number', e.target.value)}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Account Type</label>
+                  <div className="grid grid-cols-2 gap-2 rounded-2xl border border-slate-200 bg-slate-50/80 p-1 dark:border-slate-800 dark:bg-slate-900/60">
+                    {REGISTER_ROLES.map(role => {
+                      const active = registerForm.role === role.value;
+
+                      return (
+                        <button
+                          key={role.value}
+                          type="button"
+                          onClick={() => setRegisterField('role', role.value)}
+                          className={`h-10 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
+                            active
+                              ? 'bg-primary text-white shadow-md shadow-primary/20'
+                              : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
+                          }`}
+                        >
+                          {role.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Password</label>
+                    <input
+                      type="password"
+                      required
+                      minLength="8"
+                      autoComplete="new-password"
+                      className="form-input text-sm h-11"
+                      value={registerForm.password}
+                      onChange={e => setRegisterField('password', e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Confirm Password</label>
+                    <input
+                      type="password"
+                      required
+                      minLength="8"
+                      autoComplete="new-password"
+                      className="form-input text-sm h-11"
+                      value={registerForm.confirmPassword}
+                      onChange={e => setRegisterField('confirmPassword', e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 pt-2">
+                  <button
+                    type="button"
+                    disabled={registerSubmitting}
+                    onClick={() => setShowRegisterModal(false)}
+                    className="h-11 px-5 rounded-2xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold transition-all cursor-pointer disabled:opacity-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={registerSubmitting}
+                    className="h-11 px-5 rounded-2xl bg-primary text-white text-xs font-black shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70"
+                  >
+                    <span>{registerSubmitting ? 'Creating Account...' : 'Create Free Account'}</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* ── FORGOT PASSWORD MODAL ── */}
       <AnimatePresence>

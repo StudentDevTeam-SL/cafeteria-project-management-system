@@ -10,7 +10,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.exceptions import PermissionDenied
 from .serializers import (
     CustomTokenObtainPairSerializer, UserSerializer, UserCreateSerializer,
-    LoginActivitySerializer
+    LoginActivitySerializer, PublicRegisterSerializer
 )
 from .models import CustomUser, LoginActivity
 from .google_auth import google_user_payload, resolve_google_user
@@ -93,6 +93,28 @@ class LoginActivityViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = LoginActivity.objects.select_related('user').order_by('-login_at')
     serializer_class = LoginActivitySerializer
     permission_classes = [IsManagerOrAdmin]
+
+
+class PublicRegisterView(APIView):
+    """
+    Public self-registration for Staff and Employee users.
+    """
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        serializer = PublicRegisterSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+
+        refresh = RefreshToken.for_user(user)
+        activity = create_login_activity(request, user)
+
+        return Response({
+            'access': str(refresh.access_token),
+            'refresh': str(refresh),
+            'login_activity_id': activity.id,
+            'user': UserSerializer(user).data,
+        }, status=status.HTTP_201_CREATED)
 
 
 class CustomTokenObtainPairView(TokenObtainPairView):
